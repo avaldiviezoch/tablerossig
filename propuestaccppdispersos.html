@@ -3,38 +3,69 @@
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>Visor · CCPP Ámbito (lista + zoom flexible)</title>
+<title>Grado de dispersión de centros poblados - PNSR</title>
 
 <link rel="stylesheet" href="https://js.arcgis.com/4.30/esri/themes/light/main.css">
 <script src="https://js.arcgis.com/4.30/"></script>
 
 <style>
-  :root{ --ink:#0b2532; --muted:#64748b; --line:#0e4a43; --panel:#0f2e29; --brand:#0b3b38; --sep:#e6ecea; }
-  html,body{margin:0;height:100%;overflow:hidden;font-family:system-ui,-apple-system,Segoe UI,Roboto,Inter,Arial;background:#eef5f3;color:#0b2532}
-  .shell{display:grid;grid-template-columns:1fr min(34vw,420px);height:100vh;width:100vw}
+  :root{
+    --ink:#0b2532; --muted:#64748b; --line:#0e4a43; --panel:#f7fbfa;
+    --brand:#0b3b38; --accent:#0f2e29; --sep:#e6ecea;
+  }
+  html,body{margin:0;height:100%;overflow:hidden;font-family:system-ui,-apple-system,Segoe UI,Roboto,Inter,Arial;background:#eef5f3;color:var(--ink)}
+  /* Mapa más pequeño, panel (indicadores/lista) más grande */
+  .shell{display:grid;grid-template-columns:min(40vw,520px) 1fr;height:100vh;width:100vw}
   #viewWrap{position:sticky;top:0;height:100vh;overflow:hidden}
   #viewDiv{position:relative;width:100%;height:100%}
 
-  /* Panel derecho: lista compacta */
-  .sidebar{background:#f7fbfa;border-left:1px solid #e6ecea;box-shadow:-6px 0 24px rgba(2,6,23,.06);padding:12px 10px;display:grid;grid-template-rows:auto 1fr;gap:8px}
-  .topTitle{text-align:center;font-weight:900;letter-spacing:.2px;font-size:15px;margin:0}
-  .listCard{background:#fff;border:1px solid var(--sep);border-radius:14px;box-shadow:0 8px 20px rgba(2,6,23,.06);overflow:hidden;display:grid;grid-template-rows:auto 1fr}
-  .listCard header{padding:8px 10px;background:#fff;border-bottom:1px solid var(--sep)}
-  .listCard h3{margin:0;font-size:13px;font-weight:900;color:#0b3b38;letter-spacing:.2px}
-  .list{overflow:auto;max-height:calc(100vh - 120px)}
-  .item{padding:10px;border-bottom:1px solid #edf2f7;cursor:pointer;transition:background .15s ease}
-  .item:hover{background:#f5faf8}
-  .title{font-weight:900;font-size:13.5px}
-  .kv{font-size:12px;color:#334155;line-height:1.35}
-  .kv b{color:#0b2532}
-  .empty{padding:16px;text-align:center;color:#64748b;font-size:12.5px}
+  /* Panel derecho con espacio extra para “indicadores” */
+  .sidebar{background:var(--panel);border-left:1px solid var(--sep);box-shadow:-6px 0 24px rgba(2,6,23,.06);
+    padding:14px 12px;display:grid;grid-template-rows:auto auto auto 1fr;gap:12px}
+  .topTitle{
+    text-align:center;font-weight:1000;letter-spacing:.2px;margin:0;
+    font-size:clamp(22px, 3.6vh, 30px); color:var(--brand);
+  }
 
-  /* FABs (Capas/Leyenda) — lado derecho */
+  /* Filtros bonitos (dep-prov-dist) + botón limpiar */
+  .filtersBar{background:#fff;border:1px solid var(--sep);border-radius:16px;box-shadow:0 10px 22px rgba(2,6,23,.06);
+    padding:12px;display:grid;gap:10px}
+  .filtersGrid{display:grid;grid-template-columns:1fr;gap:10px}
+  @media (min-width:560px){ .filtersGrid{grid-template-columns:1fr 1fr 1fr} }
+  .fld{display:grid;gap:6px}
+  .fld label{font-size:12px;color:#47606b;font-weight:900;letter-spacing:.2px}
+  .fld select{
+    padding:10px 12px;border:1px solid #cfe7e3;border-radius:12px;background:#e8f5f3;color:#0b3b38;
+    font-weight:800; font-size:13.5px; outline:none
+  }
+  .fld select:disabled{opacity:.6}
+  .rowBtns{display:flex;justify-content:flex-end}
+  .btn{background:#0b3b38;color:#ecfffb;border:1px solid #0e4a43;padding:9px 14px;border-radius:12px;font-weight:900;cursor:pointer}
+  .btn:hover{filter:brightness(1.05)}
+
+  /* Panel “Indicadores” (vacío por ahora, con más espacio) */
+  .indPanel{background:#fff;border:1px solid var(--sep);border-radius:16px;box-shadow:0 10px 22px rgba(2,6,23,.06);
+    padding:12px;min-height:min(28vh,240px);display:grid;place-items:center;color:#93a1ad;font-weight:800}
+  .indPanel::before{content:"(Espacio reservado para Indicadores)";}
+
+  /* Lista compacta */
+  .listCard{background:#fff;border:1px solid var(--sep);border-radius:16px;box-shadow:0 10px 24px rgba(2,6,23,.06);overflow:hidden;display:grid;grid-template-rows:auto 1fr}
+  .listCard header{padding:10px 12px;background:#fff;border-bottom:1px solid var(--sep)}
+  .listCard h3{margin:0;font-size:14px;font-weight:1000;color:var(--brand);letter-spacing:.2px}
+  .list{overflow:auto;max-height:calc(100vh - 320px)} /* más espacio arriba para filtros + indicadores */
+  .item{padding:10px 12px;border-bottom:1px solid #edf2f7;cursor:pointer;transition:background .15s ease}
+  .item:hover{background:#f5faf8}
+  .title{font-weight:900;font-size:13.8px}
+  .kv{font-size:12.2px;color:#334155;line-height:1.35}
+  .kv b{color:#0b2532}
+  .empty{padding:16px;text-align:center;color:#64748b;font-size:12.8px}
+
+  /* FABs (Capas/Leyenda) — lado derecho del mapa */
   .fab-wrap{position:absolute;right:14px;top:14px;display:flex;flex-direction:column;gap:10px;z-index:7}
-  .fab{width:44px;height:44px;border-radius:50%;display:grid;place-items:center;background:#0b3b38;color:#e6fffb;border:1px solid #0e4a43;cursor:pointer;box-shadow:0 10px 22px rgba(0,0,0,.22);font-weight:900;user-select:none}
+  .fab{width:44px;height:44px;border-radius:50%;display:grid;place-items:center;background:var(--brand);color:#e6fffb;border:1px solid #0e4a43;cursor:pointer;box-shadow:0 10px 22px rgba(0,0,0,.22);font-weight:900;user-select:none}
   .fab:hover{filter:brightness(1.06)}
 
-  /* Burbujas movibles */
+  /* Burbujas movibles (Leyenda/Capas) */
   .bubble{position:absolute;right:70px;top:14px;min-width:300px;max-width:min(400px,88vw);background:#0f2e29;color:#dff7f3;border:1px solid #0e4a43;border-radius:16px;box-shadow:0 14px 32px rgba(0,0,0,.28);z-index:8;display:none}
   .bubble header{padding:10px 12px;background:#0b3b38;border-bottom:1px solid #0e4a43;border-radius:16px 16px 0 0;display:flex;align-items:center;justify-content:space-between;cursor:move;gap:8px}
   .bubble header .ttl{font-weight:900;letter-spacing:.2px}
@@ -44,7 +75,12 @@
   .esri-legend,.esri-layer-list{--esri-widget-padding:8px;--esri-widget-border-color:transparent;--esri-widget-shadow:none;background:transparent;color:#dff7f3;font-size:12.5px}
   .esri-layer-list__item-label,.esri-legend__service-label{color:#e6fffb !important}
 
-  @media (max-width:900px){ .shell{grid-template-columns:1fr} #viewWrap{position:relative;height:54vh} }
+  @media (max-width:900px){
+    .shell{grid-template-columns:1fr}
+    #viewWrap{position:relative;height:50vh}
+    .indPanel{min-height:160px}
+    .list{max-height:none}
+  }
 </style>
 </head>
 <body>
@@ -71,10 +107,35 @@
     </div>
   </div>
 
-  <!-- Panel derecho: LISTA compacta -->
+  <!-- Panel derecho -->
   <aside class="sidebar">
-    <div class="topTitle">Ámbito territorial de centros poblados</div>
+    <h1 class="topTitle">Grado de dispersión de centros poblados - PNSR</h1>
 
+    <!-- Filtros (Deps/Provs/Dists desde Lím. Políticos) -->
+    <section class="filtersBar" aria-label="Filtros de ubicación">
+      <div class="filtersGrid">
+        <div class="fld">
+          <label for="selDep">Departamento</label>
+          <select id="selDep"><option value="">(Todos)</option></select>
+        </div>
+        <div class="fld">
+          <label for="selProv">Provincia</label>
+          <select id="selProv" disabled><option value="">(Todas)</option></select>
+        </div>
+        <div class="fld">
+          <label for="selDist">Distrito</label>
+          <select id="selDist" disabled><option value="">(Todos)</option></select>
+        </div>
+      </div>
+      <div class="rowBtns">
+        <button id="btnClear" class="btn" type="button">Limpiar filtros</button>
+      </div>
+    </section>
+
+    <!-- Indicadores (VACÍO con más espacio) -->
+    <section class="indPanel" aria-label="Indicadores (pendiente)"></section>
+
+    <!-- Lista -->
     <section class="listCard">
       <header><h3>Centros poblados (lista)</h3></header>
       <div class="list" id="cpList"><div class="empty">Cargando…</div></div>
@@ -102,7 +163,7 @@ require([
     header.addEventListener('mousedown',e=>{drag=true;ox=e.clientX-box.offsetLeft;oy=e.clientY-box.offsetTop;e.preventDefault();});
     window.addEventListener('mousemove',e=>{if(!drag)return;box.style.left=(e.clientX-ox)+'px';box.style.top=(e.clientY-oy)+'px';box.style.right='auto';});
     window.addEventListener('mouseup',()=>drag=false);
-    header.addEventListener('touchstart',e=>{const t=e.touches[0];drag=true;ox=t.clientX-box.offsetLeft;oy=t.clientY-box.offsetTop;});
+    header.addEventListener('touchstart',e=>{const t=e.touches[0];drag=true;ox=t.clientX-box.offsetLeft;oy=e.touches[0].clientY-box.offsetTop;});
     window.addEventListener('touchmove',e=>{if(!drag)return;const t=e.touches[0];box.style.left=(t.clientX-ox)+'px';box.style.top=(t.clientY-oy)+'px';box.style.right='auto';},{passive:false});
     window.addEventListener('touchend',()=>drag=false);
   }
@@ -111,22 +172,24 @@ require([
   /* ===== ENDPOINTS ===== */
   const CCPP = "https://pportalgis.vivienda.gob.pe/pfdserver1/rest/services/OGEI/CCPP_Dispersos/FeatureServer";
   const VR   = "https://dportalgis.vivienda.gob.pe/dfdserver/rest/services/OGEI/vivienda_rural/FeatureServer/0";
-  const LIM0 = "https://pportalgis.vivienda.gob.pe/pfdserver/rest/services/COES/Limites_Pol%C3%ADticos/MapServer/0";
-  const LIM1 = "https://pportalgis.vivienda.gob.pe/pfdserver/rest/services/COES/Limites_Pol%C3%ADticos/MapServer/1";
-  const LIM2 = "https://pportalgis.vivienda.gob.pe/pfdserver/rest/services/COES/Limites_Pol%C3%ADticos/MapServer/2";
+  const LIM_BASE = "https://pportalgis.vivienda.gob.pe/pfdserver/rest/services/COES/Limites_Pol%C3%ADticos/MapServer";
+  const LIM0 = `${LIM_BASE}/0`; // Deps (id_dpto, nom_dep)
+  const LIM1 = `${LIM_BASE}/1`; // Provs (id_dep, id_prov, nom_prov)
+  const LIM2 = `${LIM_BASE}/2`; // Dists (id_prov, id_dist, nom_dist) 
 
-  /* ===== MAPA base satélite (Cuturapi) ===== */
+  /* ===== MAPA base satélite (Cuturapi) — mapa más pequeño (columna izq.) ===== */
   const map = new Map({ basemap:"satellite" });
   const view = new MapView({ container:"viewDiv", map, center:[-69.155,-16.274], scale:65000, constraints:{minZoom:4,snapToZoom:false} });
   view.ui.add(new ScaleBar({view,unit:"metric"}),"bottom-left");
 
-  /* ===== Simbología (como acordamos) ===== */
+  /* ===== Simbología ===== */
   const mk=(c,s=6)=> new SimpleMarkerSymbol({style:"circle",color:c,size:s,outline:{color:[255,255,255,180],width:0.5}});
   const tri=(c,s=7)=> new SimpleMarkerSymbol({style:"triangle",color:c,size:s,outline:{color:[255,255,255,180],width:0.5}});
   const diam=(c,s=8)=> new SimpleMarkerSymbol({style:"diamond",color:c,size:s,outline:{color:[255,255,255,180],width:0.5}});
   const line=(c,w=1.2)=> new SimpleLineSymbol({color:c,width:w});
   const poly=(fill,outline)=> new SimpleFillSymbol({color:fill,outline});
 
+  // Capas CCPP
   const lyrAreasAgrup = new FeatureLayer({ url:`${CCPP}/6`, title:"Áreas agrupadas (densidad y viviendas)", visible:true,
     renderer:new SimpleRenderer({ symbol: poly([212,124,242,0.35], new SimpleLineSymbol({color:[0,0,0,0.9], width:1.2, style:"short-dot"})) })});
   const lyrAmbito = new FeatureLayer({ url:`${CCPP}/5`, title:"Ámbito territorial de centros poblados", visible:true,
@@ -158,12 +221,12 @@ require([
     outFields:["*"], definitionExpression:defExp, minScale:300000, maxScale:0, visible:true });
   viviendaRural.when(()=>{ viviendaRural.renderer = vrRenderer(viviendaRural.geometryType); });
 
-  // Límites (al final)
-  const limDept = new FeatureLayer({ url:LIM0, title:"Límite Departamental", visible:true, renderer:new SimpleRenderer({ symbol: line([255,255,255,0.85],2.0) })});
-  const limProv = new FeatureLayer({ url:LIM1, title:"Límite Provincial",    visible:true, renderer:new SimpleRenderer({ symbol: line([255,255,255,0.70],1.5) })});
-  const limDist = new FeatureLayer({ url:LIM2, title:"Límite Distrital",     visible:true, renderer:new SimpleRenderer({ symbol: line([255,255,255,0.55],1.0) })});
+  // Límites dibujados
+  const limDeptDraw = new FeatureLayer({ url:`${LIM_BASE}/0`, title:"Límite Departamental", visible:true, renderer:new SimpleRenderer({ symbol: line([255,255,255,0.85],2.0) })});
+  const limProvDraw = new FeatureLayer({ url:`${LIM_BASE}/1`, title:"Límite Provincial",    visible:true, renderer:new SimpleRenderer({ symbol: line([255,255,255,0.70],1.5) })});
+  const limDistDraw = new FeatureLayer({ url:`${LIM_BASE}/2`, title:"Límite Distrital",     visible:true, renderer:new SimpleRenderer({ symbol: line([255,255,255,0.55],1.0) })});
 
-  map.addMany([limDept, limProv, limDist]);
+  map.addMany([limDeptDraw, limProvDraw, limDistDraw]);
   map.addMany([viviendaRural, lyrPTAP, lyrCapt, lyrReserv, lyrRedes, lyrCPGrado, lyrAmbito, lyrAreasAgrup]);
 
   // Widgets en burbujas
@@ -171,61 +234,128 @@ require([
   new LayerList({ view, container:"layerListNode", selectionEnabled:true,
     listItemCreatedFunction:(e)=>{ e.item.panel = { content:"legend", open:false }; } });
 
-  /* ===== LISTA para /FeatureServer/5 ===== */
-  const cpLayer = lyrAmbito; // capa exacta
+  /* ===== LISTA + FILTROS (capa 5 + límites políticos para combos) ===== */
+  const cpLayer = lyrAmbito; // FeatureServer/5
   let layerView, hl; view.whenLayerView(cpLayer).then(lv=>layerView=lv);
 
-  const guideLayer = new GraphicsLayer({ listMode:"hide" }); // punto guía temporal
+  // fuentes para nombres
+  const limDeptSrc = new FeatureLayer({ url:LIM0, outFields:["id_dpto","nom_dep"], listMode:"hide" });
+  const limProvSrc = new FeatureLayer({ url:LIM1, outFields:["id_dep","id_prov","nom_prov"], listMode:"hide" });
+  const limDistSrc = new FeatureLayer({ url:LIM2, outFields:["id_prov","id_dist","nom_dist"], listMode:"hide" });
+
+  const guideLayer = new GraphicsLayer({ listMode:"hide" });
   map.add(guideLayer);
 
   const $list = document.getElementById('cpList');
+  const $selDep  = document.getElementById('selDep');
+  const $selProv = document.getElementById('selProv');
+  const $selDist = document.getElementById('selDist');
+  const $btnClear= document.getElementById('btnClear');
+
   const fmt = (n, d=0)=> (n==null||isNaN(n)) ? "—" : new Intl.NumberFormat('es-PE',{maximumFractionDigits:d}).format(Number(n));
+
+  // Cargar departamentos (id_dpto, nom_dep)
+  async function loadDeps(){
+    const q = limDeptSrc.createQuery();
+    q.where = "1=1"; q.returnGeometry = false;
+    q.outFields = ["id_dpto","nom_dep"]; q.orderByFields = ["nom_dep ASC"]; q.num = 300;
+    const r = await limDeptSrc.queryFeatures(q);
+    const seen = new Set(); const rows = [];
+    (r.features||[]).forEach(f=>{
+      const id = f.attributes?.id_dpto, name = f.attributes?.nom_dep;
+      if(id && !seen.has(id)){ seen.add(id); rows.push({id, name}); }
+    });
+    $selDep.innerHTML = `<option value="">(Todos)</option>` + rows.map(o=>`<option value="${o.id}">${o.name}</option>`).join("");
+    $selProv.innerHTML = `<option value="">(Todas)</option>`; $selProv.disabled = true;
+    $selDist.innerHTML = `<option value="">(Todos)</option>`; $selDist.disabled = true;
+  }
+
+  async function loadProvs(){
+    const dep = $selDep.value.trim();
+    $selProv.innerHTML = `<option value="">(Todas)</option>`;
+    $selDist.innerHTML = `<option value="">(Todos)</option>`; $selDist.disabled = true;
+    if(!dep){ $selProv.disabled = true; return; }
+    const q = limProvSrc.createQuery();
+    q.where = `id_dep='${dep}'`; q.returnGeometry=false;
+    q.outFields = ["id_prov","nom_prov"]; q.orderByFields = ["nom_prov ASC"]; q.num = 1000;
+    const r = await limProvSrc.queryFeatures(q);
+    const seen = new Set(), rows=[];
+    (r.features||[]).forEach(f=>{
+      const id = f.attributes?.id_prov, name=f.attributes?.nom_prov;
+      if(id && !seen.has(id)){ seen.add(id); rows.push({id, name}); }
+    });
+    $selProv.innerHTML += rows.map(o=>`<option value="${o.id}">${o.name}</option>`).join("");
+    $selProv.disabled = false;
+  }
+
+  async function loadDists(){
+    const prov = $selProv.value.trim();
+    $selDist.innerHTML = `<option value="">(Todos)</option>`;
+    if(!prov){ $selDist.disabled = true; return; }
+    const q = limDistSrc.createQuery();
+    q.where = `id_prov='${prov}'`; q.returnGeometry=false;
+    q.outFields = ["id_dist","nom_dist"]; q.orderByFields = ["nom_dist ASC"]; q.num = 3000;
+    const r = await limDistSrc.queryFeatures(q);
+    const seen = new Set(), rows=[];
+    (r.features||[]).forEach(f=>{
+      const id = f.attributes?.id_dist, name=f.attributes?.nom_dist;
+      if(id && !seen.has(id)){ seen.add(id); rows.push({id, name}); }
+    });
+    $selDist.innerHTML += rows.map(o=>`<option value="${o.id}">${o.name}</option>`).join("");
+    $selDist.disabled = false;
+  }
+
+  function buildWhere(){
+    const dep  = $selDep.value.trim();
+    const prov = $selProv.value.trim();
+    const dist = $selDist.value.trim();
+    const parts = ["1=1"];
+    if(dep)  parts.push(`id_dpto='${dep}'`);
+    if(prov) parts.push(`id_prov='${prov}'`);
+    if(dist) parts.push(`id_dist='${dist}'`);
+    return parts.join(" AND ");
+  }
 
   async function cargarLista(){
     const q = cpLayer.createQuery();
-    q.where = "1=1";
-    q.outFields = ["objectid","nom_cp","categoria_cp","vivrur_tot","vivrur_agrup_p","sum_pobcensa","distnear_max","distnear_min"]; // OID en minúsculas
+    q.where = buildWhere(); // enlazado con IDs de los filtros
+    q.outFields = ["objectid","nom_cp","categoria_cp","vivrur_tot","vivrur_agrup_p","sum_pobcensa","distnear_max","distnear_min","id_dpto","id_prov","id_dist"];
     q.returnGeometry = true;
-    q.num = 100;
-    q.orderByFields = ["categoria_cp ASC", "nom_cp ASC"];
+    q.num = 150;
+    q.orderByFields = ["categoria_cp ASC","nom_cp ASC"];
     const res = await cpLayer.queryFeatures(q);
     pintarLista(res.features || []);
   }
 
-  // === Zoom panorámico flexible (más abierto, con padding extra) ===
+  // === Zoom panorámico flexible (más abierto) ===
   function expandFactorFor(ext){
-    const w = Math.max(ext.width, ext.height); // unidades del view (WebMercator ≈ metros)
+    const w = Math.max(ext.width, ext.height);
     if (w < 500)   return 3.0;
     if (w < 2000)  return 2.2;
     if (w < 8000)  return 1.7;
-    return 1.45; // polígonos grandes: expand moderado
+    return 1.45;
   }
   async function flyToFeature(feat){
     if(!feat || !feat.geometry) return;
     const geom = feat.geometry;
     let target = geom.extent ? geom.extent.clone() : null;
 
-    // Fallback a centroide si no hay extent válido
     if (!target || target.isEmpty || (target.xmin===target.xmax && target.ymin===target.ymax)) {
       const center = geom.centroid || view.center;
-      try{
-        await view.goTo({ center, scale: 22000 }, { duration: 1300, easing: "ease-in-out" });
-      }catch(_){}
+      try{ await view.goTo({ center, scale: 24000 }, { duration: 1300, easing: "ease-in-out" }); }catch(_){}
       return;
     }
 
-    // Abrimos el cuadro para ver “terreno a los costados” y más arriba
     const expand = expandFactorFor(target);
     const paddedExtent = target.expand(expand);
-
-    // Padding asimétrico: más arriba (top) y aire a ambos lados
-    const pad = { left: 120, right: 120, top: 180, bottom: 100 };
+    const pad = { left: 120, right: 120, top: 200, bottom: 110 };
 
     try{
       await view.goTo({ target: paddedExtent, padding: pad }, { duration: 1300, easing: "ease-in-out", animate: true });
     }catch(_){}
   }
 
+  // Pintar lista + clicks
   function pintarLista(features){
     if(hl){ hl.remove(); hl=null; }
     if(!features.length){ $list.innerHTML = `<div class="empty">Sin resultados</div>`; return; }
@@ -244,7 +374,6 @@ require([
         </div>`;
     }).join("");
 
-    // click -> highlight + zoom flexible + punto guía
     $list.querySelectorAll(".item").forEach((el)=>{
       el.addEventListener("click", async ()=>{
         const oid = Number(el.dataset.oid);
@@ -255,13 +384,13 @@ require([
         if(hl){ hl.remove(); hl=null; }
         if(layerView){ hl = layerView.highlight(oid); }
 
-        // Punto guía en centroide (opcional)
+        // Punto guía (opcional)
         guideLayer.removeAll();
         if(feat.geometry && feat.geometry.centroid){
           guideLayer.add(new Graphic({
             geometry: feat.geometry.centroid,
-            symbol: new SimpleMarkerSymbol({ style:"circle", size:10, color:[255,255,255,0.0],
-              outline:{ color:[13,58,53,0.95], width:3 } })
+            symbol: { type:"simple-marker", style:"circle", size:10, color:[255,255,255,0],
+              outline:{ color:[13,58,53,0.95], width:3 } }
           }));
           setTimeout(()=>guideLayer.removeAll(), 1800);
         }
@@ -271,7 +400,25 @@ require([
     });
   }
 
-  view.when(cargarLista);
+  // Eventos filtros + botón limpiar
+  $selDep.addEventListener('change', async()=>{ await loadProvs(); await cargarLista(); });
+  $selProv.addEventListener('change', async()=>{ await loadDists(); await cargarLista(); });
+  $selDist.addEventListener('change', cargarLista);
+
+  $btnClear.addEventListener('click', async ()=>{
+    $selDep.value = "";
+    $selProv.innerHTML = `<option value="">(Todas)</option>`;
+    $selProv.disabled = true;
+    $selDist.innerHTML = `<option value="">(Todos)</option>`;
+    $selDist.disabled = true;
+    await cargarLista();
+  });
+
+  // init
+  (async function init(){
+    await loadDeps();
+    await cargarLista();
+  })();
 });
 </script>
 </body>
