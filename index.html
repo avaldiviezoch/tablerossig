@@ -13,8 +13,8 @@
       --radius:12px; --radius-sm:8px;
       --base-w:1280px; --base-h:800px;
       --gap:18px;
-      --left-w:560px;                 /* ancho columna izquierda */
-      --right-w: min(42vw, 720px);    /* ancho panel derecho */
+      --left-w:560px;
+      --right-w:min(42vw, 720px);
       --hdr-h:36px;
     }
     html,body{height:100%}
@@ -27,48 +27,51 @@
       gap:var(--gap); max-width:1400px; margin:0 auto; padding:18px;
     }
     header{grid-column:1 / -1; margin-bottom:6px}
-    h1{margin:0 0 4px; font-size:1.6rem; font-weight:900; color:#60a5fa}
+    h1{margin:0 0 4px; font-size:1.6rem; font-weight:900; color:#60a5fa; text-shadow:0 0 10px rgba(96,165,250,.2)}
     .sub{color:var(--muted); font-size:.95rem}
 
-    /* Columna izquierda (lista) */
-    .left{
-      display:flex; flex-direction:column; gap:var(--gap);
-    }
+    .left{ display:flex; flex-direction:column; gap:var(--gap); }
     .card{
       background:color-mix(in oklab, var(--panel) 98%, transparent);
-      border:1px solid var(--stroke); border-radius:var(--radius); box-shadow:var(--shadow);
-      overflow:hidden;
+      border:1px solid var(--stroke); border-radius:var(--radius); box-shadow:var(--shadow); overflow:hidden;
     }
     .card > .title{
       display:flex; align-items:center; gap:10px; padding:14px 16px; font-weight:800;
       border-bottom:1px solid var(--stroke);
       background:linear-gradient(to bottom, color-mix(in oklab, var(--panel) 98%, transparent), color-mix(in oklab, var(--panel) 92%, transparent));
     }
-    .grid{
-      display:grid; gap:12px; padding:14px; grid-template-columns:1fr;
-    }
+    .grid{ display:grid; gap:12px; padding:14px; grid-template-columns:1fr; }
+
+    /* Botones: estética ajustada */
     .btn{
-      display:block; text-decoration:none; color:inherit; font-weight:750; font-size:.95rem;
+      display:block; text-decoration:none; color:inherit; font-weight:800; font-size:.95rem;
       padding:14px 16px; border-radius:var(--radius-sm); border:1px solid var(--stroke);
-      background:linear-gradient(135deg, color-mix(in oklab, var(--btn1) 35%, transparent), color-mix(in oklab, var(--panel) 90%, transparent));
-      box-shadow:var(--shadow); transition:.25s; position:relative; overflow:hidden;
+      background:
+        linear-gradient(135deg, color-mix(in oklab, var(--btn1) 36%, transparent), color-mix(in oklab, var(--panel) 90%, transparent));
+      box-shadow:var(--shadow);
+      transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease, filter .18s ease;
+      position:relative; overflow:hidden;
     }
-    .btn:hover{ transform:translateY(-2px); box-shadow:var(--shadow-hover); border-color:color-mix(in oklab, var(--btn1) 60%, transparent); }
+    .btn::before{
+      content:""; position:absolute; inset:0;
+      background: radial-gradient(120px 120px at var(--x,50%) var(--y,50%), rgba(255,255,255,.12), transparent 60%);
+      opacity:0; transition:opacity .18s ease;
+    }
+    .btn:hover{ transform:translateY(-2px); filter:brightness(1.03); box-shadow:var(--shadow-hover); border-color:color-mix(in oklab, var(--btn1) 55%, transparent); }
+    .btn:hover::before{ opacity:1 }
     .btn:focus-visible{ outline:2px solid color-mix(in oklab, var(--btn1) 70%, transparent); outline-offset:2px; }
 
-    /* Variantes opcionales (por si luego agregas más) */
-    .v2{ background:linear-gradient(135deg, color-mix(in oklab, var(--btn2) 35%, transparent), color-mix(in oklab, var(--panel) 90%, transparent)); }
-    .v3{ background:linear-gradient(135deg, color-mix(in oklab, var(--btn3) 35%, transparent), color-mix(in oklab, var(--panel) 90%, transparent)); }
-    .v4{ background:linear-gradient(135deg, color-mix(in oklab, var(--btn4) 35%, transparent), color-mix(in oklab, var(--panel) 90%, transparent)); }
+    .v2{ background:linear-gradient(135deg, color-mix(in oklab, var(--btn2) 36%, transparent), color-mix(in oklab, var(--panel) 90%, transparent)); }
+    .v3{ background:linear-gradient(135deg, color-mix(in oklab, var(--btn3) 36%, transparent), color-mix(in oklab, var(--panel) 90%, transparent)); }
+    .v4{ background:linear-gradient(135deg, color-mix(in oklab, var(--btn4) 36%, transparent), color-mix(in oklab, var(--panel) 90%, transparent)); }
 
-    /* Panel derecho (previsualización fija) */
+    /* Panel derecho fijo */
     .right{
       position:sticky; top:18px; height:calc(100dvh - 36px);
       min-height:480px; display:flex; flex-direction:column; gap:10px;
     }
     .pv{
-      flex:1; min-height:360px; width:100%;
-      max-width:var(--right-w);
+      flex:1; min-height:360px; width:100%; max-width:var(--right-w);
       background:var(--panel); border:1px solid var(--stroke); border-radius:var(--radius); box-shadow:var(--shadow-hover);
       display:grid; grid-template-rows:auto 1fr auto; overflow:hidden;
     }
@@ -83,45 +86,31 @@
     }
     .pv-btn:hover{ transform:translateY(-1px); border-color:var(--accent); }
 
-    .pv-wrap{
-      position:relative; margin:10px; border:1px solid var(--stroke); border-radius:8px; overflow:hidden; background:#00000015;
-    }
-    .pv-canvas{
-      position:relative; width:100%; height:100%;
-      /* mantenemos relación 16:10 similar a base-w/h */
-      aspect-ratio: 16 / 10;
-      background: #0b1020;
-    }
+    .pv-wrap{ position:relative; margin:10px; border:1px solid var(--stroke); border-radius:8px; overflow:hidden; background:#00000015; }
+    .pv-canvas{ position:relative; width:100%; height:100%; aspect-ratio:16/10; background:#0b1020; }
     .pv-frame{
-      position:absolute; inset:auto auto  auto auto; top:0; left:0;
-      border:0; width:var(--base-w); height:var(--base-h); transform-origin:0 0; pointer-events:none; background:var(--bg);
+      position:absolute; top:0; left:0; border:0; width:var(--base-w); height:var(--base-h);
+      transform-origin:0 0; pointer-events:none; background:var(--bg);
     }
     .pv-state{
       position:absolute; right:8px; bottom:8px; padding:6px 10px; font-size:12px; line-height:1; border-radius:999px;
       background:rgba(17,24,39,.75); border:1px solid var(--stroke); color:var(--muted);
     }
-    .pv-thumb{
-      position:absolute; inset:0; width:100%; height:100%; object-fit:cover; display:none;
-    }
-    .pv-cap{
-      height:18px; font-size:.78rem; color:var(--muted); padding:0 12px 10px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
-    }
+    .pv-thumb{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; display:none; }
+    .pv-cap{ height:18px; font-size:.78rem; color:var(--muted); padding:0 12px 10px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 
-    /* Estado visual */
     .pv.loading .pv-state{ color:#e5e7eb }
     .pv.ready   .pv-state{ color:#bbf7d0; background:rgba(20,83,45,.65); border-color:#14532d }
     .pv.blocked .pv-state{ color:#fecaca; background:rgba(127,29,29,.7); border-color:#7f1d1d }
     .pv.blocked .pv-thumb{ display:block }
 
-    /* Responsive */
-    @media (max-width: 1100px){
+    @media (max-width:1100px){
       :root{ --left-w:100%; }
       .shell{ grid-template-columns:1fr; }
       .right{ position:static; height:auto }
       .pv{ max-width:100% }
     }
 
-    /* Scrollbar */
     ::-webkit-scrollbar{ width:8px }
     ::-webkit-scrollbar-track{ background:var(--bg) }
     ::-webkit-scrollbar-thumb{ background:var(--stroke); border-radius:4px }
@@ -132,7 +121,7 @@
   <div class="shell">
     <header>
       <h1>📊 Biblioteca — Panel de Previsualización Derecha</h1>
-      <div class="sub">Pasa el mouse por los enlaces para ver la vista preliminar. Fíjala si necesitas interactuar.</div>
+      <div class="sub">Pasa el mouse / foco o haz clic en un enlace para ver la vista. Fíjala si necesitas interactuar.</div>
     </header>
 
     <!-- Columna izquierda -->
@@ -141,8 +130,8 @@
       <section class="card" aria-labelledby="t-dash">
         <div class="title" id="t-dash">📈 Dashboards</div>
         <div class="grid">
-          <!-- ÚNICO ENLACE SOLICITADO -->
-          <a class="btn" href="/propuestaccppdispersos.html" target="_blank" rel="noopener">Propuesta CCPP Dispersos</a>
+          <!-- Ruta RELATIVA corregida -->
+          <a class="btn" id="link-ccpp" href="./propuestaccppdispersos.html" target="_blank" rel="noopener">Propuesta CCPP Dispersos</a>
         </div>
       </section>
 
@@ -150,7 +139,7 @@
       <section class="card" aria-labelledby="t-vis">
         <div class="title" id="t-vis">🗺️ Visores</div>
         <div class="grid">
-          <!-- (vacío por ahora) -->
+          <!-- vacío por ahora -->
         </div>
       </section>
 
@@ -158,14 +147,14 @@
       <section class="card" aria-labelledby="t-otros">
         <div class="title" id="t-otros">🧰 Otros</div>
         <div class="grid">
-          <!-- (vacío por ahora) -->
+          <!-- vacío por ahora -->
         </div>
       </section>
     </div>
 
-    <!-- Panel derecho fijo -->
+    <!-- Panel derecho -->
     <aside class="right" aria-label="Previsualización">
-      <div class="pv loading" id="pv">
+      <div class="pv" id="pv">
         <div class="pv-hdr">
           <div class="pv-title" id="pvtitle">Vista preliminar</div>
           <button class="pv-btn" id="pvlock" type="button" title="Fijar para interactuar">Fijar</button>
@@ -173,7 +162,7 @@
         </div>
         <div class="pv-wrap">
           <div class="pv-canvas">
-            <iframe id="pvframe" class="pv-frame" sandbox="allow-scripts allow-same-origin"></iframe>
+            <iframe id="pvframe" class="pv-frame" sandbox="allow-scripts allow-same-origin" referrerpolicy="no-referrer"></iframe>
             <img id="pvthumb" class="pv-thumb" alt="Miniatura de respaldo" />
             <div class="pv-state" id="pvstate">Pasa el mouse por un enlace…</div>
           </div>
@@ -184,46 +173,26 @@
   </div>
 
   <script>
-    // Utilidades
     const $ = (q) => document.querySelector(q);
-    const pv      = $('#pv');
-    const pvtitle = $('#pvtitle');
-    const pvopen  = $('#pvopen');
-    const pvlock  = $('#pvlock');
-    const pvframe = $('#pvframe');
-    const pvthumb = $('#pvthumb');
-    const pvstate = $('#pvstate');
-    const pvcap   = $('#pvcap');
+    const pv = $('#pv'), pvtitle = $('#pvtitle'), pvopen = $('#pvopen'), pvlock = $('#pvlock');
+    const pvframe = $('#pvframe'), pvthumb = $('#pvthumb'), pvstate = $('#pvstate'), pvcap = $('#pvcap');
 
-    let currentURL = '';
-    let locked = false;
-    let hoverTimer = null;
-    let blockTimer = null;
+    let currentURL = '', locked = false, hoverTimer = null, blockTimer = null;
 
-    function cssVar(name){
-      return parseFloat(getComputedStyle(document.documentElement).getPropertyValue(name));
-    }
-
+    function cssVar(name){ return parseFloat(getComputedStyle(document.documentElement).getPropertyValue(name)); }
     function applyScale(){
-      const canvas = document.querySelector('.pv-canvas');
-      if(!canvas) return;
-      const w = canvas.clientWidth;
-      const h = canvas.clientHeight;
-      const baseW = cssVar('--base-w');
-      const baseH = cssVar('--base-h');
+      const canvas = document.querySelector('.pv-canvas'); if(!canvas) return;
+      const w = canvas.clientWidth, h = canvas.clientHeight;
+      const baseW = cssVar('--base-w'), baseH = cssVar('--base-h');
       const scale = Math.min(w/baseW, h/baseH);
-      pvframe.style.transform = `scale(${scale})`;
+      pvframe.style.transform = `scale(${scale})`; // ← FIX: backticks + scale()
     }
     window.addEventListener('resize', applyScale);
 
     function setState(state, text){
       pv.classList.remove('loading','ready','blocked');
       pv.classList.add(state);
-      pvstate.textContent = text || (
-        state==='loading' ? 'Cargando vista…' :
-        state==='ready'   ? 'Vista lista' :
-        'Vista previa no disponible'
-      );
+      pvstate.textContent = text || (state==='loading' ? 'Cargando vista…' : state==='ready' ? 'Vista lista' : 'Vista previa no disponible');
     }
 
     function previewLink(anchor){
@@ -245,7 +214,7 @@
         if(currentURL !== href || pvframe.src !== href){
           currentURL = href;
           pvframe.src = href;
-        }else{
+        } else {
           setState('ready', 'Vista lista');
         }
       }, 140);
@@ -261,21 +230,29 @@
       applyScale();
     }
 
-    // Cargar ok / error
-    pvframe.addEventListener('load', ()=> setState('ready', 'Vista lista') );
-    pvframe.addEventListener('error',()=> setState('blocked', 'Error al cargar vista') );
+    // Eventos de carga del iframe
+    pvframe.addEventListener('load', ()=> setState('ready','Vista lista') );
+    pvframe.addEventListener('error',()=> setState('blocked','Error al cargar vista') );
 
-    // Hover global en enlaces .btn
+    // Interacción: hover, foco y click
     document.addEventListener('mouseover', (e)=>{
-      const a = e.target.closest('a.btn');
-      if(!a) return;
+      const a = e.target.closest('a.btn'); if(!a) return;
       previewLink(a);
     });
-
-    // Accesibilidad con foco
     document.addEventListener('focusin', (e)=>{
-      const a = e.target.closest('a.btn');
-      if(a) previewLink(a);
+      const a = e.target.closest('a.btn'); if(a) previewLink(a);
+    });
+    document.addEventListener('click', (e)=>{
+      const a = e.target.closest('a.btn'); if(!a) return;
+      previewLink(a); // asegura sincronía incluso si el usuario hace click rápido
+    });
+
+    // Efecto de luz del cursor en botones
+    document.addEventListener('mousemove', (e)=>{
+      const a = e.target.closest('.btn'); if(!a) return;
+      const r = a.getBoundingClientRect();
+      a.style.setProperty('--x', `${e.clientX - r.left}px`);
+      a.style.setProperty('--y', `${e.clientY - r.top}px`);
     });
 
     // Botón fijar
@@ -283,14 +260,15 @@
       locked = !locked;
       pvlock.textContent = locked ? 'Desfijar' : 'Fijar';
       pvframe.style.pointerEvents = locked ? 'auto' : 'none';
-      // Mantener estado "ready" si ya cargó
-      if(pv.classList.contains('ready') === false && pvframe.src) setState('ready','Vista lista');
+      // Si ya hay src, mantén "ready" para poder interactuar
+      if(pvframe.src) setState('ready','Vista lista');
     });
 
-    // Inicial
-    applyScale();
-    // (Opcional) Cargar algo por defecto: deja vacío para que espere hover.
-
+    // Cargar por defecto el único dashboard (mejor UX)
+    document.addEventListener('DOMContentLoaded', ()=>{
+      const first = document.getElementById('link-ccpp');
+      if(first) previewLink(first);
+    });
   </script>
 </body>
 </html>
