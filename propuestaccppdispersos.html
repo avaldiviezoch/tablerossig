@@ -14,12 +14,12 @@
     --brand:#0b3b38; --accent:#0f2e29; --sep:#e6ecea;
   }
   html,body{margin:0;height:100%;overflow:hidden;font-family:system-ui,-apple-system,Segoe UI,Roboto,Inter,Arial;background:#eef5f3;color:var(--ink)}
-  /* Mapa más pequeño, panel (indicadores/lista) más grande */
-  .shell{display:grid;grid-template-columns:min(40vw,520px) 1fr;height:100vh;width:100vw}
+  /* Mapa 65% / Panel 35% */
+  .shell{display:grid;grid-template-columns:65% 35%;height:100vh;width:100vw}
   #viewWrap{position:sticky;top:0;height:100vh;overflow:hidden}
   #viewDiv{position:relative;width:100%;height:100%}
 
-  /* Panel derecho con espacio extra para “indicadores” */
+  /* Panel derecho */
   .sidebar{background:var(--panel);border-left:1px solid var(--sep);box-shadow:-6px 0 24px rgba(2,6,23,.06);
     padding:14px 12px;display:grid;grid-template-rows:auto auto auto 1fr;gap:12px}
   .topTitle{
@@ -27,7 +27,7 @@
     font-size:clamp(22px, 3.6vh, 30px); color:var(--brand);
   }
 
-  /* Filtros bonitos (dep-prov-dist) + botón limpiar */
+  /* Filtros + limpiar */
   .filtersBar{background:#fff;border:1px solid var(--sep);border-radius:16px;box-shadow:0 10px 22px rgba(2,6,23,.06);
     padding:12px;display:grid;gap:10px}
   .filtersGrid{display:grid;grid-template-columns:1fr;gap:10px}
@@ -43,16 +43,16 @@
   .btn{background:#0b3b38;color:#ecfffb;border:1px solid #0e4a43;padding:9px 14px;border-radius:12px;font-weight:900;cursor:pointer}
   .btn:hover{filter:brightness(1.05)}
 
-  /* Panel “Indicadores” (vacío por ahora, con más espacio) */
+  /* Indicadores (vacío y compacto) */
   .indPanel{background:#fff;border:1px solid var(--sep);border-radius:16px;box-shadow:0 10px 22px rgba(2,6,23,.06);
-    padding:12px;min-height:min(28vh,240px);display:grid;place-items:center;color:#93a1ad;font-weight:800}
-  .indPanel::before{content:"(Espacio reservado para Indicadores)";}
+    padding:12px;min-height:min(16vh,140px);display:grid;place-items:center;color:#93a1ad;font-weight:800}
+  .indPanel::before{content:"(Espacio para Indicadores)";}
 
-  /* Lista compacta */
+  /* Lista */
   .listCard{background:#fff;border:1px solid var(--sep);border-radius:16px;box-shadow:0 10px 24px rgba(2,6,23,.06);overflow:hidden;display:grid;grid-template-rows:auto 1fr}
   .listCard header{padding:10px 12px;background:#fff;border-bottom:1px solid var(--sep)}
   .listCard h3{margin:0;font-size:14px;font-weight:1000;color:var(--brand);letter-spacing:.2px}
-  .list{overflow:auto;max-height:calc(100vh - 320px)} /* más espacio arriba para filtros + indicadores */
+  .list{overflow:auto;max-height:calc(100vh - 260px)}
   .item{padding:10px 12px;border-bottom:1px solid #edf2f7;cursor:pointer;transition:background .15s ease}
   .item:hover{background:#f5faf8}
   .title{font-weight:900;font-size:13.8px}
@@ -65,7 +65,7 @@
   .fab{width:44px;height:44px;border-radius:50%;display:grid;place-items:center;background:var(--brand);color:#e6fffb;border:1px solid #0e4a43;cursor:pointer;box-shadow:0 10px 22px rgba(0,0,0,.22);font-weight:900;user-select:none}
   .fab:hover{filter:brightness(1.06)}
 
-  /* Burbujas movibles (Leyenda/Capas) */
+  /* Burbujas movibles */
   .bubble{position:absolute;right:70px;top:14px;min-width:300px;max-width:min(400px,88vw);background:#0f2e29;color:#dff7f3;border:1px solid #0e4a43;border-radius:16px;box-shadow:0 14px 32px rgba(0,0,0,.28);z-index:8;display:none}
   .bubble header{padding:10px 12px;background:#0b3b38;border-bottom:1px solid #0e4a43;border-radius:16px 16px 0 0;display:flex;align-items:center;justify-content:space-between;cursor:move;gap:8px}
   .bubble header .ttl{font-weight:900;letter-spacing:.2px}
@@ -77,8 +77,8 @@
 
   @media (max-width:900px){
     .shell{grid-template-columns:1fr}
-    #viewWrap{position:relative;height:50vh}
-    .indPanel{min-height:160px}
+    #viewWrap{position:relative;height:54vh}
+    .indPanel{min-height:120px}
     .list{max-height:none}
   }
 </style>
@@ -111,7 +111,7 @@
   <aside class="sidebar">
     <h1 class="topTitle">Grado de dispersión de centros poblados - PNSR</h1>
 
-    <!-- Filtros (Deps/Provs/Dists desde Lím. Políticos) -->
+    <!-- Filtros (Deps/Provs/Dists) -->
     <section class="filtersBar" aria-label="Filtros de ubicación">
       <div class="filtersGrid">
         <div class="fld">
@@ -132,7 +132,7 @@
       </div>
     </section>
 
-    <!-- Indicadores (VACÍO con más espacio) -->
+    <!-- Indicadores (VACÍO) -->
     <section class="indPanel" aria-label="Indicadores (pendiente)"></section>
 
     <!-- Lista -->
@@ -173,37 +173,87 @@ require([
   const CCPP = "https://pportalgis.vivienda.gob.pe/pfdserver1/rest/services/OGEI/CCPP_Dispersos/FeatureServer";
   const VR   = "https://dportalgis.vivienda.gob.pe/dfdserver/rest/services/OGEI/vivienda_rural/FeatureServer/0";
   const LIM_BASE = "https://pportalgis.vivienda.gob.pe/pfdserver/rest/services/COES/Limites_Pol%C3%ADticos/MapServer";
-  const LIM0 = `${LIM_BASE}/0`; // Deps (id_dpto, nom_dep)
-  const LIM1 = `${LIM_BASE}/1`; // Provs (id_dep, id_prov, nom_prov)
-  const LIM2 = `${LIM_BASE}/2`; // Dists (id_prov, id_dist, nom_dist) 
+  const LIM0 = `${LIM_BASE}/0`; // deps: id_dpto, nom_dep
+  const LIM1 = `${LIM_BASE}/1`; // provs: id_dep, id_prov, nom_prov
+  const LIM2 = `${LIM_BASE}/2`; // dists: id_prov, id_dist, nom_dist 
 
-  /* ===== MAPA base satélite (Cuturapi) — mapa más pequeño (columna izq.) ===== */
+  /* ===== MAPA ===== */
   const map = new Map({ basemap:"satellite" });
-  const view = new MapView({ container:"viewDiv", map, center:[-69.155,-16.274], scale:65000, constraints:{minZoom:4,snapToZoom:false} });
+  const view = new MapView({
+    container:"viewDiv",
+    map,
+    center:[-69.155,-16.274],
+    scale:65000,
+    constraints:{minZoom:4,snapToZoom:false}
+  });
   view.ui.add(new ScaleBar({view,unit:"metric"}),"bottom-left");
+  view.qualityProfile = "low";
 
-  /* ===== Simbología ===== */
+  /* ===== Simbología auxiliar ===== */
   const mk=(c,s=6)=> new SimpleMarkerSymbol({style:"circle",color:c,size:s,outline:{color:[255,255,255,180],width:0.5}});
   const tri=(c,s=7)=> new SimpleMarkerSymbol({style:"triangle",color:c,size:s,outline:{color:[255,255,255,180],width:0.5}});
   const diam=(c,s=8)=> new SimpleMarkerSymbol({style:"diamond",color:c,size:s,outline:{color:[255,255,255,180],width:0.5}});
   const line=(c,w=1.2)=> new SimpleLineSymbol({color:c,width:w});
   const poly=(fill,outline)=> new SimpleFillSymbol({color:fill,outline});
 
+  /* ===== Glow CIM para límites ===== */
+  function glowCIM(colorRGB=[255,255,255]){
+    const [r,g,b]=colorRGB;
+    return {
+      type:"cim",
+      data:{
+        type:"CIMSymbolReference",
+        symbol:{
+          type:"CIMLineSymbol",
+          symbolLayers:[
+            { type:"CIMSolidStroke", enable:true, width:6,  color:[r,g,b,40]  },
+            { type:"CIMSolidStroke", enable:true, width:3,  color:[r,g,b,120] },
+            { type:"CIMSolidStroke", enable:true, width:1.6,color:[r,g,b,255] }
+          ]
+        }
+      }
+    };
+  }
+
+  /* ===== Rangos de visibilidad ===== */
+  const SCALE_PROV = 1200000;
+  const SCALE_RED  = 600000;
   // Capas CCPP
-  const lyrAreasAgrup = new FeatureLayer({ url:`${CCPP}/6`, title:"Áreas agrupadas (densidad y viviendas)", visible:true,
-    renderer:new SimpleRenderer({ symbol: poly([212,124,242,0.35], new SimpleLineSymbol({color:[0,0,0,0.9], width:1.2, style:"short-dot"})) })});
-  const lyrAmbito = new FeatureLayer({ url:`${CCPP}/5`, title:"Ámbito territorial de centros poblados", visible:true,
-    renderer:new SimpleRenderer({ symbol: poly([0,0,0,0], new SimpleLineSymbol({color:[0,0,0,0.9], width:1.2, style:"short-dot"})) })});
-  const lyrCPGrado = new FeatureLayer({ url:`${CCPP}/4`, title:"Centro poblado por grado de dispersión", visible:true,
-    renderer:new SimpleRenderer({ symbol: mk([200,200,200,0.95], 5.5) })});
-  const lyrRedes   = new FeatureLayer({ url:`${CCPP}/3`, title:"Redes - DATASS", visible:true,
-    renderer:new SimpleRenderer({ symbol: line([95,210,255,0.95], 1.4) })});
-  const lyrReserv  = new FeatureLayer({ url:`${CCPP}/2`, title:"Reservorio - DATASS", visible:true,
-    renderer:new SimpleRenderer({ symbol: diam([46,204,64,0.95], 8) })});
-  const lyrCapt    = new FeatureLayer({ url:`${CCPP}/1`, title:"Captacion - DTASS", visible:true,
-    renderer:new SimpleRenderer({ symbol: tri([52,152,219,0.95], 8) })});
-  const lyrPTAP    = new FeatureLayer({ url:`${CCPP}/0`, title:"PTAP - DATASS", visible:true,
-    renderer:new SimpleRenderer({ symbol: mk([231,76,60,0.95], 7.5) })});
+  const lyrAreasAgrup = new FeatureLayer({
+    url:`${CCPP}/6`, title:"Áreas agrupadas (densidad y viviendas)",
+    visible:true, minScale:SCALE_PROV,
+    renderer:new SimpleRenderer({ symbol: poly([212,124,242,0.35], new SimpleLineSymbol({color:[0,0,0,0.9], width:1.2, style:"short-dot"})) })
+  });
+  const lyrAmbito = new FeatureLayer({
+    url:`${CCPP}/5`, title:"Ámbito territorial de centros poblados",
+    visible:true, minScale:SCALE_PROV,
+    renderer:new SimpleRenderer({ symbol: poly([0,0,0,0], new SimpleLineSymbol({color:[0,0,0,0.9], width:1.2, style:"short-dot"})) })
+  });
+  const lyrCPGrado = new FeatureLayer({
+    url:`${CCPP}/4`, title:"Centro poblado por grado de dispersión",
+    visible:true, minScale:1000000,
+    renderer:new SimpleRenderer({ symbol: mk([200,200,200,0.95], 5.5) })
+  });
+  const lyrRedes   = new FeatureLayer({
+    url:`${CCPP}/3`, title:"Redes - DATASS",
+    visible:true, minScale:SCALE_RED,
+    renderer:new SimpleRenderer({ symbol: line([95,210,255,0.95], 1.4) })
+  });
+  const lyrReserv  = new FeatureLayer({
+    url:`${CCPP}/2`, title:"Reservorio - DATASS",
+    visible:true, minScale:SCALE_PROV,
+    renderer:new SimpleRenderer({ symbol: diam([46,204,64,0.95], 8) })
+  });
+  const lyrCapt    = new FeatureLayer({
+    url:`${CCPP}/1`, title:"Captación - DTASS",
+    visible:true, minScale:SCALE_PROV,
+    renderer:new SimpleRenderer({ symbol: tri([52,152,219,0.95], 8) })
+  });
+  const lyrPTAP    = new FeatureLayer({
+    url:`${CCPP}/0`, title:"PTAP - DATASS",
+    visible:true, minScale:SCALE_PROV,
+    renderer:new SimpleRenderer({ symbol: mk([231,76,60,0.95], 7.5) })
+  });
 
   // Vivienda Rural (3 categorías)
   const FIELD="dhabcual";
@@ -217,28 +267,46 @@ require([
       {value:"Otro",label:"Otro",symbol:mkGeom(g,COL_OTR)}
     ]});
   }
-  const viviendaRural = new FeatureLayer({ url:VR, title:"Vivienda rural - Viviendas Rurales",
-    outFields:["*"], definitionExpression:defExp, minScale:300000, maxScale:0, visible:true });
+  const viviendaRural = new FeatureLayer({
+    url:VR, title:"Vivienda rural - Viviendas Rurales",
+    outFields:["*"], definitionExpression:defExp, minScale:SCALE_PROV, maxScale:0, visible:true
+  });
   viviendaRural.when(()=>{ viviendaRural.renderer = vrRenderer(viviendaRural.geometryType); });
 
-  // Límites dibujados
-  const limDeptDraw = new FeatureLayer({ url:`${LIM_BASE}/0`, title:"Límite Departamental", visible:true, renderer:new SimpleRenderer({ symbol: line([255,255,255,0.85],2.0) })});
-  const limProvDraw = new FeatureLayer({ url:`${LIM_BASE}/1`, title:"Límite Provincial",    visible:true, renderer:new SimpleRenderer({ symbol: line([255,255,255,0.70],1.5) })});
-  const limDistDraw = new FeatureLayer({ url:`${LIM_BASE}/2`, title:"Límite Distrital",     visible:true, renderer:new SimpleRenderer({ symbol: line([255,255,255,0.55],1.0) })});
+  // Contenido primero…
+  map.addMany([lyrAreasAgrup, viviendaRural, lyrPTAP, lyrCapt, lyrReserv, lyrRedes, lyrCPGrado, lyrAmbito]);
 
+  // LÍMITES con brillo (arriba). Se mostrarán solo cuando haya filtro.
+  const limDeptDraw = new FeatureLayer({
+    url:LIM0, title:"Límite Departamental",
+    visible:false,
+    renderer:new SimpleRenderer({ symbol: glowCIM([0,255,255]) }),
+    blendMode:"screen"
+  });
+  const limProvDraw = new FeatureLayer({
+    url:LIM1, title:"Límite Provincial",
+    visible:false,
+    renderer:new SimpleRenderer({ symbol: glowCIM([255,215,0]) }),
+    blendMode:"screen"
+  });
+  const limDistDraw = new FeatureLayer({
+    url:LIM2, title:"Límite Distrital",
+    visible:false,
+    renderer:new SimpleRenderer({ symbol: glowCIM([255,105,180]) }),
+    blendMode:"screen"
+  });
   map.addMany([limDeptDraw, limProvDraw, limDistDraw]);
-  map.addMany([viviendaRural, lyrPTAP, lyrCapt, lyrReserv, lyrRedes, lyrCPGrado, lyrAmbito, lyrAreasAgrup]);
 
   // Widgets en burbujas
   new Legend({ view, container:"legendNode" });
   new LayerList({ view, container:"layerListNode", selectionEnabled:true,
     listItemCreatedFunction:(e)=>{ e.item.panel = { content:"legend", open:false }; } });
 
-  /* ===== LISTA + FILTROS (capa 5 + límites políticos para combos) ===== */
+  /* ===== LISTA + FILTROS (capa 5 + límites políticos) ===== */
   const cpLayer = lyrAmbito; // FeatureServer/5
   let layerView, hl; view.whenLayerView(cpLayer).then(lv=>layerView=lv);
 
-  // fuentes para nombres
+  // fuentes para combos
   const limDeptSrc = new FeatureLayer({ url:LIM0, outFields:["id_dpto","nom_dep"], listMode:"hide" });
   const limProvSrc = new FeatureLayer({ url:LIM1, outFields:["id_dep","id_prov","nom_prov"], listMode:"hide" });
   const limDistSrc = new FeatureLayer({ url:LIM2, outFields:["id_prov","id_dist","nom_dist"], listMode:"hide" });
@@ -252,13 +320,26 @@ require([
   const $selDist = document.getElementById('selDist');
   const $btnClear= document.getElementById('btnClear');
 
+  const PAD = { left: 120, right: 120, top: 200, bottom: 110 };
+  function expandFactorFor(ext){
+    const w = Math.max(ext.width, ext.height);
+    if (w < 500)   return 3.0;
+    if (w < 2000)  return 2.2;
+    if (w < 8000)  return 1.7;
+    return 1.45;
+  }
+
+  // Vista inicial para reset
+  let initialViewpoint = null;
+  view.when(()=>{ initialViewpoint = view.viewpoint.clone(); });
+
   const fmt = (n, d=0)=> (n==null||isNaN(n)) ? "—" : new Intl.NumberFormat('es-PE',{maximumFractionDigits:d}).format(Number(n));
 
-  // Cargar departamentos (id_dpto, nom_dep)
+  // ==== Combos ====
   async function loadDeps(){
     const q = limDeptSrc.createQuery();
     q.where = "1=1"; q.returnGeometry = false;
-    q.outFields = ["id_dpto","nom_dep"]; q.orderByFields = ["nom_dep ASC"]; q.num = 300;
+    q.outFields = ["id_dpto","nom_dep"]; q.orderByFields = ["nom_dep ASC"]; q.num = 300; q.cacheHint = true;
     const r = await limDeptSrc.queryFeatures(q);
     const seen = new Set(); const rows = [];
     (r.features||[]).forEach(f=>{
@@ -277,7 +358,7 @@ require([
     if(!dep){ $selProv.disabled = true; return; }
     const q = limProvSrc.createQuery();
     q.where = `id_dep='${dep}'`; q.returnGeometry=false;
-    q.outFields = ["id_prov","nom_prov"]; q.orderByFields = ["nom_prov ASC"]; q.num = 1000;
+    q.outFields = ["id_prov","nom_prov"]; q.orderByFields = ["nom_prov ASC"]; q.num = 1000; q.cacheHint = true;
     const r = await limProvSrc.queryFeatures(q);
     const seen = new Set(), rows=[];
     (r.features||[]).forEach(f=>{
@@ -294,7 +375,7 @@ require([
     if(!prov){ $selDist.disabled = true; return; }
     const q = limDistSrc.createQuery();
     q.where = `id_prov='${prov}'`; q.returnGeometry=false;
-    q.outFields = ["id_dist","nom_dist"]; q.orderByFields = ["nom_dist ASC"]; q.num = 3000;
+    q.outFields = ["id_dist","nom_dist"]; q.orderByFields = ["nom_dist ASC"]; q.num = 3000; q.cacheHint = true;
     const r = await limDistSrc.queryFeatures(q);
     const seen = new Set(), rows=[];
     (r.features||[]).forEach(f=>{
@@ -303,6 +384,63 @@ require([
     });
     $selDist.innerHTML += rows.map(o=>`<option value="${o.id}">${o.name}</option>`).join("");
     $selDist.disabled = false;
+  }
+
+  // ==== Mostrar SOLO el límite seleccionado ====
+  function updatePoliticalLimitVisibility(){
+    const dep  = $selDep.value.trim();
+    const prov = $selProv.value.trim();
+    const dist = $selDist.value.trim();
+
+    [limDeptDraw, limProvDraw, limDistDraw].forEach(ly=>{
+      ly.visible = false;
+      ly.definitionExpression = null;
+    });
+
+    if(dist){
+      limDistDraw.definitionExpression = `id_dist='${dist}'`;
+      limDistDraw.visible = true;
+      return;
+    }
+    if(prov){
+      limProvDraw.definitionExpression = `id_prov='${prov}'`;
+      limProvDraw.visible = true;
+      return;
+    }
+    if(dep){
+      limDeptDraw.definitionExpression = `id_dpto='${dep}'`;
+      limDeptDraw.visible = true;
+      return;
+    }
+  }
+
+  /* === ZOOM COMPLETO AL ÁREA (solo límites políticos) ===
+     *A diferencia del zoom “panorámico” de la lista CCPP, aquí ajustamos al polígono sin expandir.*
+  */
+  async function zoomToPolitical(){
+    let src=null, where=null;
+    const dist = $selDist.value.trim();
+    const prov = $selProv.value.trim();
+    const dep  = $selDep.value.trim();
+
+    if(dist){ src = limDistSrc; where = `id_dist='${dist}'`; }
+    else if(prov){ src = limProvSrc; where = `id_prov='${prov}'`; }
+    else if(dep){ src = limDeptSrc; where = `id_dpto='${dep}'`; }
+    else{ return; }
+
+    const q = src.createQuery();
+    q.where = where; q.returnGeometry = true; q.outFields = []; q.num = 1;
+    const r = await src.queryFeatures(q);
+    const g = r.features?.[0]?.geometry;
+    if(!g) return;
+
+    // 👉 Zoom “ceñido” al polígono, con poco padding (nada de expand)
+    try{
+      await view.goTo(
+        { target: g, padding: { left: 40, right: 40, top: 60, bottom: 60 } },
+        { duration: 900, easing: "ease-in-out" }
+      );
+    }catch(_){}
   }
 
   function buildWhere(){
@@ -318,44 +456,36 @@ require([
 
   async function cargarLista(){
     const q = cpLayer.createQuery();
-    q.where = buildWhere(); // enlazado con IDs de los filtros
+    q.where = buildWhere(); // filtra lista por combos
     q.outFields = ["objectid","nom_cp","categoria_cp","vivrur_tot","vivrur_agrup_p","sum_pobcensa","distnear_max","distnear_min","id_dpto","id_prov","id_dist"];
-    q.returnGeometry = true;
-    q.num = 150;
-    q.orderByFields = ["categoria_cp ASC","nom_cp ASC"];
+    q.returnGeometry = false;
+    q.num = 100;
+    q.orderByFields = ["nom_cp ASC"];
+    q.cacheHint = true;
     const res = await cpLayer.queryFeatures(q);
     pintarLista(res.features || []);
   }
 
-  // === Zoom panorámico flexible (más abierto) ===
-  function expandFactorFor(ext){
-    const w = Math.max(ext.width, ext.height);
-    if (w < 500)   return 3.0;
-    if (w < 2000)  return 2.2;
-    if (w < 8000)  return 1.7;
-    return 1.45;
-  }
-  async function flyToFeature(feat){
-    if(!feat || !feat.geometry) return;
+  // === Zoom “panorámico” (se mantiene) para el item de lista CCPP ===
+  async function flyToFeatureByOID(oid){
+    const q = cpLayer.createQuery();
+    q.objectIds=[oid]; q.outFields=[]; q.returnGeometry=true;
+    const r = await cpLayer.queryFeatures(q);
+    const feat = r.features?.[0]; if(!feat) return;
+
     const geom = feat.geometry;
     let target = geom.extent ? geom.extent.clone() : null;
 
     if (!target || target.isEmpty || (target.xmin===target.xmax && target.ymin===target.ymax)) {
       const center = geom.centroid || view.center;
-      try{ await view.goTo({ center, scale: 24000 }, { duration: 1300, easing: "ease-in-out" }); }catch(_){}
+      try{ await view.goTo({ center, scale: 24000 }, { duration: 1100, easing: "ease-in-out" }); }catch(_){}
       return;
     }
-
     const expand = expandFactorFor(target);
     const paddedExtent = target.expand(expand);
-    const pad = { left: 120, right: 120, top: 200, bottom: 110 };
-
-    try{
-      await view.goTo({ target: paddedExtent, padding: pad }, { duration: 1300, easing: "ease-in-out", animate: true });
-    }catch(_){}
+    try{ await view.goTo({ target: paddedExtent, padding: PAD }, { duration: 1100, easing: "ease-in-out", animate: true }); }catch(_){}
   }
 
-  // Pintar lista + clicks
   function pintarLista(features){
     if(hl){ hl.remove(); hl=null; }
     if(!features.length){ $list.innerHTML = `<div class="empty">Sin resultados</div>`; return; }
@@ -377,33 +507,32 @@ require([
     $list.querySelectorAll(".item").forEach((el)=>{
       el.addEventListener("click", async ()=>{
         const oid = Number(el.dataset.oid);
-        const q = cpLayer.createQuery(); q.objectIds=[oid]; q.outFields=["*"]; q.returnGeometry=true;
-        const r = await cpLayer.queryFeatures(q);
-        const feat = r.features?.[0]; if(!feat) return;
-
-        if(hl){ hl.remove(); hl=null; }
-        if(layerView){ hl = layerView.highlight(oid); }
-
-        // Punto guía (opcional)
-        guideLayer.removeAll();
-        if(feat.geometry && feat.geometry.centroid){
-          guideLayer.add(new Graphic({
-            geometry: feat.geometry.centroid,
-            symbol: { type:"simple-marker", style:"circle", size:10, color:[255,255,255,0],
-              outline:{ color:[13,58,53,0.95], width:3 } }
-          }));
-          setTimeout(()=>guideLayer.removeAll(), 1800);
-        }
-
-        await flyToFeature(feat);
+        try{
+          if(layerView){ if(hl) hl.remove(); hl = layerView.highlight(oid); }
+          await flyToFeatureByOID(oid);
+        }catch(_){}
       });
     });
   }
 
   // Eventos filtros + botón limpiar
-  $selDep.addEventListener('change', async()=>{ await loadProvs(); await cargarLista(); });
-  $selProv.addEventListener('change', async()=>{ await loadDists(); await cargarLista(); });
-  $selDist.addEventListener('change', cargarLista);
+  $selDep.addEventListener('change', async()=>{
+    await loadProvs();
+    await cargarLista();
+    updatePoliticalLimitVisibility();
+    await zoomToPolitical(); // zoom ceñido a límite
+  });
+  $selProv.addEventListener('change', async()=>{
+    await loadDists();
+    await cargarLista();
+    updatePoliticalLimitVisibility();
+    await zoomToPolitical();
+  });
+  $selDist.addEventListener('change', async()=>{
+    await cargarLista();
+    updatePoliticalLimitVisibility();
+    await zoomToPolitical();
+  });
 
   $btnClear.addEventListener('click', async ()=>{
     $selDep.value = "";
@@ -411,15 +540,19 @@ require([
     $selProv.disabled = true;
     $selDist.innerHTML = `<option value="">(Todos)</option>`;
     $selDist.disabled = true;
+    updatePoliticalLimitVisibility(); // oculta límites
     await cargarLista();
+    if(initialViewpoint){ try{ await view.goTo(initialViewpoint, { duration: 900 }); }catch(_){ } }
   });
 
   // init
   (async function init(){
     await loadDeps();
     await cargarLista();
+    updatePoliticalLimitVisibility(); // iniciar con límites ocultos
   })();
 });
 </script>
 </body>
 </html>
+
