@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>Visor · CCPP Ámbito (lista + zoom)</title>
+<title>Visor · CCPP Ámbito (lista + zoom flexible)</title>
 
 <link rel="stylesheet" href="https://js.arcgis.com/4.30/esri/themes/light/main.css">
 <script src="https://js.arcgis.com/4.30/"></script>
@@ -11,39 +11,31 @@
 <style>
   :root{ --ink:#0b2532; --muted:#64748b; --line:#0e4a43; --panel:#0f2e29; --brand:#0b3b38; --sep:#e6ecea; }
   html,body{margin:0;height:100%;overflow:hidden;font-family:system-ui,-apple-system,Segoe UI,Roboto,Inter,Arial;background:#eef5f3;color:#0b2532}
-  .shell{display:grid;grid-template-columns:1fr min(44vw,720px);height:100vh;width:100vw}
+  .shell{display:grid;grid-template-columns:1fr min(34vw,420px);height:100vh;width:100vw}
   #viewWrap{position:sticky;top:0;height:100vh;overflow:hidden}
   #viewDiv{position:relative;width:100%;height:100%}
 
-  /* Panel derecho (lista) */
-  .sidebar{background:#f7fbfa;border-left:1px solid #e6ecea;box-shadow:-6px 0 24px rgba(2,6,23,.06);padding:16px;display:grid;grid-template-rows:auto 1fr;gap:12px}
-  .topTitle{text-align:center;font-weight:900;letter-spacing:.2px;font-size:clamp(18px,2.2vh,22px);margin:2px 0 0}
-  .card{background:#fff;border:1px solid var(--sep);border-radius:14px;box-shadow:0 10px 24px rgba(2,6,23,.06);overflow:hidden;display:grid;grid-template-rows:auto auto 1fr}
-  .card header{padding:10px 12px;background:#fff;border-bottom:1px solid var(--sep);display:flex;gap:10px;align-items:center;justify-content:space-between}
-  .card h3{margin:0;font-size:14px;font-weight:900;color:#0b3b38}
-  .controls{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:10px 12px;border-bottom:1px dashed var(--sep);background:#fbfdfc}
-  .controls .row{display:flex;gap:8px;align-items:center}
-  .controls label{font-size:12px;color:#475569;font-weight:800}
-  .controls input[type="text"]{width:100%;padding:8px 10px;border:1px solid #cbd5e1;border-radius:10px}
-  .controls select{width:100%;padding:8px 10px;border:1px solid #cbd5e1;border-radius:10px;background:#fff}
-  .toggle{display:flex;align-items:center;gap:8px}
-  .toggle input{accent-color:#0b3b38}
-  .list{overflow:auto}
-  .item{padding:12px;border-bottom:1px solid #edf2f7;cursor:pointer}
+  /* Panel derecho: lista compacta */
+  .sidebar{background:#f7fbfa;border-left:1px solid #e6ecea;box-shadow:-6px 0 24px rgba(2,6,23,.06);padding:12px 10px;display:grid;grid-template-rows:auto 1fr;gap:8px}
+  .topTitle{text-align:center;font-weight:900;letter-spacing:.2px;font-size:15px;margin:0}
+  .listCard{background:#fff;border:1px solid var(--sep);border-radius:14px;box-shadow:0 8px 20px rgba(2,6,23,.06);overflow:hidden;display:grid;grid-template-rows:auto 1fr}
+  .listCard header{padding:8px 10px;background:#fff;border-bottom:1px solid var(--sep)}
+  .listCard h3{margin:0;font-size:13px;font-weight:900;color:#0b3b38;letter-spacing:.2px}
+  .list{overflow:auto;max-height:calc(100vh - 120px)}
+  .item{padding:10px;border-bottom:1px solid #edf2f7;cursor:pointer;transition:background .15s ease}
   .item:hover{background:#f5faf8}
-  .title{font-weight:900}
-  .chip{display:inline-block;background:#e8f5f3;border:1px solid #cfe7e3;border-radius:999px;padding:2px 8px;font-size:11px;font-weight:900;color:#0b3b38;margin-left:6px}
-  .kv{font-size:12.5px;color:#334155}
+  .title{font-weight:900;font-size:13.5px}
+  .kv{font-size:12px;color:#334155;line-height:1.35}
   .kv b{color:#0b2532}
-  .empty{padding:18px;text-align:center;color:#64748b}
+  .empty{padding:16px;text-align:center;color:#64748b;font-size:12.5px}
 
-  /* FABs (iconos redondos) lado derecho */
+  /* FABs (Capas/Leyenda) — lado derecho */
   .fab-wrap{position:absolute;right:14px;top:14px;display:flex;flex-direction:column;gap:10px;z-index:7}
-  .fab{width:46px;height:46px;border-radius:50%;display:grid;place-items:center;background:#0b3b38;color:#e6fffb;border:1px solid #0e4a43;cursor:pointer;box-shadow:0 10px 22px rgba(0,0,0,.22);font-weight:900;user-select:none}
+  .fab{width:44px;height:44px;border-radius:50%;display:grid;place-items:center;background:#0b3b38;color:#e6fffb;border:1px solid #0e4a43;cursor:pointer;box-shadow:0 10px 22px rgba(0,0,0,.22);font-weight:900;user-select:none}
   .fab:hover{filter:brightness(1.06)}
 
   /* Burbujas movibles */
-  .bubble{position:absolute;right:74px;top:14px;min-width:300px;max-width:min(420px,88vw);background:#0f2e29;color:#dff7f3;border:1px solid #0e4a43;border-radius:16px;box-shadow:0 14px 32px rgba(0,0,0,.28);z-index:8;display:none}
+  .bubble{position:absolute;right:70px;top:14px;min-width:300px;max-width:min(400px,88vw);background:#0f2e29;color:#dff7f3;border:1px solid #0e4a43;border-radius:16px;box-shadow:0 14px 32px rgba(0,0,0,.28);z-index:8;display:none}
   .bubble header{padding:10px 12px;background:#0b3b38;border-bottom:1px solid #0e4a43;border-radius:16px 16px 0 0;display:flex;align-items:center;justify-content:space-between;cursor:move;gap:8px}
   .bubble header .ttl{font-weight:900;letter-spacing:.2px}
   .bubble header .x{cursor:pointer;border:1px solid #0e4a43;background:#114d46;color:#e6fffb;border-radius:10px;padding:6px 10px;font-weight:800}
@@ -79,40 +71,12 @@
     </div>
   </div>
 
-  <!-- Panel derecho: LISTA de /FeatureServer/5 -->
+  <!-- Panel derecho: LISTA compacta -->
   <aside class="sidebar">
     <div class="topTitle">Ámbito territorial de centros poblados</div>
 
-    <section class="card" id="listCard">
-      <header>
-        <h3>Centros poblados</h3>
-        <div class="toggle">
-          <input type="checkbox" id="chkIneq" checked>
-          <label for="chkIneq" title="distnear_max ≠ distnear_min">Sólo con distancias diferentes</label>
-        </div>
-      </header>
-
-      <div class="controls">
-        <div class="row" style="grid-column:1/-1">
-          <label for="txtBuscar" style="min-width:84px">Buscar</label>
-          <input id="txtBuscar" type="text" placeholder="Nombre del CP…">
-        </div>
-        <div class="row">
-          <label for="selOrden" style="min-width:84px">Ordenar</label>
-          <select id="selOrden">
-            <option value="categoria_cp ASC, nom_cp ASC">categoría → nombre</option>
-            <option value="nom_cp ASC">nombre (A–Z)</option>
-            <option value="nom_cp DESC">nombre (Z–A)</option>
-          </select>
-        </div>
-        <div class="row">
-          <label for="selLimite" style="min-width:84px">Límite</label>
-          <select id="selLimite">
-            <option>25</option><option selected>50</option><option>100</option><option>200</option>
-          </select>
-        </div>
-      </div>
-
+    <section class="listCard">
+      <header><h3>Centros poblados (lista)</h3></header>
       <div class="list" id="cpList"><div class="empty">Cargando…</div></div>
     </section>
   </aside>
@@ -120,15 +84,16 @@
 
 <script>
 require([
-  "esri/Map","esri/views/MapView","esri/layers/FeatureLayer",
+  "esri/Map","esri/views/MapView","esri/layers/FeatureLayer","esri/layers/GraphicsLayer",
   "esri/widgets/Legend","esri/widgets/LayerList","esri/widgets/ScaleBar",
-  "esri/geometry/Extent","esri/renderers/UniqueValueRenderer","esri/renderers/SimpleRenderer",
+  "esri/Graphic",
+  "esri/renderers/UniqueValueRenderer","esri/renderers/SimpleRenderer",
   "esri/symbols/SimpleFillSymbol","esri/symbols/SimpleLineSymbol","esri/symbols/SimpleMarkerSymbol"
-], (Map,MapView,FeatureLayer,Legend,LayerList,ScaleBar,Extent,UniqueValueRenderer,SimpleRenderer,
-    SimpleFillSymbol,SimpleLineSymbol,SimpleMarkerSymbol)=>{
+], (Map,MapView,FeatureLayer,GraphicsLayer,Legend,LayerList,ScaleBar,Graphic,
+    UniqueValueRenderer,SimpleRenderer,SimpleFillSymbol,SimpleLineSymbol,SimpleMarkerSymbol)=>{
 
   /* ===== Helpers UI: burbujas ===== */
-  function toggle(id){ const el=document.querySelector(id); el.style.display = el.style.display==='block' ? 'none' : 'block'; }
+  const toggle = id => { const el=document.querySelector(id); el.style.display = el.style.display==='block' ? 'none' : 'block'; };
   document.getElementById('btnLayers').onclick=()=>toggle('#bubbleLayers');
   document.getElementById('btnLegend').onclick=()=>toggle('#bubbleLegend');
   document.querySelectorAll('[data-close]').forEach(b=>b.onclick=()=>{ document.querySelector(b.dataset.close).style.display='none'; });
@@ -155,7 +120,7 @@ require([
   const view = new MapView({ container:"viewDiv", map, center:[-69.155,-16.274], scale:65000, constraints:{minZoom:4,snapToZoom:false} });
   view.ui.add(new ScaleBar({view,unit:"metric"}),"bottom-left");
 
-  /* ===== Simbología (como ya teníamos) ===== */
+  /* ===== Simbología (como acordamos) ===== */
   const mk=(c,s=6)=> new SimpleMarkerSymbol({style:"circle",color:c,size:s,outline:{color:[255,255,255,180],width:0.5}});
   const tri=(c,s=7)=> new SimpleMarkerSymbol({style:"triangle",color:c,size:s,outline:{color:[255,255,255,180],width:0.5}});
   const diam=(c,s=8)=> new SimpleMarkerSymbol({style:"diamond",color:c,size:s,outline:{color:[255,255,255,180],width:0.5}});
@@ -177,7 +142,7 @@ require([
   const lyrPTAP    = new FeatureLayer({ url:`${CCPP}/0`, title:"PTAP - DATASS", visible:true,
     renderer:new SimpleRenderer({ symbol: mk([231,76,60,0.95], 7.5) })});
 
-  // Vivienda Rural (3 categorías) — se mantiene
+  // Vivienda Rural (3 categorías)
   const FIELD="dhabcual";
   const defExp = `${FIELD} IN ('Con Deficit Cualitativo','''Sin Dcficit Cualitativo','Otro')`;
   const COL_DEF=[198,42,75,0.90], COL_SIN=[60,130,246,0.90], COL_OTR=[168,170,175,0.70];
@@ -193,7 +158,7 @@ require([
     outFields:["*"], definitionExpression:defExp, minScale:300000, maxScale:0, visible:true });
   viviendaRural.when(()=>{ viviendaRural.renderer = vrRenderer(viviendaRural.geometryType); });
 
-  // Límites
+  // Límites (al final)
   const limDept = new FeatureLayer({ url:LIM0, title:"Límite Departamental", visible:true, renderer:new SimpleRenderer({ symbol: line([255,255,255,0.85],2.0) })});
   const limProv = new FeatureLayer({ url:LIM1, title:"Límite Provincial",    visible:true, renderer:new SimpleRenderer({ symbol: line([255,255,255,0.70],1.5) })});
   const limDist = new FeatureLayer({ url:LIM2, title:"Límite Distrital",     visible:true, renderer:new SimpleRenderer({ symbol: line([255,255,255,0.55],1.0) })});
@@ -210,80 +175,102 @@ require([
   const cpLayer = lyrAmbito; // capa exacta
   let layerView, hl; view.whenLayerView(cpLayer).then(lv=>layerView=lv);
 
+  const guideLayer = new GraphicsLayer({ listMode:"hide" }); // punto guía temporal
+  map.add(guideLayer);
+
   const $list = document.getElementById('cpList');
-  const $buscar = document.getElementById('txtBuscar');
-  const $ineq = document.getElementById('chkIneq');
-  const $orden = document.getElementById('selOrden');
-  const $limite = document.getElementById('selLimite');
-
-  const FIELDS = [
-    "OBJECTID","nom_cp","categoria_cp","vivrur_tot","vivrur_agrup_p","sum_pobcensa",
-    "distnear_max","distnear_min"
-  ];
-
-  function escLike(s){ return String(s).replace(/[%_']/g, ch => ({'%':'[%]','_':'[_',"'":"''"}[ch]||ch)); }
   const fmt = (n, d=0)=> (n==null||isNaN(n)) ? "—" : new Intl.NumberFormat('es-PE',{maximumFractionDigits:d}).format(Number(n));
 
   async function cargarLista(){
-    const where = [
-      "1=1",
-      $ineq.checked ? "distnear_max <> distnear_min" : null,
-      $buscar.value.trim() ? `UPPER(nom_cp) LIKE '%${escLike($buscar.value.trim().toUpperCase())}%'` : null
-    ].filter(Boolean).join(" AND ");
-
     const q = cpLayer.createQuery();
-    q.where = where;
-    q.outFields = FIELDS;
+    q.where = "1=1";
+    q.outFields = ["objectid","nom_cp","categoria_cp","vivrur_tot","vivrur_agrup_p","sum_pobcensa","distnear_max","distnear_min"]; // OID en minúsculas
     q.returnGeometry = true;
-    q.num = Number($limite.value || 50);
-    q.orderByFields = [$orden.value];
-
+    q.num = 100;
+    q.orderByFields = ["categoria_cp ASC", "nom_cp ASC"];
     const res = await cpLayer.queryFeatures(q);
     pintarLista(res.features || []);
+  }
+
+  // === Zoom panorámico flexible (más abierto, con padding extra) ===
+  function expandFactorFor(ext){
+    const w = Math.max(ext.width, ext.height); // unidades del view (WebMercator ≈ metros)
+    if (w < 500)   return 3.0;
+    if (w < 2000)  return 2.2;
+    if (w < 8000)  return 1.7;
+    return 1.45; // polígonos grandes: expand moderado
+  }
+  async function flyToFeature(feat){
+    if(!feat || !feat.geometry) return;
+    const geom = feat.geometry;
+    let target = geom.extent ? geom.extent.clone() : null;
+
+    // Fallback a centroide si no hay extent válido
+    if (!target || target.isEmpty || (target.xmin===target.xmax && target.ymin===target.ymax)) {
+      const center = geom.centroid || view.center;
+      try{
+        await view.goTo({ center, scale: 22000 }, { duration: 1300, easing: "ease-in-out" });
+      }catch(_){}
+      return;
+    }
+
+    // Abrimos el cuadro para ver “terreno a los costados” y más arriba
+    const expand = expandFactorFor(target);
+    const paddedExtent = target.expand(expand);
+
+    // Padding asimétrico: más arriba (top) y aire a ambos lados
+    const pad = { left: 120, right: 120, top: 180, bottom: 100 };
+
+    try{
+      await view.goTo({ target: paddedExtent, padding: pad }, { duration: 1300, easing: "ease-in-out", animate: true });
+    }catch(_){}
   }
 
   function pintarLista(features){
     if(hl){ hl.remove(); hl=null; }
     if(!features.length){ $list.innerHTML = `<div class="empty">Sin resultados</div>`; return; }
 
-    const html = features.map(f=>{
+    $list.innerHTML = features.map(f=>{
       const a=f.attributes||{};
       const titulo = `${a.nom_cp ?? "—"} (${a.categoria_cp ?? "—"})`;
       return `
-        <div class="item" data-oid="${a.OBJECTID}">
+        <div class="item" data-oid="${a.objectid}">
           <div class="title">${titulo}</div>
           <div class="kv"><b>Vivienda rural total:</b> ${fmt(a.vivrur_tot)}</div>
           <div class="kv"><b>Vivienda rural concentrado:</b> ${fmt(a.vivrur_agrup_p,1)} %</div>
           <div class="kv"><b>Población rural:</b> ${fmt(a.sum_pobcensa)}</div>
           <div class="kv"><b>Distancia máxima entre viviendas:</b> ${fmt(a.distnear_max,2)} m.</div>
           <div class="kv"><b>Distancia mínima entre viviendas:</b> ${fmt(a.distnear_min,2)} m.</div>
-        </div>
-      `;
+        </div>`;
     }).join("");
-    $list.innerHTML = html;
 
-    // click -> volar y resaltar
+    // click -> highlight + zoom flexible + punto guía
     $list.querySelectorAll(".item").forEach((el)=>{
       el.addEventListener("click", async ()=>{
         const oid = Number(el.dataset.oid);
-        const feat = features.find(ff => (ff.attributes||{}).OBJECTID === oid);
-        if(!feat) return;
+        const q = cpLayer.createQuery(); q.objectIds=[oid]; q.outFields=["*"]; q.returnGeometry=true;
+        const r = await cpLayer.queryFeatures(q);
+        const feat = r.features?.[0]; if(!feat) return;
+
         if(hl){ hl.remove(); hl=null; }
         if(layerView){ hl = layerView.highlight(oid); }
-        const ext = feat.geometry?.extent || feat.geometry;
-        if(ext){ view.goTo(ext.clone().expand(1.25), {duration:1100, easing:"ease-in-out"}); }
+
+        // Punto guía en centroide (opcional)
+        guideLayer.removeAll();
+        if(feat.geometry && feat.geometry.centroid){
+          guideLayer.add(new Graphic({
+            geometry: feat.geometry.centroid,
+            symbol: new SimpleMarkerSymbol({ style:"circle", size:10, color:[255,255,255,0.0],
+              outline:{ color:[13,58,53,0.95], width:3 } })
+          }));
+          setTimeout(()=>guideLayer.removeAll(), 1800);
+        }
+
+        await flyToFeature(feat);
       });
     });
   }
 
-  // eventos
-  $buscar.addEventListener('input', debounce(cargarLista, 350));
-  $ineq.addEventListener('change', cargarLista);
-  $orden.addEventListener('change', cargarLista);
-  $limite.addEventListener('change', cargarLista);
-  function debounce(fn, ms){ let t; return (...args)=>{ clearTimeout(t); t=setTimeout(()=>fn(...args), ms); }; }
-
-  // init
   view.when(cargarLista);
 });
 </script>
