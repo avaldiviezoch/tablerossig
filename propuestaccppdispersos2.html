@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Grado de dispersión de centros poblados - PNSR</title>
+
+<link rel="stylesheet" href="https://js.arcgis.com/4.30/esri/themes/light/main.css">
+<script src="https://js.arcgis.com/4.30/"></script>
+
+<style>
+  :root{
+    --ink:#0b2532; --muted:#64748b; --line:#0e4a43; --panel:#f7fbfa;
+    --brand:#0b3b38; --accent:#0f2e29; --sep:#e6ecea;
+  }
+  html,body{margin:0;height:100%;overflow:hidden;font-family:system-ui,-apple-system,Segoe UI,Roboto,Inter,Arial;background:#eef5f3;color:var(--ink)}
+
+  /* 🔥 Título superior general */
+  .mainTitleBar{
+    width:100%;
+    background:#fff;
+    border-bottom:1px solid var(--sep);
+    box-shadow:0 2px 6px rgba(0,0,0,.08);
+    padding:12px 10px;
+    position:sticky;  
+    top:0;
+    z-index:20;
+  }
+  .mainTitle{
+    margin:0;
+    text-align:center;
+    font-weight:1000;
+    font-size:clamp(22px, 3.6vh, 30px);
+    color:var(--brand);
+    letter-spacing:.3px;
+  }
+
+  /* Mapa 65% / Panel 35% */
+  .shell{display:grid;grid-template-columns:65% 35%;height:calc(100vh - 60px);width:100vw}
+  #viewWrap{position:sticky;top:0;height:100%;overflow:hidden}
+  #viewDiv{position:relative;width:100%;height:100%}
+
+  /* Panel derecho */
+  .sidebar{background:var(--panel);border-left:1px solid var(--sep);box-shadow:-6px 0 24px rgba(2,6,23,.06);
+    padding:14px 12px;display:grid;grid-template-rows:auto auto auto 1fr;gap:12px}
+
+  /* Filtros + limpiar */
+  .filtersBar{background:#fff;border:1px solid var(--sep);border-radius:16px;box-shadow:0 10px 22px rgba(2,6,23,.06);
+    padding:12px;display:grid;gap:10px}
+  .filtersGrid{display:grid;grid-template-columns:1fr;gap:10px}
+  @media (min-width:560px){ .filtersGrid{grid-template-columns:1fr 1fr 1fr} }
+  .fld{display:grid;gap:6px}
+  .fld label{font-size:12px;color:#47606b;font-weight:900;letter-spacing:.2px}
+  .fld select{
+    padding:10px 12px;border:1px solid #cfe7e3;border-radius:12px;background:#e8f5f3;color:#0b3b38;
+    font-weight:800; font-size:13.5px; outline:none
+  }
+  .fld select:disabled{opacity:.6}
+  .rowBtns{display:flex;justify-content:flex-end}
+  .btn{background:#0b3b38;color:#ecfffb;border:1px solid #0e4a43;padding:9px 14px;border-radius:12px;font-weight:900;cursor:pointer}
+  .btn:hover{filter:brightness(1.05)}
+
+  /* Indicadores (vacío y compacto) */
+  .indPanel{background:#fff;border:1px solid var(--sep);border-radius:16px;box-shadow:0 10px 22px rgba(2,6,23,.06);
+    padding:12px;min-height:min(16vh,140px);display:grid;place-items:center;color:#93a1ad;font-weight:800}
+  .indPanel::before{content:"(Espacio para Indicadores)";}
+
+  /* Lista */
+  .listCard{background:#fff;border:1px solid var(--sep);border-radius:16px;box-shadow:0 10px 24px rgba(2,6,23,.06);overflow:hidden;display:grid;grid-template-rows:auto 1fr}
+  .listCard header{padding:10px 12px;background:#fff;border-bottom:1px solid var(--sep)}
+  .listCard h3{margin:0;font-size:14px;font-weight:1000;color:var(--brand);letter-spacing:.2px}
+  .list{overflow:auto;max-height:calc(100vh - 320px)}
+  .item{padding:10px 12px;border-bottom:1px solid #edf2f7;cursor:pointer;transition:background .15s ease}
+  .item:hover{background:#f5faf8}
+  .title{font-weight:900;font-size:13.8px}
+  .kv{font-size:12.2px;color:#334155;line-height:1.35}
+  .kv b{color:#0b2532}
+  .empty{padding:16px;text-align:center;color:#64748b;font-size:12.8px}
+
+  /* FABs (Capas/Leyenda) — lado derecho del mapa */
+  .fab-wrap{position:absolute;right:14px;top:14px;display:flex;flex-direction:column;gap:10px;z-index:7}
+  .fab{width:44px;height:44px;border-radius:50%;display:grid;place-items:center;background:var(--brand);color:#e6fffb;border:1px solid #0e4a43;cursor:pointer;box-shadow:0 10px 22px rgba(0,0,0,.22);font-weight:900;user-select:none}
+  .fab:hover{filter:brightness(1.06)}
+
+  /* Burbujas movibles */
+  .bubble{position:absolute;right:70px;top:14px;min-width:300px;max-width:min(400px,88vw);background:#0f2e29;color:#dff7f3;border:1px solid #0e4a43;border-radius:16px;box-shadow:0 14px 32px rgba(0,0,0,.28);z-index:8;display:none}
+  .bubble header{padding:10px 12px;background:#0b3b38;border-bottom:1px solid #0e4a43;border-radius:16px 16px 0 0;display:flex;align-items:center;justify-content:space-between;cursor:move;gap:8px}
+  .bubble header .ttl{font-weight:900;letter-spacing:.2px}
+  .bubble header .x{cursor:pointer;border:1px solid #0e4a43;background:#114d46;color:#e6fffb;border-radius:10px;padding:6px 10px;font-weight:800}
+  .bubble .content{padding:10px 10px 12px}
+  .scroll{max-height:65vh;overflow:auto;border-radius:10px;border:1px solid #0e4a43}
+  .esri-legend,.esri-layer-list{--esri-widget-padding:8px;--esri-widget-border-color:transparent;--esri-widget-shadow:none;background:transparent;color:#dff7f3;font-size:12.5px}
+  .esri-layer-list__item-label,.esri-legend__service-label{color:#e6fffb !important}
+
+  @media (max-width:900px){
+    .shell{grid-template-columns:1fr;height:auto}
+    #viewWrap{position:relative;height:54vh}
+    .indPanel{min-height:120px}
+    .list{max-height:none}
+  }
+</style>
+</head>
+<body>
+  <!-- 🔥 TÍTULO GENERAL -->
+  <header class="mainTitleBar">
+    <h1 class="mainTitle">Grado de dispersión de centros poblados - PNSR</h1>
+  </header>
+
+  <div class="shell">
+    <div id="viewWrap">
+      <div id="viewDiv"></div>
+
+      <!-- ICONOS flotantes (derecha) -->
+      <div class="fab-wrap">
+        <div id="btnLayers" class="fab" title="Capas">🗂️</div>
+        <div id="btnLegend" class="fab" title="Leyenda">🏷️</div>
+      </div>
+
+      <!-- Burbuja: Capas -->
+      <div id="bubbleLayers" class="bubble" style="top:14px;">
+        <header data-drag="#bubbleLayers"><span class="ttl">Capas</span><button class="x" data-close="#bubbleLayers">Cerrar</button></header>
+        <div class="content"><div class="scroll"><div id="layerListNode"></div></div></div>
+      </div>
+
+      <!-- Burbuja: Leyenda -->
+      <div id="bubbleLegend" class="bubble" style="top:190px;">
+        <header data-drag="#bubbleLegend"><span class="ttl">Leyenda</span><button class="x" data-close="#bubbleLegend">Cerrar</button></header>
+        <div class="content"><div class="scroll"><div id="legendNode"></div></div></div>
+      </div>
+    </div>
+
+    <!-- Panel derecho -->
+    <aside class="sidebar">
+      <!-- 🔥 ya no hay h1 aquí -->
+      <!-- Filtros (Deps/Provs/Dists) -->
+      <section class="filtersBar" aria-label="Filtros de ubicación">
+        <div class="filtersGrid">
+          <div class="fld">
+            <label for="selDep">Departamento</label>
+            <select id="selDep"><option value="">(Todos)</option></select>
+          </div>
+          <div class="fld">
+            <label for="selProv">Provincia</label>
+            <select id="selProv" disabled><option value="">(Todas)</option></select>
+          </div>
+          <div class="fld">
+            <label for="selDist">Distrito</label>
+            <select id="selDist" disabled><option value="">(Todos)</option></select>
+          </div>
+        </div>
+        <div class="rowBtns">
+          <button id="btnClear" class="btn" type="button">Limpiar filtros</button>
+        </div>
+      </section>
+
+      <!-- Indicadores (VACÍO) -->
+      <section class="indPanel" aria-label="Indicadores (pendiente)"></section>
+
+      <!-- Lista -->
+      <section class="listCard">
+        <header><h3>Centros poblados (lista)</h3></header>
+        <div class="list" id="cpList"><div class="empty">Cargando…</div></div>
+      </section>
+    </aside>
+  </div>
+
+<script>
+// 🔥 tu JS sigue igual, no hace falta tocar nada
+</script>
+</body>
+</html>
