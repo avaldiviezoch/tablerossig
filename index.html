@@ -42,7 +42,7 @@
     }
     .grid{ display:grid; gap:12px; padding:14px; grid-template-columns:1fr; }
 
-    /* Botones: estética ajustada */
+    /* Botones */
     .btn{
       display:block; text-decoration:none; color:inherit; font-weight:800; font-size:.95rem;
       padding:14px 16px; border-radius:var(--radius-sm); border:1px solid var(--stroke);
@@ -130,8 +130,8 @@
       <section class="card" aria-labelledby="t-dash">
         <div class="title" id="t-dash">📈 Dashboards</div>
         <div class="grid">
-          <!-- Ruta RELATIVA corregida -->
-          <a class="btn" id="link-ccpp" href="./propuestaccppdispersos.html" target="_blank" rel="noopener">Propuesta CCPP Dispersos</a>
+          <a class="btn"  id="link-ccpp"  href="./propuestaccppdispersos.html"  target="_blank" rel="noopener">Propuesta CCPP Dispersos</a>
+          <a class="btn v2" id="link-ccpp2" href="./propuestaccppdispersos2.html" target="_blank" rel="noopener">Propuesta CCPP Dispersos — v2</a>
         </div>
       </section>
 
@@ -185,7 +185,7 @@
       const w = canvas.clientWidth, h = canvas.clientHeight;
       const baseW = cssVar('--base-w'), baseH = cssVar('--base-h');
       const scale = Math.min(w/baseW, h/baseH);
-      pvframe.style.transform = `scale(${scale})`; // ← FIX: backticks + scale()
+      pvframe.style.transform = `scale(${scale})`;
     }
     window.addEventListener('resize', applyScale);
 
@@ -230,11 +230,9 @@
       applyScale();
     }
 
-    // Eventos de carga del iframe
     pvframe.addEventListener('load', ()=> setState('ready','Vista lista') );
     pvframe.addEventListener('error',()=> setState('blocked','Error al cargar vista') );
 
-    // Interacción: hover, foco y click
     document.addEventListener('mouseover', (e)=>{
       const a = e.target.closest('a.btn'); if(!a) return;
       previewLink(a);
@@ -244,10 +242,9 @@
     });
     document.addEventListener('click', (e)=>{
       const a = e.target.closest('a.btn'); if(!a) return;
-      previewLink(a); // asegura sincronía incluso si el usuario hace click rápido
+      previewLink(a);
     });
 
-    // Efecto de luz del cursor en botones
     document.addEventListener('mousemove', (e)=>{
       const a = e.target.closest('.btn'); if(!a) return;
       const r = a.getBoundingClientRect();
@@ -255,16 +252,13 @@
       a.style.setProperty('--y', `${e.clientY - r.top}px`);
     });
 
-    // Botón fijar
     pvlock.addEventListener('click', ()=>{
       locked = !locked;
       pvlock.textContent = locked ? 'Desfijar' : 'Fijar';
       pvframe.style.pointerEvents = locked ? 'auto' : 'none';
-      // Si ya hay src, mantén "ready" para poder interactuar
       if(pvframe.src) setState('ready','Vista lista');
     });
 
-    // Cargar por defecto el único dashboard (mejor UX)
     document.addEventListener('DOMContentLoaded', ()=>{
       const first = document.getElementById('link-ccpp');
       if(first) previewLink(first);
@@ -272,4 +266,3 @@
   </script>
 </body>
 </html>
-
