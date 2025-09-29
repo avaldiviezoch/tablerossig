@@ -13,16 +13,20 @@
     --ink:#0b2532; --muted:#64748b; --line:#0e4a43; --panel:#f7fbfa;
     --brand:#0b3b38; --accent:#0f2e29; --sep:#e6ecea;
   }
-  html,body{margin:0;height:100%;overflow:hidden;font-family:system-ui,-apple-system,Segoe UI,Roboto,Inter,Arial;background:#eef5f3;color:var(--ink)}
 
-  /* 🔥 Título superior general */
+  /* Estructura general: header + contenido (mapa/panel) */
+  html,body{height:100%;margin:0;background:#eef5f3;color:var(--ink);
+    font-family:system-ui,-apple-system,Segoe UI,Roboto,Inter,Arial}
+  body{display:grid;grid-template-rows:auto 1fr;overflow:hidden}
+
+  /* 🔥 Título superior general (extremo a extremo) */
   .mainTitleBar{
     width:100%;
     background:#fff;
     border-bottom:1px solid var(--sep);
     box-shadow:0 2px 6px rgba(0,0,0,.08);
     padding:12px 10px;
-    position:sticky;  
+    position:sticky;
     top:0;
     z-index:20;
   }
@@ -35,14 +39,30 @@
     letter-spacing:.3px;
   }
 
-  /* Mapa 65% / Panel 35% */
-  .shell{display:grid;grid-template-columns:65% 35%;height:calc(100vh - 60px);width:100vw}
-  #viewWrap{position:sticky;top:0;height:100%;overflow:hidden}
+  /* Contenedor principal: Mapa 65% / Panel 35% */
+  .shell{
+    display:grid;
+    grid-template-columns:65% 35%;
+    height:100%;
+    width:100%;
+    overflow:hidden;
+  }
+
+  /* Mapa */
+  #viewWrap{position:relative;height:100%;overflow:hidden}
   #viewDiv{position:relative;width:100%;height:100%}
 
   /* Panel derecho */
-  .sidebar{background:var(--panel);border-left:1px solid var(--sep);box-shadow:-6px 0 24px rgba(2,6,23,.06);
-    padding:14px 12px;display:grid;grid-template-rows:auto auto auto 1fr;gap:12px}
+  .sidebar{
+    background:var(--panel);
+    border-left:1px solid var(--sep);
+    box-shadow:-6px 0 24px rgba(2,6,23,.06);
+    padding:14px 12px;
+    display:grid;
+    grid-template-rows:auto auto 1fr; /* filtros, indicadores, lista */
+    gap:12px;
+    min-height:0; /* ⚠️ importante para que la lista pueda hacer overflow */
+  }
 
   /* Filtros + limpiar */
   .filtersBar{background:#fff;border:1px solid var(--sep);border-radius:16px;box-shadow:0 10px 22px rgba(2,6,23,.06);
@@ -60,16 +80,16 @@
   .btn{background:#0b3b38;color:#ecfffb;border:1px solid #0e4a43;padding:9px 14px;border-radius:12px;font-weight:900;cursor:pointer}
   .btn:hover{filter:brightness(1.05)}
 
-  /* Indicadores (vacío y compacto) */
+  /* Indicadores (placeholder) */
   .indPanel{background:#fff;border:1px solid var(--sep);border-radius:16px;box-shadow:0 10px 22px rgba(2,6,23,.06);
     padding:12px;min-height:min(16vh,140px);display:grid;place-items:center;color:#93a1ad;font-weight:800}
   .indPanel::before{content:"(Espacio para Indicadores)";}
 
   /* Lista */
-  .listCard{background:#fff;border:1px solid var(--sep);border-radius:16px;box-shadow:0 10px 24px rgba(2,6,23,.06);overflow:hidden;display:grid;grid-template-rows:auto 1fr}
+  .listCard{background:#fff;border:1px solid var(--sep);border-radius:16px;box-shadow:0 10px 24px rgba(2,6,23,.06);overflow:hidden;display:grid;grid-template-rows:auto 1fr;min-height:0}
   .listCard header{padding:10px 12px;background:#fff;border-bottom:1px solid var(--sep)}
   .listCard h3{margin:0;font-size:14px;font-weight:1000;color:var(--brand);letter-spacing:.2px}
-  .list{overflow:auto;max-height:calc(100vh - 320px)}
+  .list{overflow:auto;min-height:0}
   .item{padding:10px 12px;border-bottom:1px solid #edf2f7;cursor:pointer;transition:background .15s ease}
   .item:hover{background:#f5faf8}
   .title{font-weight:900;font-size:13.8px}
@@ -93,7 +113,7 @@
   .esri-layer-list__item-label,.esri-legend__service-label{color:#e6fffb !important}
 
   @media (max-width:900px){
-    .shell{grid-template-columns:1fr;height:auto}
+    .shell{grid-template-columns:1fr}
     #viewWrap{position:relative;height:54vh}
     .indPanel{min-height:120px}
     .list{max-height:none}
@@ -101,7 +121,7 @@
 </style>
 </head>
 <body>
-  <!-- 🔥 TÍTULO GENERAL -->
+  <!-- Header con título global -->
   <header class="mainTitleBar">
     <h1 class="mainTitle">Grado de dispersión de centros poblados - PNSR</h1>
   </header>
@@ -131,7 +151,6 @@
 
     <!-- Panel derecho -->
     <aside class="sidebar">
-      <!-- 🔥 ya no hay h1 aquí -->
       <!-- Filtros (Deps/Provs/Dists) -->
       <section class="filtersBar" aria-label="Filtros de ubicación">
         <div class="filtersGrid">
@@ -153,7 +172,7 @@
         </div>
       </section>
 
-      <!-- Indicadores (VACÍO) -->
+      <!-- Indicadores -->
       <section class="indPanel" aria-label="Indicadores (pendiente)"></section>
 
       <!-- Lista -->
@@ -165,7 +184,412 @@
   </div>
 
 <script>
-// 🔥 tu JS sigue igual, no hace falta tocar nada
+require([
+  "esri/Map","esri/views/MapView","esri/layers/FeatureLayer","esri/layers/GraphicsLayer",
+  "esri/widgets/Legend","esri/widgets/LayerList","esri/widgets/ScaleBar",
+  "esri/Graphic",
+  "esri/renderers/UniqueValueRenderer","esri/renderers/SimpleRenderer",
+  "esri/symbols/SimpleFillSymbol","esri/symbols/SimpleLineSymbol","esri/symbols/SimpleMarkerSymbol"
+], (Map,MapView,FeatureLayer,GraphicsLayer,Legend,LayerList,ScaleBar,Graphic,
+    UniqueValueRenderer,SimpleRenderer,SimpleFillSymbol,SimpleLineSymbol,SimpleMarkerSymbol)=>{
+
+  /* ===== Helpers UI: burbujas ===== */
+  const toggle = id => { const el=document.querySelector(id); el.style.display = el.style.display==='block' ? 'none' : 'block'; };
+  document.getElementById('btnLayers').onclick=()=>toggle('#bubbleLayers');
+  document.getElementById('btnLegend').onclick=()=>toggle('#bubbleLegend');
+  document.querySelectorAll('[data-close]').forEach(b=>b.onclick=()=>{ document.querySelector(b.dataset.close).style.display='none'; });
+  function makeDraggable(header){
+    const box=document.querySelector(header.dataset.drag); let ox=0,oy=0,drag=false;
+    header.addEventListener('mousedown',e=>{drag=true;ox=e.clientX-box.offsetLeft;oy=e.clientY-box.offsetTop;e.preventDefault();});
+    window.addEventListener('mousemove',e=>{if(!drag)return;box.style.left=(e.clientX-ox)+'px';box.style.top=(e.clientY-oy)+'px';box.style.right='auto';});
+    window.addEventListener('mouseup',()=>drag=false);
+    header.addEventListener('touchstart',e=>{const t=e.touches[0];drag=true;ox=t.clientX-box.offsetLeft;oy=e.touches[0].clientY-box.offsetTop;});
+    window.addEventListener('touchmove',e=>{if(!drag)return;const t=e.touches[0];box.style.left=(t.clientX-ox)+'px';box.style.top=(t.clientY-oy)+'px';box.style.right='auto';},{passive:false});
+    window.addEventListener('touchend',()=>drag=false);
+  }
+  document.querySelectorAll('[data-drag]').forEach(makeDraggable);
+
+  /* ===== ENDPOINTS ===== */
+  const CCPP = "https://pportalgis.vivienda.gob.pe/pfdserver1/rest/services/OGEI/CCPP_Dispersos/FeatureServer";
+  const VR   = "https://dportalgis.vivienda.gob.pe/dfdserver/rest/services/OGEI/vivienda_rural/FeatureServer/0";
+  const LIM_BASE = "https://pportalgis.vivienda.gob.pe/pfdserver/rest/services/COES/Limites_Pol%C3%ADticos/MapServer";
+  const LIM0 = `${LIM_BASE}/0`; // deps: id_dpto, nom_dep
+  const LIM1 = `${LIM_BASE}/1`; // provs: id_dep, id_prov, nom_prov
+  const LIM2 = `${LIM_BASE}/2`; // dists: id_prov, id_dist, nom_dist 
+
+  /* ===== MAPA ===== */
+  const map = new Map({ basemap:"satellite" });
+  const view = new MapView({
+    container:"viewDiv",
+    map,
+    center:[-69.155,-16.274],
+    scale:65000,
+    constraints:{minZoom:4,snapToZoom:false}
+  });
+  view.ui.add(new ScaleBar({view,unit:"metric"}),"bottom-left");
+  view.qualityProfile = "low";
+
+  /* ===== Simbología auxiliar ===== */
+  const mk=(c,s=6)=> new SimpleMarkerSymbol({style:"circle",color:c,size:s,outline:{color:[255,255,255,180],width:0.5}});
+  const tri=(c,s=7)=> new SimpleMarkerSymbol({style:"triangle",color:c,size:s,outline:{color:[255,255,255,180],width:0.5}});
+  const diam=(c,s=8)=> new SimpleMarkerSymbol({style:"diamond",color:c,size:s,outline:{color:[255,255,255,180],width:0.5}});
+  const line=(c,w=1.2)=> new SimpleLineSymbol({color:c,width:w});
+  const poly=(fill,outline)=> new SimpleFillSymbol({color:fill,outline});
+
+  /* ===== Glow CIM para límites ===== */
+  function glowCIM(colorRGB=[255,255,255]){
+    const [r,g,b]=colorRGB;
+    return {
+      type:"cim",
+      data:{
+        type:"CIMSymbolReference",
+        symbol:{
+          type:"CIMLineSymbol",
+          symbolLayers:[
+            { type:"CIMSolidStroke", enable:true, width:6,  color:[r,g,b,40]  },
+            { type:"CIMSolidStroke", enable:true, width:3,  color:[r,g,b,120] },
+            { type:"CIMSolidStroke", enable:true, width:1.6,color:[r,g,b,255] }
+          ]
+        }
+      }
+    };
+  }
+
+  /* ===== Rangos de visibilidad ===== */
+  const SCALE_PROV = 1200000;
+  const SCALE_RED  = 600000;
+  // Capas CCPP
+  const lyrAreasAgrup = new FeatureLayer({
+    url:`${CCPP}/6`, title:"Áreas agrupadas (densidad y viviendas)",
+    visible:true, minScale:SCALE_PROV,
+    renderer:new SimpleRenderer({ symbol: poly([212,124,242,0.35], new SimpleLineSymbol({color:[0,0,0,0.9], width:1.2, style:"short-dot"})) })
+  });
+  const lyrAmbito = new FeatureLayer({
+    url:`${CCPP}/5`, title:"Ámbito territorial de centros poblados",
+    visible:true, minScale:SCALE_PROV,
+    renderer:new SimpleRenderer({ symbol: poly([0,0,0,0], new SimpleLineSymbol({color:[0,0,0,0.9], width:1.2, style:"short-dot"})) })
+  });
+  const lyrCPGrado = new FeatureLayer({
+    url:`${CCPP}/4`, title:"Centro poblado por grado de dispersión",
+    visible:true, minScale:1000000,
+    renderer:new SimpleRenderer({ symbol: mk([200,200,200,0.95], 5.5) })
+  });
+  const lyrRedes   = new FeatureLayer({
+    url:`${CCPP}/3`, title:"Redes - DATASS",
+    visible:true, minScale:SCALE_RED,
+    renderer:new SimpleRenderer({ symbol: line([95,210,255,0.95], 1.4) })
+  });
+  const lyrReserv  = new FeatureLayer({
+    url:`${CCPP}/2`, title:"Reservorio - DATASS",
+    visible:true, minScale:SCALE_PROV,
+    renderer:new SimpleRenderer({ symbol: diam([46,204,64,0.95], 8) })
+  });
+  const lyrCapt    = new FeatureLayer({
+    url:`${CCPP}/1`, title:"Captación - DTASS",
+    visible:true, minScale:SCALE_PROV,
+    renderer:new SimpleRenderer({ symbol: tri([52,152,219,0.95], 8) })
+  });
+  const lyrPTAP    = new FeatureLayer({
+    url:`${CCPP}/0`, title:"PTAP - DATASS",
+    visible:true, minScale:SCALE_PROV,
+    renderer:new SimpleRenderer({ symbol: mk([231,76,60,0.95], 7.5) })
+  });
+
+  // Vivienda Rural (3 categorías)
+  const FIELD="dhabcual";
+  // Nota: corrijo comillas y tilde para evitar fallos de filtro
+  const defExp = `${FIELD} IN ('Con Deficit Cualitativo','Sin Dcficit Cualitativo','Otro')`;
+  const COL_DEF=[198,42,75,0.90], COL_SIN=[60,130,246,0.90], COL_OTR=[168,170,175,0.70];
+  const mkGeom=(g,c)=> g==="polygon" ? poly(c,new SimpleLineSymbol({color:[255,255,255,1],width:0.5})) : (g==="polyline"?line(c,2):mk(c,7));
+  function vrRenderer(g){ return new UniqueValueRenderer({ field:FIELD, defaultSymbol:null,
+    uniqueValueInfos:[
+      {value:"Con Deficit Cualitativo",label:"Con Déficit Cualitativo",symbol:mkGeom(g,COL_DEF)},
+      {value:"Sin Dcficit Cualitativo",label:"Sin Déficit Cualitativo",symbol:mkGeom(g,COL_SIN)},
+      {value:"Otro",label:"Otro",symbol:mkGeom(g,COL_OTR)}
+    ]});
+  }
+  const viviendaRural = new FeatureLayer({
+    url:VR, title:"Vivienda rural - Viviendas Rurales",
+    outFields:["*"], definitionExpression:defExp, minScale:SCALE_PROV, maxScale:0, visible:true
+  });
+  viviendaRural.when(()=>{ viviendaRural.renderer = vrRenderer(viviendaRural.geometryType); });
+
+  // Capas de contenido
+  map.addMany([lyrAreasAgrup, viviendaRural, lyrPTAP, lyrCapt, lyrReserv, lyrRedes, lyrCPGrado, lyrAmbito]);
+
+  // LÍMITES con brillo (arriba). Se mostrarán solo cuando haya filtro.
+  const limDeptDraw = new FeatureLayer({
+    url:LIM0, title:"Límite Departamental",
+    visible:false,
+    renderer:new SimpleRenderer({ symbol: glowCIM([0,255,255]) }),
+    blendMode:"screen"
+  });
+  const limProvDraw = new FeatureLayer({
+    url:LIM1, title:"Límite Provincial",
+    visible:false,
+    renderer:new SimpleRenderer({ symbol: glowCIM([255,215,0]) }),
+    blendMode:"screen"
+  });
+  const limDistDraw = new FeatureLayer({
+    url:LIM2, title:"Límite Distrital",
+    visible:false,
+    renderer:new SimpleRenderer({ symbol: glowCIM([255,105,180]) }),
+    blendMode:"screen"
+  });
+  map.addMany([limDeptDraw, limProvDraw, limDistDraw]);
+
+  // Widgets en burbujas
+  new Legend({ view, container:"legendNode" });
+  new LayerList({ view, container:"layerListNode", selectionEnabled:true,
+    listItemCreatedFunction:(e)=>{ e.item.panel = { content:"legend", open:false }; } });
+
+  /* ===== LISTA + FILTROS (capa 5 + límites políticos) ===== */
+  const cpLayer = lyrAmbito; // FeatureServer/5
+  let layerView, hl; view.whenLayerView(cpLayer).then(lv=>layerView=lv);
+
+  // fuentes para combos
+  const limDeptSrc = new FeatureLayer({ url:LIM0, outFields:["id_dpto","nom_dep"], listMode:"hide" });
+  const limProvSrc = new FeatureLayer({ url:LIM1, outFields:["id_dep","id_prov","nom_prov"], listMode:"hide" });
+  const limDistSrc = new FeatureLayer({ url:LIM2, outFields:["id_prov","id_dist","nom_dist"], listMode:"hide" });
+
+  const guideLayer = new GraphicsLayer({ listMode:"hide" });
+  map.add(guideLayer);
+
+  const $list = document.getElementById('cpList');
+  const $selDep  = document.getElementById('selDep');
+  const $selProv = document.getElementById('selProv');
+  const $selDist = document.getElementById('selDist');
+  const $btnClear= document.getElementById('btnClear');
+
+  const PAD = { left: 120, right: 120, top: 200, bottom: 110 };
+  function expandFactorFor(ext){
+    const w = Math.max(ext.width, ext.height);
+    if (w < 500)   return 3.0;
+    if (w < 2000)  return 2.2;
+    if (w < 8000)  return 1.7;
+    return 1.45;
+  }
+
+  // Vista inicial para reset
+  let initialViewpoint = null;
+  view.when(()=>{ initialViewpoint = view.viewpoint.clone(); });
+
+  const fmt = (n, d=0)=> (n==null||isNaN(n)) ? "—" : new Intl.NumberFormat('es-PE',{maximumFractionDigits:d}).format(Number(n));
+
+  // ==== Combos ====
+  async function loadDeps(){
+    const q = limDeptSrc.createQuery();
+    q.where = "1=1"; q.returnGeometry = false;
+    q.outFields = ["id_dpto","nom_dep"]; q.orderByFields = ["nom_dep ASC"]; q.num = 300; q.cacheHint = true;
+    const r = await limDeptSrc.queryFeatures(q);
+    const seen = new Set(); const rows = [];
+    (r.features||[]).forEach(f=>{
+      const id = f.attributes?.id_dpto, name = f.attributes?.nom_dep;
+      if(id && !seen.has(id)){ seen.add(id); rows.push({id, name}); }
+    });
+    $selDep.innerHTML = `<option value="">(Todos)</option>` + rows.map(o=>`<option value="${o.id}">${o.name}</option>`).join("");
+    $selProv.innerHTML = `<option value="">(Todas)</option>`; $selProv.disabled = true;
+    $selDist.innerHTML = `<option value="">(Todos)</option>`; $selDist.disabled = true;
+  }
+
+  async function loadProvs(){
+    const dep = $selDep.value.trim();
+    $selProv.innerHTML = `<option value="">(Todas)</option>`;
+    $selDist.innerHTML = `<option value="">(Todos)</option>`; $selDist.disabled = true;
+    if(!dep){ $selProv.disabled = true; return; }
+    const q = limProvSrc.createQuery();
+    q.where = `id_dep='${dep}'`; q.returnGeometry=false;
+    q.outFields = ["id_prov","nom_prov"]; q.orderByFields = ["nom_prov ASC"]; q.num = 1000; q.cacheHint = true;
+    const r = await limProvSrc.queryFeatures(q);
+    const seen = new Set(), rows=[];
+    (r.features||[]).forEach(f=>{
+      const id = f.attributes?.id_prov, name=f.attributes?.nom_prov;
+      if(id && !seen.has(id)){ seen.add(id); rows.push({id, name}); }
+    });
+    $selProv.innerHTML += rows.map(o=>`<option value="${o.id}">${o.name}</option>`).join("");
+    $selProv.disabled = false;
+  }
+
+  async function loadDists(){
+    const prov = $selProv.value.trim();
+    $selDist.innerHTML = `<option value="">(Todos)</option>`;
+    if(!prov){ $selDist.disabled = true; return; }
+    const q = limDistSrc.createQuery();
+    q.where = `id_prov='${prov}'`; q.returnGeometry=false;
+    q.outFields = ["id_dist","nom_dist"]; q.orderByFields = ["nom_dist ASC"]; q.num = 3000; q.cacheHint = true;
+    const r = await limDistSrc.queryFeatures(q);
+    const seen = new Set(), rows=[];
+    (r.features||[]).forEach(f=>{
+      const id = f.attributes?.id_dist, name=f.attributes?.nom_dist;
+      if(id && !seen.has(id)){ seen.add(id); rows.push({id, name}); }
+    });
+    $selDist.innerHTML += rows.map(o=>`<option value="${o.id}">${o.name}</option>`).join("");
+    $selDist.disabled = false;
+  }
+
+  // ==== Mostrar SOLO el límite seleccionado ====
+  function updatePoliticalLimitVisibility(){
+    const dep  = $selDep.value.trim();
+    const prov = $selProv.value.trim();
+    const dist = $selDist.value.trim();
+
+    [limDeptDraw, limProvDraw, limDistDraw].forEach(ly=>{
+      ly.visible = false;
+      ly.definitionExpression = null;
+    });
+
+    if(dist){
+      limDistDraw.definitionExpression = `id_dist='${dist}'`;
+      limDistDraw.visible = true;
+      return;
+    }
+    if(prov){
+      limProvDraw.definitionExpression = `id_prov='${prov}'`;
+      limProvDraw.visible = true;
+      return;
+    }
+    if(dep){
+      limDeptDraw.definitionExpression = `id_dpto='${dep}'`;
+      limDeptDraw.visible = true;
+      return;
+    }
+  }
+
+  /* === ZOOM COMPLETO AL ÁREA (solo límites políticos) === */
+  async function zoomToPolitical(){
+    let src=null, where=null;
+    const dist = $selDist.value.trim();
+    const prov = $selProv.value.trim();
+    const dep  = $selDep.value.trim();
+
+    if(dist){ src = limDistSrc; where = `id_dist='${dist}'`; }
+    else if(prov){ src = limProvSrc; where = `id_prov='${prov}'`; }
+    else if(dep){ src = limDeptSrc; where = `id_dpto='${dep}'`; }
+    else{ return; }
+
+    const q = src.createQuery();
+    q.where = where; q.returnGeometry = true; q.outFields = []; q.num = 1;
+    const r = await src.queryFeatures(q);
+    const g = r.features?.[0]?.geometry;
+    if(!g) return;
+
+    try{
+      await view.goTo(
+        { target: g, padding: { left: 40, right: 40, top: 60, bottom: 60 } },
+        { duration: 900, easing: "ease-in-out" }
+      );
+    }catch(_){}
+  }
+
+  function buildWhere(){
+    const dep  = $selDep.value.trim();
+    const prov = $selProv.value.trim();
+    const dist = $selDist.value.trim();
+    const parts = ["1=1"];
+    if(dep)  parts.push(`id_dpto='${dep}'`);
+    if(prov) parts.push(`id_prov='${prov}'`);
+    if(dist) parts.push(`id_dist='${dist}'`);
+    return parts.join(" AND ");
+  }
+
+  async function cargarLista(){
+    const q = cpLayer.createQuery();
+    q.where = buildWhere();
+    q.outFields = ["objectid","nom_cp","categoria_cp","vivrur_tot","vivrur_agrup_p","sum_pobcensa","distnear_max","distnear_min","id_dpto","id_prov","id_dist"];
+    q.returnGeometry = false;
+    q.num = 100;
+    q.orderByFields = ["nom_cp ASC"];
+    q.cacheHint = true;
+    const res = await cpLayer.queryFeatures(q);
+    pintarLista(res.features || []);
+  }
+
+  // === Zoom “panorámico” al item de lista ===
+  async function flyToFeatureByOID(oid){
+    const q = cpLayer.createQuery();
+    q.objectIds=[oid]; q.outFields=[]; q.returnGeometry=true;
+    const r = await cpLayer.queryFeatures(q);
+    const feat = r.features?.[0]; if(!feat) return;
+
+    const geom = feat.geometry;
+    let target = geom.extent ? geom.extent.clone() : null;
+
+    if (!target || target.isEmpty || (target.xmin===target.xmax && target.ymin===target.ymax)) {
+      const center = geom.centroid || view.center;
+      try{ await view.goTo({ center, scale: 24000 }, { duration: 1100, easing: "ease-in-out" }); }catch(_){}
+      return;
+    }
+    const expand = expandFactorFor(target);
+    const paddedExtent = target.expand(expand);
+    try{ await view.goTo({ target: paddedExtent, padding: { left: 120, right: 120, top: 200, bottom: 110 } }, { duration: 1100, easing: "ease-in-out", animate: true }); }catch(_){}
+  }
+
+  function pintarLista(features){
+    if(hl){ hl.remove(); hl=null; }
+    if(!features.length){ $list.innerHTML = `<div class="empty">Sin resultados</div>`; return; }
+
+    $list.innerHTML = features.map(f=>{
+      const a=f.attributes||{};
+      const titulo = `${a.nom_cp ?? "—"} (${a.categoria_cp ?? "—"})`;
+      return `
+        <div class="item" data-oid="${a.objectid}">
+          <div class="title">${titulo}</div>
+          <div class="kv"><b>Vivienda rural total:</b> ${fmt(a.vivrur_tot)}</div>
+          <div class="kv"><b>Vivienda rural concentrado:</b> ${fmt(a.vivrur_agrup_p,1)} %</div>
+          <div class="kv"><b>Población rural:</b> ${fmt(a.sum_pobcensa)}</div>
+          <div class="kv"><b>Distancia máxima entre viviendas:</b> ${fmt(a.distnear_max,2)} m.</div>
+          <div class="kv"><b>Distancia mínima entre viviendas:</b> ${fmt(a.distnear_min,2)} m.</div>
+        </div>`;
+    }).join("");
+
+    $list.querySelectorAll(".item").forEach((el)=>{
+      el.addEventListener("click", async ()=>{
+        const oid = Number(el.dataset.oid);
+        try{
+          if(layerView){ if(hl) hl.remove(); hl = layerView.highlight(oid); }
+          await flyToFeatureByOID(oid);
+        }catch(_){}
+      });
+    });
+  }
+
+  // Eventos filtros + botón limpiar
+  $selDep.addEventListener('change', async()=>{
+    await loadProvs();
+    await cargarLista();
+    updatePoliticalLimitVisibility();
+    await zoomToPolitical();
+  });
+  $selProv.addEventListener('change', async()=>{
+    await loadDists();
+    await cargarLista();
+    updatePoliticalLimitVisibility();
+    await zoomToPolitical();
+  });
+  $selDist.addEventListener('change', async()=>{
+    await cargarLista();
+    updatePoliticalLimitVisibility();
+    await zoomToPolitical();
+  });
+
+  $btnClear.addEventListener('click', async ()=>{
+    $selDep.value = "";
+    $selProv.innerHTML = `<option value="">(Todas)</option>`;
+    $selProv.disabled = true;
+    $selDist.innerHTML = `<option value="">(Todos)</option>`;
+    $selDist.disabled = true;
+    updatePoliticalLimitVisibility(); // oculta límites
+    await cargarLista();
+    if(initialViewpoint){ try{ await view.goTo(initialViewpoint, { duration: 900 }); }catch(_){ } }
+  });
+
+  // init
+  (async function init(){
+    await loadDeps();
+    await cargarLista();
+    updatePoliticalLimitVisibility(); // iniciar con límites ocultos
+  })();
+});
 </script>
 </body>
 </html>
