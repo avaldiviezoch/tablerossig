@@ -13,18 +13,42 @@
     --ink:#0b2532; --muted:#64748b; --line:#0e4a43; --panel:#f7fbfa;
     --brand:#0b3b38; --accent:#0f2e29; --sep:#e6ecea;
   }
-  html,body{margin:0;height:100%;overflow:hidden;font-family:system-ui,-apple-system,Segoe UI,Roboto,Inter,Arial;background:#eef5f3;color:var(--ink)}
-  /* Mapa 65% / Panel 35% */
-  .shell{display:grid;grid-template-columns:65% 35%;height:100vh;width:100vw}
-  #viewWrap{position:sticky;top:0;height:100vh;overflow:hidden}
+
+  /* Estructura general: header + contenido (mapa/panel) */
+  html,body{height:100%;margin:0;background:#eef5f3;color:var(--ink);
+    font-family:system-ui,-apple-system,Segoe UI,Roboto,Inter,Arial}
+  body{display:grid;grid-template-rows:auto 1fr;overflow:hidden}
+
+  /* Título superior (extremo a extremo) */
+  .mainTitleBar{
+    width:100%;
+    background:#fff;
+    border-bottom:1px solid var(--sep);
+    box-shadow:0 2px 6px rgba(0,0,0,.08);
+    padding:12px 10px;
+    position:sticky; top:0; z-index:20;
+  }
+  .mainTitle{
+    margin:0; text-align:center; font-weight:1000;
+    font-size:clamp(22px, 3.6vh, 30px); color:var(--brand); letter-spacing:.3px;
+  }
+
+  /* Contenedor principal: Mapa 65% / Panel 35% */
+  .shell{
+    display:grid; grid-template-columns:65% 35%;
+    height:100%; width:100%; overflow:hidden;
+  }
+
+  /* Mapa */
+  #viewWrap{position:relative;height:100%;overflow:hidden}
   #viewDiv{position:relative;width:100%;height:100%}
 
   /* Panel derecho */
-  .sidebar{background:var(--panel);border-left:1px solid var(--sep);box-shadow:-6px 0 24px rgba(2,6,23,.06);
-    padding:14px 12px;display:grid;grid-template-rows:auto auto auto 1fr;gap:12px}
-  .topTitle{
-    text-align:center;font-weight:1000;letter-spacing:.2px;margin:0;
-    font-size:clamp(22px, 3.6vh, 30px); color:var(--brand);
+  .sidebar{
+    background:var(--panel); border-left:1px solid var(--sep);
+    box-shadow:-6px 0 24px rgba(2,6,23,.06);
+    padding:14px 12px; display:grid;
+    grid-template-rows:auto auto 1fr; gap:12px; min-height:0;
   }
 
   /* Filtros + limpiar */
@@ -43,16 +67,16 @@
   .btn{background:#0b3b38;color:#ecfffb;border:1px solid #0e4a43;padding:9px 14px;border-radius:12px;font-weight:900;cursor:pointer}
   .btn:hover{filter:brightness(1.05)}
 
-  /* Indicadores (vacío y compacto) */
+  /* Indicadores (placeholder) */
   .indPanel{background:#fff;border:1px solid var(--sep);border-radius:16px;box-shadow:0 10px 22px rgba(2,6,23,.06);
     padding:12px;min-height:min(16vh,140px);display:grid;place-items:center;color:#93a1ad;font-weight:800}
   .indPanel::before{content:"(Espacio para Indicadores)";}
 
   /* Lista */
-  .listCard{background:#fff;border:1px solid var(--sep);border-radius:16px;box-shadow:0 10px 24px rgba(2,6,23,.06);overflow:hidden;display:grid;grid-template-rows:auto 1fr}
+  .listCard{background:#fff;border:1px solid var(--sep);border-radius:16px;box-shadow:0 10px 24px rgba(2,6,23,.06);overflow:hidden;display:grid;grid-template-rows:auto 1fr;min-height:0}
   .listCard header{padding:10px 12px;background:#fff;border-bottom:1px solid var(--sep)}
   .listCard h3{margin:0;font-size:14px;font-weight:1000;color:var(--brand);letter-spacing:.2px}
-  .list{overflow:auto;max-height:calc(100vh - 260px)}
+  .list{overflow:auto;min-height:0}
   .item{padding:10px 12px;border-bottom:1px solid #edf2f7;cursor:pointer;transition:background .15s ease}
   .item:hover{background:#f5faf8}
   .title{font-weight:900;font-size:13.8px}
@@ -60,7 +84,7 @@
   .kv b{color:#0b2532}
   .empty{padding:16px;text-align:center;color:#64748b;font-size:12.8px}
 
-  /* FABs (Capas/Leyenda) — lado derecho del mapa */
+  /* FABs (Capas/Leyenda) — si quisieras reactivarlas, ya están en JS */
   .fab-wrap{position:absolute;right:14px;top:14px;display:flex;flex-direction:column;gap:10px;z-index:7}
   .fab{width:44px;height:44px;border-radius:50%;display:grid;place-items:center;background:var(--brand);color:#e6fffb;border:1px solid #0e4a43;cursor:pointer;box-shadow:0 10px 22px rgba(0,0,0,.22);font-weight:900;user-select:none}
   .fab:hover{filter:brightness(1.06)}
@@ -84,64 +108,61 @@
 </style>
 </head>
 <body>
-<div class="shell">
-  <div id="viewWrap">
-    <div id="viewDiv"></div>
+  <header class="mainTitleBar">
+    <h1 class="mainTitle">Grado de dispersión de centros poblados - PNSR</h1>
+  </header>
 
-    <!-- ICONOS flotantes (derecha) -->
-    <div class="fab-wrap">
-      <div id="btnLayers" class="fab" title="Capas">🗂️</div>
-      <div id="btnLegend" class="fab" title="Leyenda">🏷️</div>
+  <div class="shell">
+    <div id="viewWrap">
+      <div id="viewDiv"></div>
+
+      <!-- (Opcional) ICONOS flotantes -->
+      <div class="fab-wrap" style="display:none">
+        <div id="btnLayers" class="fab" title="Capas">🗂️</div>
+        <div id="btnLegend" class="fab" title="Leyenda">🏷️</div>
+      </div>
+
+      <!-- (Opcional) Burbujas -->
+      <div id="bubbleLayers" class="bubble" style="top:14px;">
+        <header data-drag="#bubbleLayers"><span class="ttl">Capas</span><button class="x" data-close="#bubbleLayers">Cerrar</button></header>
+        <div class="content"><div class="scroll"><div id="layerListNode"></div></div></div>
+      </div>
+      <div id="bubbleLegend" class="bubble" style="top:190px;">
+        <header data-drag="#bubbleLegend"><span class="ttl">Leyenda</span><button class="x" data-close="#bubbleLegend">Cerrar</button></header>
+        <div class="content"><div class="scroll"><div id="legendNode"></div></div></div>
+      </div>
     </div>
 
-    <!-- Burbuja: Capas -->
-    <div id="bubbleLayers" class="bubble" style="top:14px;">
-      <header data-drag="#bubbleLayers"><span class="ttl">Capas</span><button class="x" data-close="#bubbleLayers">Cerrar</button></header>
-      <div class="content"><div class="scroll"><div id="layerListNode"></div></div></div>
-    </div>
+    <!-- Panel derecho -->
+    <aside class="sidebar">
+      <section class="filtersBar" aria-label="Filtros de ubicación">
+        <div class="filtersGrid">
+          <div class="fld">
+            <label for="selDep">Departamento</label>
+            <select id="selDep"><option value="">(Todos)</option></select>
+          </div>
+          <div class="fld">
+            <label for="selProv">Provincia</label>
+            <select id="selProv" disabled><option value="">(Todas)</option></select>
+          </div>
+          <div class="fld">
+            <label for="selDist">Distrito</label>
+            <select id="selDist" disabled><option value="">(Todos)</option></select>
+          </div>
+        </div>
+        <div class="rowBtns">
+          <button id="btnClear" class="btn" type="button">Limpiar filtros</button>
+        </div>
+      </section>
 
-    <!-- Burbuja: Leyenda -->
-    <div id="bubbleLegend" class="bubble" style="top:190px;">
-      <header data-drag="#bubbleLegend"><span class="ttl">Leyenda</span><button class="x" data-close="#bubbleLegend">Cerrar</button></header>
-      <div class="content"><div class="scroll"><div id="legendNode"></div></div></div>
-    </div>
+      <section class="indPanel" aria-label="Indicadores (pendiente)"></section>
+
+      <section class="listCard">
+        <header><h3>Centros poblados (lista)</h3></header>
+        <div class="list" id="cpList"><div class="empty">Cargando…</div></div>
+      </section>
+    </aside>
   </div>
-
-  <!-- Panel derecho -->
-  <aside class="sidebar">
-    <h1 class="topTitle">Grado de dispersión de centros poblados - PNSR</h1>
-
-    <!-- Filtros (Deps/Provs/Dists) -->
-    <section class="filtersBar" aria-label="Filtros de ubicación">
-      <div class="filtersGrid">
-        <div class="fld">
-          <label for="selDep">Departamento</label>
-          <select id="selDep"><option value="">(Todos)</option></select>
-        </div>
-        <div class="fld">
-          <label for="selProv">Provincia</label>
-          <select id="selProv" disabled><option value="">(Todas)</option></select>
-        </div>
-        <div class="fld">
-          <label for="selDist">Distrito</label>
-          <select id="selDist" disabled><option value="">(Todos)</option></select>
-        </div>
-      </div>
-      <div class="rowBtns">
-        <button id="btnClear" class="btn" type="button">Limpiar filtros</button>
-      </div>
-    </section>
-
-    <!-- Indicadores (VACÍO) -->
-    <section class="indPanel" aria-label="Indicadores (pendiente)"></section>
-
-    <!-- Lista -->
-    <section class="listCard">
-      <header><h3>Centros poblados (lista)</h3></header>
-      <div class="list" id="cpList"><div class="empty">Cargando…</div></div>
-    </section>
-  </aside>
-</div>
 
 <script>
 require([
@@ -155,8 +176,10 @@ require([
 
   /* ===== Helpers UI: burbujas ===== */
   const toggle = id => { const el=document.querySelector(id); el.style.display = el.style.display==='block' ? 'none' : 'block'; };
-  document.getElementById('btnLayers').onclick=()=>toggle('#bubbleLayers');
-  document.getElementById('btnLegend').onclick=()=>toggle('#bubbleLegend');
+  const $btnLayers = document.getElementById('btnLayers');
+  const $btnLegend = document.getElementById('btnLegend');
+  if($btnLayers) $btnLayers.onclick=()=>toggle('#bubbleLayers');
+  if($btnLegend) $btnLegend.onclick=()=>toggle('#bubbleLegend');
   document.querySelectorAll('[data-close]').forEach(b=>b.onclick=()=>{ document.querySelector(b.dataset.close).style.display='none'; });
   function makeDraggable(header){
     const box=document.querySelector(header.dataset.drag); let ox=0,oy=0,drag=false;
@@ -173,9 +196,9 @@ require([
   const CCPP = "https://pportalgis.vivienda.gob.pe/pfdserver1/rest/services/OGEI/CCPP_Dispersos/FeatureServer";
   const VR   = "https://dportalgis.vivienda.gob.pe/dfdserver/rest/services/OGEI/vivienda_rural/FeatureServer/0";
   const LIM_BASE = "https://pportalgis.vivienda.gob.pe/pfdserver/rest/services/COES/Limites_Pol%C3%ADticos/MapServer";
-  const LIM0 = `${LIM_BASE}/0`; // deps: id_dpto, nom_dep
-  const LIM1 = `${LIM_BASE}/1`; // provs: id_dep, id_prov, nom_prov
-  const LIM2 = `${LIM_BASE}/2`; // dists: id_prov, id_dist, nom_dist 
+  const LIM0 = `${LIM_BASE}/0`; // deps
+  const LIM1 = `${LIM_BASE}/1`; // provs
+  const LIM2 = `${LIM_BASE}/2`; // dists
 
   /* ===== MAPA ===== */
   const map = new Map({ basemap:"satellite" });
@@ -201,29 +224,30 @@ require([
     const [r,g,b]=colorRGB;
     return {
       type:"cim",
-      data:{
-        type:"CIMSymbolReference",
-        symbol:{
-          type:"CIMLineSymbol",
-          symbolLayers:[
-            { type:"CIMSolidStroke", enable:true, width:6,  color:[r,g,b,40]  },
-            { type:"CIMSolidStroke", enable:true, width:3,  color:[r,g,b,120] },
-            { type:"CIMSolidStroke", enable:true, width:1.6,color:[r,g,b,255] }
-          ]
-        }
-      }
+      data:{ type:"CIMSymbolReference", symbol:{
+        type:"CIMLineSymbol",
+        symbolLayers:[
+          { type:"CIMSolidStroke", enable:true, width:6,  color:[r,g,b,40]  },
+          { type:"CIMSolidStroke", enable:true, width:3,  color:[r,g,b,120] },
+          { type:"CIMSolidStroke", enable:true, width:1.6,color:[r,g,b,255] }
+        ]
+      }}
     };
   }
 
   /* ===== Rangos de visibilidad ===== */
   const SCALE_PROV = 1200000;
   const SCALE_RED  = 600000;
-  // Capas CCPP
+
+  // Áreas agrupadas: opacidad 0.50 (menos transparente)
   const lyrAreasAgrup = new FeatureLayer({
     url:`${CCPP}/6`, title:"Áreas agrupadas (densidad y viviendas)",
     visible:true, minScale:SCALE_PROV,
-    renderer:new SimpleRenderer({ symbol: poly([212,124,242,0.35], new SimpleLineSymbol({color:[0,0,0,0.9], width:1.2, style:"short-dot"})) })
+    renderer:new SimpleRenderer({
+      symbol: poly([212,124,242,0.50], new SimpleLineSymbol({color:[0,0,0,0.9], width:1.2, style:"short-dot"}))
+    })
   });
+
   const lyrAmbito = new FeatureLayer({
     url:`${CCPP}/5`, title:"Ámbito territorial de centros poblados",
     visible:true, minScale:SCALE_PROV,
@@ -257,13 +281,13 @@ require([
 
   // Vivienda Rural (3 categorías)
   const FIELD="dhabcual";
-  const defExp = `${FIELD} IN ('Con Deficit Cualitativo','''Sin Dcficit Cualitativo','Otro')`;
+  const defExp = `${FIELD} IN ('Con Deficit Cualitativo','Sin Dcficit Cualitativo','Otro')`;
   const COL_DEF=[198,42,75,0.90], COL_SIN=[60,130,246,0.90], COL_OTR=[168,170,175,0.70];
   const mkGeom=(g,c)=> g==="polygon" ? poly(c,new SimpleLineSymbol({color:[255,255,255,1],width:0.5})) : (g==="polyline"?line(c,2):mk(c,7));
   function vrRenderer(g){ return new UniqueValueRenderer({ field:FIELD, defaultSymbol:null,
     uniqueValueInfos:[
       {value:"Con Deficit Cualitativo",label:"Con Déficit Cualitativo",symbol:mkGeom(g,COL_DEF)},
-      {value:"'Sin Dcficit Cualitativo",label:"Sin Déficit Cualitativo",symbol:mkGeom(g,COL_SIN)},
+      {value:"Sin Dcficit Cualitativo",label:"Sin Déficit Cualitativo",symbol:mkGeom(g,COL_SIN)},
       {value:"Otro",label:"Otro",symbol:mkGeom(g,COL_OTR)}
     ]});
   }
@@ -273,37 +297,31 @@ require([
   });
   viviendaRural.when(()=>{ viviendaRural.renderer = vrRenderer(viviendaRural.geometryType); });
 
-  // Contenido primero…
+  // Añadir contenido
   map.addMany([lyrAreasAgrup, viviendaRural, lyrPTAP, lyrCapt, lyrReserv, lyrRedes, lyrCPGrado, lyrAmbito]);
 
-  // LÍMITES con brillo (arriba). Se mostrarán solo cuando haya filtro.
+  // LÍMITES con brillo (arriba)
   const limDeptDraw = new FeatureLayer({
     url:LIM0, title:"Límite Departamental",
-    visible:false,
-    renderer:new SimpleRenderer({ symbol: glowCIM([0,255,255]) }),
-    blendMode:"screen"
+    visible:false, renderer:new SimpleRenderer({ symbol: glowCIM([0,255,255]) }), blendMode:"screen"
   });
   const limProvDraw = new FeatureLayer({
     url:LIM1, title:"Límite Provincial",
-    visible:false,
-    renderer:new SimpleRenderer({ symbol: glowCIM([255,215,0]) }),
-    blendMode:"screen"
+    visible:false, renderer:new SimpleRenderer({ symbol: glowCIM([255,215,0]) }), blendMode:"screen"
   });
   const limDistDraw = new FeatureLayer({
     url:LIM2, title:"Límite Distrital",
-    visible:false,
-    renderer:new SimpleRenderer({ symbol: glowCIM([255,105,180]) }),
-    blendMode:"screen"
+    visible:false, renderer:new SimpleRenderer({ symbol: glowCIM([255,105,180]) }), blendMode:"screen"
   });
   map.addMany([limDeptDraw, limProvDraw, limDistDraw]);
 
-  // Widgets en burbujas
+  // Widgets (si activas los botones arriba, se mostrarán en burbuja)
   new Legend({ view, container:"legendNode" });
   new LayerList({ view, container:"layerListNode", selectionEnabled:true,
     listItemCreatedFunction:(e)=>{ e.item.panel = { content:"legend", open:false }; } });
 
-  /* ===== LISTA + FILTROS (capa 5 + límites políticos) ===== */
-  const cpLayer = lyrAmbito; // FeatureServer/5
+  /* ===== LISTA + FILTROS ===== */
+  const cpLayer = lyrAmbito;
   let layerView, hl; view.whenLayerView(cpLayer).then(lv=>layerView=lv);
 
   // fuentes para combos
@@ -393,8 +411,7 @@ require([
     const dist = $selDist.value.trim();
 
     [limDeptDraw, limProvDraw, limDistDraw].forEach(ly=>{
-      ly.visible = false;
-      ly.definitionExpression = null;
+      ly.visible = false; ly.definitionExpression = null;
     });
 
     if(dist){
@@ -414,9 +431,7 @@ require([
     }
   }
 
-  /* === ZOOM COMPLETO AL ÁREA (solo límites políticos) ===
-     *A diferencia del zoom “panorámico” de la lista CCPP, aquí ajustamos al polígono sin expandir.*
-  */
+  /* === ZOOM COMPLETO AL ÁREA (solo límites políticos) === */
   async function zoomToPolitical(){
     let src=null, where=null;
     const dist = $selDist.value.trim();
@@ -434,7 +449,6 @@ require([
     const g = r.features?.[0]?.geometry;
     if(!g) return;
 
-    // 👉 Zoom “ceñido” al polígono, con poco padding (nada de expand)
     try{
       await view.goTo(
         { target: g, padding: { left: 40, right: 40, top: 60, bottom: 60 } },
@@ -456,17 +470,14 @@ require([
 
   async function cargarLista(){
     const q = cpLayer.createQuery();
-    q.where = buildWhere(); // filtra lista por combos
+    q.where = buildWhere();
     q.outFields = ["objectid","nom_cp","categoria_cp","vivrur_tot","vivrur_agrup_p","sum_pobcensa","distnear_max","distnear_min","id_dpto","id_prov","id_dist"];
-    q.returnGeometry = false;
-    q.num = 100;
-    q.orderByFields = ["nom_cp ASC"];
-    q.cacheHint = true;
+    q.returnGeometry = false; q.num = 100; q.orderByFields = ["nom_cp ASC"]; q.cacheHint = true;
     const res = await cpLayer.queryFeatures(q);
     pintarLista(res.features || []);
   }
 
-  // === Zoom “panorámico” (se mantiene) para el item de lista CCPP ===
+  // === Zoom “panorámico” al item de lista ===
   async function flyToFeatureByOID(oid){
     const q = cpLayer.createQuery();
     q.objectIds=[oid]; q.outFields=[]; q.returnGeometry=true;
@@ -478,7 +489,7 @@ require([
 
     if (!target || target.isEmpty || (target.xmin===target.xmax && target.ymin===target.ymax)) {
       const center = geom.centroid || view.center;
-      try{ await view.goTo({ center, scale: 24000 }, { duration: 1100, easing: "ease-in-out" }); }catch(_){}
+      try{ await view.goTo({ center, scale: 18000 }, { duration: 1100, easing: "ease-in-out" }); }catch(_){}
       return;
     }
     const expand = expandFactorFor(target);
@@ -517,42 +528,62 @@ require([
 
   // Eventos filtros + botón limpiar
   $selDep.addEventListener('change', async()=>{
-    await loadProvs();
-    await cargarLista();
-    updatePoliticalLimitVisibility();
-    await zoomToPolitical(); // zoom ceñido a límite
+    await loadProvs(); await cargarLista(); updatePoliticalLimitVisibility(); await zoomToPolitical();
   });
   $selProv.addEventListener('change', async()=>{
-    await loadDists();
-    await cargarLista();
-    updatePoliticalLimitVisibility();
-    await zoomToPolitical();
+    await loadDists(); await cargarLista(); updatePoliticalLimitVisibility(); await zoomToPolitical();
   });
   $selDist.addEventListener('change', async()=>{
-    await cargarLista();
-    updatePoliticalLimitVisibility();
-    await zoomToPolitical();
+    await cargarLista(); updatePoliticalLimitVisibility(); await zoomToPolitical();
   });
 
   $btnClear.addEventListener('click', async ()=>{
     $selDep.value = "";
-    $selProv.innerHTML = `<option value="">(Todas)</option>`;
-    $selProv.disabled = true;
-    $selDist.innerHTML = `<option value="">(Todos)</option>`;
-    $selDist.disabled = true;
-    updatePoliticalLimitVisibility(); // oculta límites
+    $selProv.innerHTML = `<option value="">(Todas)</option>`; $selProv.disabled = true;
+    $selDist.innerHTML = `<option value="">(Todos)</option>`; $selDist.disabled = true;
+    updatePoliticalLimitVisibility();
     await cargarLista();
     if(initialViewpoint){ try{ await view.goTo(initialViewpoint, { duration: 900 }); }catch(_){ } }
   });
+
+  /* ===========================
+     🔥 ZOOM INICIAL A CUTURAPI
+     =========================== */
+  const limDistSrcForZoom = new FeatureLayer({ url:LIM2, outFields:["nom_dist"], listMode:"hide" });
+
+  async function zoomToCuturapi(){
+    try{
+      const q = limDistSrcForZoom.createQuery();
+      // Usamos LIKE con comodines para evitar problemas de acentos/caso
+      q.where = "UPPER(nom_dist) LIKE '%CUTURAPI%'";
+      q.returnGeometry = true; q.num = 1;
+      const r = await limDistSrcForZoom.queryFeatures(q);
+      const geom = r.features?.[0]?.geometry;
+      if(!geom) return;
+
+      // Mostrar límite con glow para Cuturapi
+      limDistDraw.definitionExpression = "UPPER(nom_dist) LIKE '%CUTURAPI%'";
+      limDistDraw.visible = true;
+
+      // 1) Ajuste al polígono con padding
+      await view.goTo(
+        { target: geom, padding: { left: 50, right: 50, top: 70, bottom: 70 } },
+        { duration: 900, easing: "ease-in-out" }
+      );
+      // 2) Más zoom aún (aprox. 1:18k) centrando en el centroide
+      const center = geom.extent ? geom.extent.center : view.center;
+      await view.goTo({ center, scale: 18000 }, { duration: 600, easing: "ease-in-out" });
+    }catch(e){ /* silencioso */ }
+  }
 
   // init
   (async function init(){
     await loadDeps();
     await cargarLista();
     updatePoliticalLimitVisibility(); // iniciar con límites ocultos
+    await zoomToCuturapi();          // ⬅️ aplica el zoom inicial a Cuturapi
   })();
 });
 </script>
 </body>
 </html>
-
