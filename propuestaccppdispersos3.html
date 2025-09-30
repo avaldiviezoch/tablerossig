@@ -9,64 +9,32 @@
 <script src="https://js.arcgis.com/4.30/"></script>
 
 <style>
-  :root{
-    --ink:#0b2532; --muted:#64748b; --line:#0e4a43; --panel:#f7fbfa;
-    --brand:#0b3b38; --accent:#0f2e29; --sep:#e6ecea;
-  }
-
-  /* Estructura general: header + contenido */
-  html,body{height:100%;margin:0;background:#eef5f3;color:var(--ink);
-    font-family:system-ui,-apple-system,Segoe UI,Roboto,Inter,Arial}
+  :root{ --ink:#0b2532; --muted:#64748b; --line:#0e4a43; --panel:#f7fbfa; --brand:#0b3b38; --accent:#0f2e29; --sep:#e6ecea; }
+  html,body{height:100%;margin:0;background:#eef5f3;color:var(--ink);font-family:system-ui,-apple-system,Segoe UI,Roboto,Inter,Arial}
   body{display:grid;grid-template-rows:auto 1fr;overflow:hidden}
-
-  /* Título superior (extremo a extremo) */
-  .mainTitleBar{width:100%;background:#fff;border-bottom:1px solid var(--sep);
-    box-shadow:0 2px 6px rgba(0,0,0,.08);padding:12px 10px;position:sticky;top:0;z-index:20}
+  .mainTitleBar{width:100%;background:#fff;border-bottom:1px solid var(--sep);box-shadow:0 2px 6px rgba(0,0,0,.08);padding:12px 10px;position:sticky;top:0;z-index:20}
   .mainTitle{margin:0;text-align:center;font-weight:1000;font-size:clamp(22px,3.6vh,30px);color:var(--brand);letter-spacing:.3px}
-
-  /* Contenedor principal: Mapa 65% / Panel 35% */
   .shell{display:grid;grid-template-columns:65% 35%;height:100%;width:100%;overflow:hidden}
-
-  /* Mapa */
   #viewWrap{position:relative;height:100%;overflow:hidden}
   #viewDiv{position:relative;width:100%;height:100%}
-
-  /* Panel derecho */
-  .sidebar{
-    background:var(--panel);border-left:1px solid var(--sep);box-shadow:-6px 0 24px rgba(2,6,23,.06);
-    padding:14px 12px;display:grid;grid-template-rows:auto auto 1fr;gap:12px;min-height:0
-  }
-
-  /* Filtros */
-  .filtersBar{background:#fff;border:1px solid var(--sep);border-radius:16px;box-shadow:0 10px 22px rgba(2,6,23,.06);
-    padding:12px;display:grid;gap:10px}
-  .filtersGrid{display:grid;grid-template-columns:1fr;gap:10px}
-  @media (min-width:680px){ .filtersGrid{grid-template-columns:1fr 1fr 1fr 1fr} }
-  .fld{display:grid;gap:6px}
-  .fld label{font-size:12px;color:#47606b;font-weight:900;letter-spacing:.2px}
-  .fld select{padding:10px 12px;border:1px solid #cfe7e3;border-radius:12px;background:#e8f5f3;color:#0b3b38;
-    font-weight:800;font-size:13.5px;outline:none}
+  .sidebar{background:var(--panel);border-left:1px solid var(--sep);box-shadow:-6px 0 24px rgba(2,6,23,.06);padding:14px 12px;display:grid;grid-template-rows:auto auto 1fr;gap:12px;min-height:0}
+  .filtersBar{background:#fff;border:1px solid var(--sep);border-radius:16px;box-shadow:0 10px 22px rgba(2,6,23,.06);padding:12px;display:grid;gap:10px;min-height:146px;contain:layout}
+  .filtersGrid{display:grid;grid-template-columns:repeat(4, minmax(0,1fr));gap:10px;align-items:start}
+  @media (max-width:900px){ .filtersGrid{grid-template-columns:1fr 1fr} }
+  .fld{display:grid;gap:6px;min-width:0}
+  .fld label{white-space:nowrap;font-size:12px;color:#47606b;font-weight:900;letter-spacing:.2px}
+  .fld select{padding:10px 12px;border:1px solid #cfe7e3;border-radius:12px;background:#e8f5f3;color:#0b3b38;font-weight:800;font-size:13.5px;outline:none;height:42px;line-height:20px;width:100%;min-width:0}
   .fld select:disabled{opacity:.6}
   .rowBtns{display:flex;justify-content:flex-end}
   .btn{background:#0b3b38;color:#ecfffb;border:1px solid #0e4a43;padding:9px 14px;border-radius:12px;font-weight:900;cursor:pointer}
   .btn:hover{filter:brightness(1.05)}
-
-  /* Indicadores (placeholder) */
-  .indPanel{background:#fff;border:1px solid var(--sep);border-radius:16px;box-shadow:0 10px 22px rgba(2,6,23,.06);
-    padding:12px;min-height:min(16vh,140px);display:grid;place-items:center;color:#93a1ad;font-weight:800}
+  .indPanel{background:#fff;border:1px solid var(--sep);border-radius:16px;box-shadow:0 10px 22px rgba(2,6,23,.06);padding:12px;min-height:min(16vh,140px);display:grid;place-items:center;color:#93a1ad;font-weight:800}
   .indPanel::before{content:"(Espacio para Indicadores)";}
-
-  /* Zona inferior: lista + comentario, lado a lado */
   .lowerGrid{display:grid;grid-template-columns:1fr 1fr;gap:12px;min-height:0}
   @media (max-width:900px){ .lowerGrid{grid-template-columns:1fr} }
-
-  /* Tarjeta base */
-  .card{background:#fff;border:1px solid var(--sep);border-radius:16px;box-shadow:0 10px 24px rgba(2,6,23,.06);
-    overflow:hidden;display:grid;grid-template-rows:auto 1fr;min-height:0}
+  .card{background:#fff;border:1px solid var(--sep);border-radius:16px;box-shadow:0 10px 24px rgba(2,6,23,.06);overflow:hidden;display:grid;grid-template-rows:auto 1fr;min-height:0}
   .card header{padding:10px 12px;background:#fff;border-bottom:1px solid var(--sep)}
   .card h3{margin:0;font-size:14px;font-weight:1000;color:var(--brand);letter-spacing:.2px}
-
-  /* Lista */
   .list{overflow:auto;min-height:0}
   .item{padding:10px 12px;border-bottom:1px solid #edf2f7;cursor:pointer;transition:background .15s ease}
   .item:hover{background:#f5faf8}
@@ -74,8 +42,6 @@
   .kv{font-size:12.2px;color:#334155;line-height:1.35}
   .kv b{color:#0b2532}
   .empty{padding:16px;text-align:center;color:#64748b;font-size:12.8px}
-
-  /* Comentario */
   .commentWrap{padding:12px;overflow:auto;display:grid;gap:10px;align-content:start}
   .commentWrap p{margin:0;font-size:13.6px;color:#243b41}
   .commentImg{width:70%;max-width:220px;height:auto;border-radius:12px;border:1px solid #e3ecea;justify-self:center;display:block}
@@ -87,13 +53,9 @@
   </header>
 
   <div class="shell">
-    <div id="viewWrap">
-      <div id="viewDiv"></div>
-    </div>
+    <div id="viewWrap"><div id="viewDiv"></div></div>
 
-    <!-- Panel derecho -->
     <aside class="sidebar">
-      <!-- Filtros -->
       <section class="filtersBar" aria-label="Filtros de ubicación">
         <div class="filtersGrid">
           <div class="fld">
@@ -116,28 +78,18 @@
         <div class="rowBtns"><button id="btnClear" class="btn" type="button">Limpiar filtros</button></div>
       </section>
 
-      <!-- Indicadores -->
       <section class="indPanel" aria-label="Indicadores (pendiente)"></section>
 
-      <!-- Lista + Comentario (en paralelo) -->
       <section class="lowerGrid">
-        <!-- Lista -->
         <div class="card">
           <header><h3>Centros poblados (lista)</h3></header>
           <div class="list" id="cpList"><div class="empty">Cargando…</div></div>
         </div>
-
-        <!-- Comentario -->
         <div class="card">
           <header><h3>Comentario</h3></header>
           <div class="commentWrap">
-            <p>
-              La herramienta muestra las <b>áreas de concentración</b> y las <b>viviendas rurales sin acceso a agua</b> (Censo 2017).
-              Asimismo, se complementa con información de <b>componentes y redes de agua del DATASS</b> (módulo 3 y 5).
-            </p>
-            <img class="commentImg" loading="lazy"
-                 alt="Esquema de criterios: distancia entre viviendas, vivienda concentrada, densidad poblacional y mínimo de viviendas"
-                 src="https://lh3.googleusercontent.com/d/1OPw9CWsW8xmgL6sjGuZcyvAtz2qJi0RF=w1000"/>
+            <p>La herramienta muestra las <b>áreas de concentración</b> y las <b>viviendas rurales sin acceso a agua</b> (Censo 2017). Asimismo, se complementa con información de <b>componentes y redes de agua del DATASS</b> (módulo 3 y 5).</p>
+            <img class="commentImg" loading="lazy" alt="Esquema de criterios" src="https://lh3.googleusercontent.com/d/1OPw9CWsW8xmgL6sjGuZcyvAtz2qJi0RF=w1000"/>
           </div>
         </div>
       </section>
@@ -146,11 +98,13 @@
 
 <script>
 require([
-  "esri/Map","esri/views/MapView","esri/layers/FeatureLayer","esri/layers/GraphicsLayer",
+  "esri/Map","esri/views/MapView",
+  "esri/layers/FeatureLayer","esri/layers/GraphicsLayer",
   "esri/widgets/ScaleBar",
   "esri/renderers/UniqueValueRenderer","esri/renderers/SimpleRenderer",
-  "esri/symbols/SimpleFillSymbol","esri/symbols/SimpleLineSymbol","esri/symbols/SimpleMarkerSymbol"
-], (Map,MapView,FeatureLayer,GraphicsLayer,ScaleBar,UniqueValueRenderer,SimpleRenderer,SimpleFillSymbol,SimpleLineSymbol,SimpleMarkerSymbol)=>{
+  "esri/symbols/SimpleFillSymbol","esri/symbols/SimpleLineSymbol","esri/symbols/SimpleMarkerSymbol",
+  "esri/Graphic","esri/geometry/geometryEngine"
+], (Map,MapView,FeatureLayer,GraphicsLayer,ScaleBar,UniqueValueRenderer,SimpleRenderer,SimpleFillSymbol,SimpleLineSymbol,SimpleMarkerSymbol,Graphic,geometryEngine)=>{
 
   /* ===== ENDPOINTS ===== */
   const CCPP = "https://pportalgis.vivienda.gob.pe/pfdserver1/rest/services/OGEI/CCPP_Dispersos/FeatureServer";
@@ -214,55 +168,35 @@ require([
     renderer:new SimpleRenderer({ symbol: mk([200,200,200,0.95], 5.5) })
   });
 
-  const lyrRedes = new FeatureLayer({
-    url:`${CCPP}/3`, title:"Redes - DATASS",
-    visible:true, minScale:SCALE_RED,
-    renderer:new SimpleRenderer({ symbol: line([95,210,255,0.95], 1.4) })
-  });
+  const lyrRedes  = new FeatureLayer({ url:`${CCPP}/3`, title:"Redes - DATASS",   visible:true, minScale:SCALE_RED,  renderer:new SimpleRenderer({ symbol: line([95,210,255,0.95], 1.4) }) });
+  const lyrReserv = new FeatureLayer({ url:`${CCPP}/2`, title:"Reservorio - DATASS",visible:true, minScale:SCALE_PROV, renderer:new SimpleRenderer({ symbol: diam([46,204,64,0.95], 8) }) });
+  const lyrCapt   = new FeatureLayer({ url:`${CCPP}/1`, title:"Captación - DTASS", visible:true, minScale:SCALE_PROV, renderer:new SimpleRenderer({ symbol: tri([52,152,219,0.95], 8) }) });
+  const lyrPTAP   = new FeatureLayer({ url:`${CCPP}/0`, title:"PTAP - DATASS",     visible:true, minScale:SCALE_PROV, renderer:new SimpleRenderer({ symbol: mk([231,76,60,0.95], 7.5) }) });
 
-  const lyrReserv = new FeatureLayer({
-    url:`${CCPP}/2`, title:"Reservorio - DATASS",
-    visible:true, minScale:SCALE_PROV,
-    renderer:new SimpleRenderer({ symbol: diam([46,204,64,0.95], 8) })
-  });
-
-  const lyrCapt = new FeatureLayer({
-    url:`${CCPP}/1`, title:"Captación - DTASS",
-    visible:true, minScale:SCALE_PROV,
-    renderer:new SimpleRenderer({ symbol: tri([52,152,219,0.95], 8) })
-  });
-
-  const lyrPTAP = new FeatureLayer({
-    url:`${CCPP}/0`, title:"PTAP - DATASS",
-    visible:true, minScale:SCALE_PROV,
-    renderer:new SimpleRenderer({ symbol: mk([231,76,60,0.95], 7.5) })
-  });
-
-  // Vivienda Rural (3 categorías)
-  const FIELD="dhabcual";
-  const defExp = `${FIELD} IN ('Con Deficit Cualitativo','Sin Dcficit Cualitativo','Otro')`;
-  const COL_DEF=[198,42,75,0.90], COL_SIN=[60,130,246,0.90], COL_OTR=[168,170,175,0.70];
-  const mkGeom=(g,c)=> g==="polygon" ? poly(c,new SimpleLineSymbol({color:[255,255,255,1],width:0.5})) : (g==="polyline"?line(c,2):mk(c,7));
-  function vrRenderer(g){ return new UniqueValueRenderer({ field:FIELD, defaultSymbol:null,
-    uniqueValueInfos:[
-      {value:"Con Deficit Cualitativo",label:"Con Déficit Cualitativo",symbol:mkGeom(g,COL_DEF)},
-      {value:"Sin Dcficit Cualitativo",label:"Sin Déficit Cualitativo",symbol:mkGeom(g,COL_SIN)},
-      {value:"Otro",label:"Otro",symbol:mkGeom(g,COL_OTR)}
-    ]});
-  }
   const viviendaRural = new FeatureLayer({
     url:VR, title:"Vivienda rural - Viviendas Rurales",
-    outFields:["*"], definitionExpression:defExp, minScale:SCALE_PROV, maxScale:0, visible:true
+    outFields:["*"], definitionExpression:"1=1", minScale:SCALE_PROV, maxScale:0, visible:true
   });
-  viviendaRural.when(()=>{ viviendaRural.renderer = vrRenderer(viviendaRural.geometryType); });
+  viviendaRural.when(()=>{
+    const FIELD="dhabcual";
+    const COL_DEF=[198,42,75,0.90], COL_SIN=[60,130,246,0.90], COL_OTR=[168,170,175,0.70];
+    const mkGeom=(g,c)=> g==="polygon" ? poly(c,new SimpleLineSymbol({color:[255,255,255,1],width:0.5})) : (g==="polyline"?line(c,2):mk(c,7));
+    viviendaRural.renderer = new UniqueValueRenderer({
+      field:FIELD, defaultSymbol:null,
+      uniqueValueInfos:[
+        {value:"Con Deficit Cualitativo",label:"Con Déficit Cualitativo",symbol:mkGeom(viviendaRural.geometryType,COL_DEF)},
+        {value:"Sin Dcficit Cualitativo",label:"Sin Déficit Cualitativo",symbol:mkGeom(viviendaRural.geometryType,COL_SIN)},
+        {value:"Otro",label:"Otro",symbol:mkGeom(viviendaRural.geometryType,COL_OTR)}
+      ]
+    });
+  });
 
-  // Añadir contenido
   map.addMany([lyrAreasAgrup, viviendaRural, lyrPTAP, lyrCapt, lyrReserv, lyrRedes, lyrCPGrado, lyrAmbito]);
 
-  // LÍMITES con brillo (para mostrar y resaltar)
+  // LÍMITES con brillo
   const limDeptDraw = new FeatureLayer({ url:LIM0, title:"Límite Departamental", visible:false, renderer:new SimpleRenderer({ symbol: glowCIM([0,255,255]) }), blendMode:"screen" });
-  const limProvDraw = new FeatureLayer({ url:LIM1, title:"Límite Provincial", visible:false, renderer:new SimpleRenderer({ symbol: glowCIM([255,215,0]) }), blendMode:"screen" });
-  const limDistDraw = new FeatureLayer({ url:LIM2, title:"Límite Distrital", visible:false, renderer:new SimpleRenderer({ symbol: glowCIM([255,105,180]) }), blendMode:"screen" });
+  const limProvDraw = new FeatureLayer({ url:LIM1, title:"Límite Provincial",  visible:false, renderer:new SimpleRenderer({ symbol: glowCIM([255,215,0]) }), blendMode:"screen" });
+  const limDistDraw = new FeatureLayer({ url:LIM2, title:"Límite Distrital",   visible:false, renderer:new SimpleRenderer({ symbol: glowCIM([255,105,180]) }), blendMode:"screen" });
   map.addMany([limDeptDraw, limProvDraw, limDistDraw]);
 
   /* ===== LISTA + FILTROS ===== */
@@ -277,131 +211,94 @@ require([
   // fuente CCPP (para el combo)
   const ccppSrc = new FeatureLayer({ url:CP_GRADO, outFields:["*"], listMode:"hide" });
 
-  const $list = document.getElementById('cpList');
-  const $selDep  = document.getElementById('selDep');
-  const $selProv = document.getElementById('selProv');
-  const $selDist = document.getElementById('selDist');
-  const $selCCPP = document.getElementById('selCCPP');
+  // capa para resaltar CCPP seleccionado (pulso)
+  const focusLayer = new GraphicsLayer({ listMode:"hide" });
+  map.add(focusLayer);
+  let pulseTimer = null;
+
+  const $list   = document.getElementById('cpList');
+  const $selDep = document.getElementById('selDep');
+  const $selProv= document.getElementById('selProv');
+  const $selDist= document.getElementById('selDist');
+  const $selCCPP= document.getElementById('selCCPP');
   const $btnClear= document.getElementById('btnClear');
 
   const PAD = { left: 120, right: 120, top: 200, bottom: 110 };
-  function expandFactorFor(ext){
-    const w = Math.max(ext.width, ext.height);
-    if (w < 500)   return 3.0;
-    if (w < 2000)  return 2.2;
-    if (w < 8000)  return 1.7;
-    return 1.45;
-  }
-
-  // Vista inicial para reset
-  let initialViewpoint = null;
-  view.when(()=>{ initialViewpoint = view.viewpoint.clone(); });
-
   const fmt = (n, d=0)=> (n==null||isNaN(n)) ? "—" : new Intl.NumberFormat('es-PE',{maximumFractionDigits:d}).format(Number(n));
 
-  // ==== Combos de límites ====
+  /* ====== CARGA COMBOS DPTO/PROV/DIST ====== */
   async function loadDeps(){
     const q = limDeptSrc.createQuery();
-    q.where = "1=1"; q.returnGeometry = false;
-    q.outFields = ["id_dpto","nom_dep"]; q.orderByFields = ["nom_dep ASC"]; q.num = 300; q.cacheHint = true;
+    q.where="1=1"; q.returnGeometry=false; q.outFields=["id_dpto","nom_dep"]; q.orderByFields=["nom_dep ASC"]; q.num=300; q.cacheHint=true;
     const r = await limDeptSrc.queryFeatures(q);
-    const seen = new Set(); const rows = [];
-    (r.features||[]).forEach(f=>{
-      const id = f.attributes?.id_dpto, name = f.attributes?.nom_dep;
-      if(id && !seen.has(id)){ seen.add(id); rows.push({id, name}); }
-    });
+    const seen=new Set(), rows=[];
+    (r.features||[]).forEach(f=>{ const id=f.attributes?.id_dpto, name=f.attributes?.nom_dep; if(id&&!seen.has(id)){ seen.add(id); rows.push({id,name}); }});
     $selDep.innerHTML = `<option value="">(Todos)</option>` + rows.map(o=>`<option value="${o.id}">${o.name}</option>`).join("");
-    $selProv.innerHTML = `<option value="">(Todas)</option>`; $selProv.disabled = true;
-    $selDist.innerHTML = `<option value="">(Todos)</option>`; $selDist.disabled = true;
-    await populateCCPPOptions(); // al inicio no hay ámbito => quedará deshabilitado
+    $selProv.innerHTML = `<option value="">(Todas)</option>`; $selProv.disabled=true;
+    $selDist.innerHTML = `<option value="">(Todos)</option>`; $selDist.disabled=true;
+    await populateCCPPOptions(); // al inicio
   }
 
   async function loadProvs(){
     const dep = $selDep.value.trim();
     $selProv.innerHTML = `<option value="">(Todas)</option>`;
-    $selDist.innerHTML = `<option value="">(Todos)</option>`; $selDist.disabled = true;
-    if(!dep){ $selProv.disabled = true; await populateCCPPOptions(); return; }
+    $selDist.innerHTML = `<option value="">(Todos)</option>`; $selDist.disabled=true;
+    if(!dep){ $selProv.disabled=true; await populateCCPPOptions(); return; }
     const q = limProvSrc.createQuery();
-    q.where = `id_dep='${dep}'`; q.returnGeometry=false;
-    q.outFields = ["id_prov","nom_prov"]; q.orderByFields = ["nom_prov ASC"]; q.num = 1000; q.cacheHint = true;
+    q.where = `id_dep='${dep}'`; q.returnGeometry=false; q.outFields=["id_prov","nom_prov"]; q.orderByFields=["nom_prov ASC"]; q.num=1000; q.cacheHint=true;
     const r = await limProvSrc.queryFeatures(q);
-    const seen = new Set(), rows=[];
-    (r.features||[]).forEach(f=>{
-      const id = f.attributes?.id_prov, name=f.attributes?.nom_prov;
-      if(id && !seen.has(id)){ seen.add(id); rows.push({id, name}); }
-    });
+    const seen=new Set(), rows=[];
+    (r.features||[]).forEach(f=>{ const id=f.attributes?.id_prov, name=f.attributes?.nom_prov; if(id&&!seen.has(id)){ seen.add(id); rows.push({id,name}); }});
     $selProv.innerHTML += rows.map(o=>`<option value="${o.id}">${o.name}</option>`).join("");
-    $selProv.disabled = false;
+    $selProv.disabled=false;
     await populateCCPPOptions();
   }
 
   async function loadDists(){
     const prov = $selProv.value.trim();
     $selDist.innerHTML = `<option value="">(Todos)</option>`;
-    if(!prov){ $selDist.disabled = true; await populateCCPPOptions(); return; }
+    if(!prov){ $selDist.disabled=true; await populateCCPPOptions(); return; }
     const q = limDistSrc.createQuery();
-    q.where = `id_prov='${prov}'`; q.returnGeometry=false;
-    q.outFields = ["id_dist","nom_dist"]; q.orderByFields = ["nom_dist ASC"]; q.num = 3000; q.cacheHint = true;
+    q.where = `id_prov='${prov}'`; q.returnGeometry=false; q.outFields=["id_dist","nom_dist"]; q.orderByFields=["nom_dist ASC"]; q.num=3000; q.cacheHint=true;
     const r = await limDistSrc.queryFeatures(q);
-    const seen = new Set(), rows=[];
-    (r.features||[]).forEach(f=>{
-      const id = f.attributes?.id_dist, name=f.attributes?.nom_dist;
-      if(id && !seen.has(id)){ seen.add(id); rows.push({id, name}); }
-    });
+    const seen=new Set(), rows=[];
+    (r.features||[]).forEach(f=>{ const id=f.attributes?.id_dist, name=f.attributes?.nom_dist; if(id&&!seen.has(id)){ seen.add(id); rows.push({id,name}); }});
     $selDist.innerHTML += rows.map(o=>`<option value="${o.id}">${o.name}</option>`).join("");
-    $selDist.disabled = false;
+    $selDist.disabled=false;
     await populateCCPPOptions();
   }
 
-  // ==== Mostrar SOLO el límite seleccionado ====
+  /* ===== Mostrar SOLO el límite seleccionado ===== */
   function updatePoliticalLimitVisibility(){
     const dep  = $selDep.value.trim();
     const prov = $selProv.value.trim();
     const dist = $selDist.value.trim();
-
-    [limDeptDraw, limProvDraw, limDistDraw].forEach(ly=>{
-      ly.visible = false; ly.definitionExpression = null;
-    });
-
-    if(dist){ limDistDraw.definitionExpression = `id_dist='${dist}'`; limDistDraw.visible = true; return; }
-    if(prov){ limProvDraw.definitionExpression = `id_prov='${prov}'`; limProvDraw.visible = true; return; }
-    if(dep){ limDeptDraw.definitionExpression = `id_dpto='${dep}'`; limDeptDraw.visible = true; return; }
+    [limDeptDraw, limProvDraw, limDistDraw].forEach(ly=>{ ly.visible=false; ly.definitionExpression=null; });
+    if(dist){ limDistDraw.definitionExpression = `id_dist='${dist}'`; limDistDraw.visible=true; return; }
+    if(prov){ limProvDraw.definitionExpression = `id_prov='${prov}'`; limProvDraw.visible=true; return; }
+    if(dep){  limDeptDraw.definitionExpression = `id_dpto='${dep}'`; limDeptDraw.visible=true; }
   }
 
-  /* === ZOOM COMPLETO AL ÁREA (solo límites políticos) === */
+  /* ===== Zoom completo al límite seleccionado ===== */
   async function zoomToPolitical(){
     let src=null, where=null;
-    const dist = $selDist.value.trim();
-    const prov = $selProv.value.trim();
-    const dep  = $selDep.value.trim();
+    const dist=$selDist.value.trim(), prov=$selProv.value.trim(), dep=$selDep.value.trim();
+    if(dist){ src=limDistSrc; where=`id_dist='${dist}'`; }
+    else if(prov){ src=limProvSrc; where=`id_prov='${prov}'`; }
+    else if(dep){ src=limDeptSrc; where=`id_dpto='${dep}'`; }
+    else { return; }
 
-    if(dist){ src = limDistSrc; where = `id_dist='${dist}'`; }
-    else if(prov){ src = limProvSrc; where = `id_prov='${prov}'`; }
-    else if(dep){ src = limDeptSrc; where = `id_dpto='${dep}'`; }
-    else{ return; }
-
-    const q = src.createQuery();
-    q.where = where; q.returnGeometry = true; q.outFields = []; q.num = 1;
-    const r = await src.queryFeatures(q);
-    const g = r.features?.[0]?.geometry;
-    if(!g) return;
-
+    const q = src.createQuery(); q.where=where; q.returnGeometry=true; q.outFields=[]; q.num=1;
+    const r = await src.queryFeatures(q); const g = r.features?.[0]?.geometry; if(!g) return;
     try{
-      await view.goTo(
-        { target: g, padding: { left: 40, right: 40, top: 60, bottom: 60 } },
-        { duration: 900, easing: "ease-in-out" }
-      );
+      await view.goTo({ target:g, padding:{left:40,right:40,top:60,bottom:60} }, { duration:900, easing:"ease-in-out" });
     }catch(_){}
   }
 
+  /* ===== Lista (desde ámbito) ===== */
   function buildWhere(){
-    const dep  = $selDep.value.trim();
-    const prov = $selProv.value.trim();
-    const dist = $selDist.value.trim();
-    const parts = ["1=1"];
-    if(dep)  parts.push(`id_dpto='${dep}'`);
-    if(prov) parts.push(`id_prov='${prov}'`);
-    if(dist) parts.push(`id_dist='${dist}'`);
+    const dep=$selDep.value.trim(), prov=$selProv.value.trim(), dist=$selDist.value.trim();
+    const parts=["1=1"]; if(dep) parts.push(`id_dpto='${dep}'`); if(prov) parts.push(`id_prov='${prov}'`); if(dist) parts.push(`id_dist='${dist}'`);
     return parts.join(" AND ");
   }
 
@@ -409,49 +306,43 @@ require([
     const q = cpLayer.createQuery();
     q.where = buildWhere();
     q.outFields = ["objectid","OBJECTID","nom_cp","NOM_CP","categoria_cp","vivrur_tot","vivrur_agrup_p","sum_pobcensa","distnear_max","distnear_min","id_dpto","id_prov","id_dist"];
-    q.returnGeometry = false; q.num = 100; q.orderByFields = ["nom_cp ASC"]; q.cacheHint = true;
+    q.returnGeometry=false; q.num=2000; q.orderByFields=["nom_cp ASC","NOM_CP ASC"]; q.cacheHint=true;
     const res = await cpLayer.queryFeatures(q);
-    pintarLista(res.features || []);
+    pintarLista(res.features||[]);
   }
 
-  // === Zoom “panorámico” al item de lista ===
   async function flyToFeatureByOID(oid){
     const q = cpLayer.createQuery();
     q.objectIds=[oid]; q.outFields=[]; q.returnGeometry=true;
     const r = await cpLayer.queryFeatures(q);
     const feat = r.features?.[0]; if(!feat) return;
-
     const geom = feat.geometry;
     let target = geom.extent ? geom.extent.clone() : null;
-
-    if (!target || target.isEmpty || (target.xmin===target.xmax && target.ymin===target.ymax)) {
+    if(!target || target.isEmpty || (target.xmin===target.xmax && target.ymin===target.ymax)){
       const center = geom.centroid || view.center;
-      try{ await view.goTo({ center, scale: 18000 }, { duration: 1100, easing: "ease-in-out" }); }catch(_){}
+      try{ await view.goTo({ center, scale: 18000 }, { duration:1100, easing:"ease-in-out" }); }catch(_){}
       return;
     }
-    const expand = expandFactorFor(target);
-    const paddedExtent = target.expand(expand);
-    try{ await view.goTo({ target: paddedExtent, padding: PAD }, { duration: 1100, easing: "ease-in-out", animate: true }); }catch(_){}
+    const w=Math.max(target.width,target.height);
+    const expand = w<500?3:w<2000?2.2:w<8000?1.7:1.45;
+    try{ await view.goTo({ target: target.expand(expand), padding: {left:120,right:120,top:200,bottom:110} }, { duration:1100, easing:"ease-in-out", animate:true }); }catch(_){}
   }
 
   function pintarLista(features){
     if(hl){ hl.remove(); hl=null; }
     if(!features.length){ $list.innerHTML = `<div class="empty">Sin resultados</div>`; return; }
-
+    const fmt=(n,d=0)=> (n==null||isNaN(n)) ? "—" : new Intl.NumberFormat('es-PE',{maximumFractionDigits:d}).format(Number(n));
     $list.innerHTML = features.map(f=>{
-      const a=f.attributes||{};
-      const OID = a.objectid ?? a.OBJECTID;
-      const nombre = a.nom_cp ?? a.NOM_CP ?? "—";
-      const titulo = `${nombre} (${a.categoria_cp ?? "—"})`;
-      return `
-        <div class="item" data-oid="${OID}">
-          <div class="title">${titulo}</div>
-          <div class="kv"><b>Vivienda rural total:</b> ${fmt(a.vivrur_tot)}</div>
-          <div class="kv"><b>Vivienda rural concentrado:</b> ${fmt(a.vivrur_agrup_p,1)} %</div>
-          <div class="kv"><b>Población rural:</b> ${fmt(a.sum_pobcensa)}</div>
-          <div class="kv"><b>Distancia máxima entre viviendas:</b> ${fmt(a.distnear_max,2)} m.</div>
-          <div class="kv"><b>Distancia mínima entre viviendas:</b> ${fmt(a.distnear_min,2)} m.</div>
-        </div>`;
+      const a=f.attributes||{}; const OID=a.objectid ?? a.OBJECTID;
+      const nombre=a.nom_cp ?? a.NOM_CP ?? "—"; const titulo=`${nombre} (${a.categoria_cp ?? "—"})`;
+      return `<div class="item" data-oid="${OID}">
+        <div class="title">${titulo}</div>
+        <div class="kv"><b>Vivienda rural total:</b> ${fmt(a.vivrur_tot)}</div>
+        <div class="kv"><b>Vivienda rural concentrado:</b> ${fmt(a.vivrur_agrup_p,1)} %</div>
+        <div class="kv"><b>Población rural:</b> ${fmt(a.sum_pobcensa)}</div>
+        <div class="kv"><b>Distancia máxima entre viviendas:</b> ${fmt(a.distnear_max,2)} m.</div>
+        <div class="kv"><b>Distancia mínima entre viviendas:</b> ${fmt(a.distnear_min,2)} m.</div>
+      </div>`;
     }).join("");
 
     $list.querySelectorAll(".item").forEach((el)=>{
@@ -465,30 +356,34 @@ require([
     });
   }
 
-  /* ===== Filtro CCPP (solo combo) ===== */
-  function ubigeoWhereFromLimits(){
-    const dep  = $selDep.value.trim();
-    const prov = $selProv.value.trim();
-    const dist = $selDist.value.trim();
-    if(dist) return `(UBIGEO LIKE '${dist}%' OR ubigeo LIKE '${dist}%')`;
-    if(prov) return `(UBIGEO LIKE '${prov}%' OR ubigeo LIKE '${prov}%')`;
-    if(dep)  return `(UBIGEO LIKE '${dep}%'  OR ubigeo LIKE '${dep}%')`;
-    return null; // sin ámbito -> deshabilitado
+  /* ====== NUEVO: obtengo geometría del ámbito (dep/prov/dist) ====== */
+  async function getSelectedBoundaryGeometry(){
+    const dist=$selDist.value.trim(), prov=$selProv.value.trim(), dep=$selDep.value.trim();
+    let src=null, where=null;
+    if(dist){ src=limDistSrc; where=`id_dist='${dist}'`; }
+    else if(prov){ src=limProvSrc; where=`id_prov='${prov}'`; }
+    else if(dep){ src=limDeptSrc; where=`id_dpto='${dep}'`; }
+    else { return null; }
+    const q = src.createQuery(); q.where=where; q.returnGeometry=true; q.outFields=[]; q.num=1;
+    const r = await src.queryFeatures(q);
+    return r.features?.[0]?.geometry ?? null;
   }
 
+  /* ====== CCPP: ahora filtro por geometría (intersects) ====== */
   async function populateCCPPOptions(){
-    const whereUbigeo = ubigeoWhereFromLimits();
-    if(!whereUbigeo){
+    const geom = await getSelectedBoundaryGeometry();
+    if(!geom){
       $selCCPP.innerHTML = `<option value="">(Seleccione un ámbito)</option>`;
       $selCCPP.disabled = true;
       return;
     }
     const q = ccppSrc.createQuery();
-    q.where = whereUbigeo;
+    q.geometry = geom;
+    q.spatialRelationship = "intersects";
     q.returnGeometry = false;
-    q.outFields = ["OBJECTID","objectid","NOM_CCPP","nom_ccpp","UBIGEO","ubigeo"];
+    q.outFields = ["OBJECTID","objectid","NOM_CCPP","nom_ccpp"];
     q.orderByFields = ["nom_ccpp ASC","NOM_CCPP ASC"];
-    q.num = 1000; q.cacheHint = true;
+    q.num = 2000; q.cacheHint = true;
 
     try{
       const r = await ccppSrc.queryFeatures(q);
@@ -500,10 +395,9 @@ require([
       }
       $selCCPP.innerHTML = `<option value="">(Todos)</option>` + feats.map(f=>{
         const a=f.attributes||{};
-        const oid = a.objectid ?? a.OBJECTID;
+        const oid = a.objectid ?? a.OBJECTID;              // valor seguro para query por OID
         const name = a.nom_ccpp ?? a.NOM_CCPP ?? "(s/n)";
-        const ubi  = a.ubigeo ?? a.UBIGEO ?? "";
-        return `<option value="${oid}" data-ubigeo="${ubi}">${name}</option>`;
+        return `<option value="${oid}">${name}</option>`;
       }).join("");
       $selCCPP.disabled = false;
     }catch(e){
@@ -513,61 +407,86 @@ require([
     }
   }
 
+  /* ===== Pulso visual ===== */
+  function clearPulse(){ if(pulseTimer){ clearInterval(pulseTimer); pulseTimer=null; } focusLayer.removeAll(); }
+  function pulseAt(point){
+    clearPulse();
+    const core = new Graphic({ geometry: point, symbol: new SimpleMarkerSymbol({ style:"circle", size:10, color:[255,255,0,1], outline:{ color:[255,255,255,1], width:1 }}) });
+    const ring = new Graphic({ geometry: point, symbol: new SimpleMarkerSymbol({ style:"circle", size:10, color:[255,255,0,0.05], outline:{ color:[255,255,0,0.6], width:2 }}) });
+    focusLayer.addMany([ring, core]);
+    let sz=10, op=0.6;
+    pulseTimer = setInterval(()=>{ sz+=2.2; if(sz>46){ sz=10; op=0.6; } op-=0.04; if(op<0.05) op=0.6; ring.symbol.size=sz; ring.symbol.outline.color.a=op; focusLayer.refresh(); },45);
+  }
+
+  /* ===== Zoom panorámico + señal al CCPP ===== */
   async function zoomToSelectedCCPP(){
     const oid = Number($selCCPP.value||"");
-    if(!oid){ return; }
+    if(!oid){ clearPulse(); return; }
 
-    const q = ccppSrc.createQuery();
-    q.objectIds=[oid]; q.returnGeometry=true; q.outFields=["NOM_CCPP","nom_ccpp","UBIGEO","ubigeo"];
-    const r = await ccppSrc.queryFeatures(q);
-    const f = r.features?.[0]; if(!f) return;
+    // Intento por OBJECTID
+    let q = ccppSrc.createQuery(); q.objectIds=[oid]; q.returnGeometry=true; q.outFields=["NOM_CCPP","nom_ccpp"];
+    let r = await ccppSrc.queryFeatures(q);
+    let f = r.features?.[0];
 
-    // Sincronizar límites por ubigeo del CCPP
-    const a = f.attributes||{};
-    const ubi = String(a.ubigeo ?? a.UBIGEO ?? "");
-    if(ubi.length>=2){
-      $selDep.value = ubi.slice(0,2);
-      await loadProvs();
-      if(ubi.length>=4){ $selProv.value = ubi.slice(0,4); await loadDists(); }
-      if(ubi.length>=6){ $selDist.value = ubi.slice(0,6); }
-      updatePoliticalLimitVisibility();
-      await zoomToPolitical();
-      await cargarLista();
+    // Fallback si el servicio no acepta objectIds (raro pero pasa)
+    if(!f){
+      const nameOpt = $selCCPP.selectedOptions[0]?.textContent ?? "";
+      q = ccppSrc.createQuery();
+      q.where = `(UPPER(nom_ccpp)='${nameOpt.toUpperCase().replace(/'/g,"''")}' OR UPPER(NOM_CCPP)='${nameOpt.toUpperCase().replace(/'/g,"''")}')`;
+      q.returnGeometry=true; q.outFields=["*"]; q.num=1;
+      r = await ccppSrc.queryFeatures(q);
+      f = r.features?.[0];
     }
+    if(!f) return;
 
-    // Zoom panorámico al CCPP (layer 4)
-    const g = f.geometry, ext = g.extent;
+    // Sincroniza límites con el polígono del CCPP (por intersección espacial)
     try{
-      if(ext && !ext.isEmpty){
-        await view.goTo({ target: ext.expand(1.9), padding:{left:80,right:80,top:90,bottom:90} }, { duration:900 });
-      }else{
-        await view.goTo({ center: g.centroid || view.center, scale: 9000 }, { duration:900 });
+      const cgeom = f.geometry;
+      const center = cgeom.centroid || (cgeom.extent ? cgeom.extent.center : null);
+
+      // Buscar distrito que lo contiene para alinear combos
+      const qd = limDistSrc.createQuery();
+      qd.geometry = cgeom; qd.spatialRelationship="intersects"; qd.returnGeometry=false; qd.outFields=["id_dist","id_prov","id_dpto"]; qd.num=1;
+      const rd = await limDistSrc.queryFeatures(qd);
+      const ad = rd.features?.[0]?.attributes;
+      if(ad){
+        $selDep.value  = ad.id_dpto || "";
+        await loadProvs();
+        $selProv.value = ad.id_prov || "";
+        await loadDists();
+        $selDist.value = ad.id_dist || "";
       }
+      updatePoliticalLimitVisibility();
+      await zoomToPolitical();   // encuadre amplio del ámbito
+
+      // Luego zoom al CCPP (panorámico)
+      if(cgeom.extent && !cgeom.extent.isEmpty){
+        const ex = cgeom.extent.expand(1.9);
+        await view.goTo({ target: ex, padding:{left:80,right:80,top:90,bottom:90} }, { duration:900 });
+      }else if(center){
+        await view.goTo({ center, scale: 9000 }, { duration:900 });
+      }
+      if(center){ pulseAt(center); }
     }catch(_){}
   }
 
   // Eventos de límites
-  $selDep.addEventListener('change', async()=>{
-    await loadProvs(); await cargarLista(); updatePoliticalLimitVisibility(); await zoomToPolitical(); await populateCCPPOptions();
-  });
-  $selProv.addEventListener('change', async()=>{
-    await loadDists(); await cargarLista(); updatePoliticalLimitVisibility(); await zoomToPolitical(); await populateCCPPOptions();
-  });
-  $selDist.addEventListener('change', async()=>{
-    await cargarLista(); updatePoliticalLimitVisibility(); await zoomToPolitical(); await populateCCPPOptions();
-  });
+  $selDep.addEventListener('change', async()=>{ await loadProvs(); await cargarLista(); updatePoliticalLimitVisibility(); await zoomToPolitical(); await populateCCPPOptions(); clearPulse(); });
+  $selProv.addEventListener('change', async()=>{ await loadDists(); await cargarLista(); updatePoliticalLimitVisibility(); await zoomToPolitical(); await populateCCPPOptions(); clearPulse(); });
+  $selDist.addEventListener('change', async()=>{ await cargarLista(); updatePoliticalLimitVisibility(); await zoomToPolitical(); await populateCCPPOptions(); clearPulse(); });
 
   // Evento CCPP
   $selCCPP.addEventListener('change', zoomToSelectedCCPP);
 
   // Botón limpiar
+  let initialViewpoint=null; view.when(()=>{ initialViewpoint = view.viewpoint.clone(); });
   $btnClear.addEventListener('click', async ()=>{
     $selDep.value = "";
     $selProv.innerHTML = `<option value="">(Todas)</option>`; $selProv.disabled = true;
     $selDist.innerHTML = `<option value="">(Todos)</option>`; $selDist.disabled = true;
     $selCCPP.innerHTML = `<option value="">(Seleccione un ámbito)</option>`; $selCCPP.disabled = true;
     updatePoliticalLimitVisibility();
-    await cargarLista();
+    await cargarLista(); clearPulse();
     if(initialViewpoint){ try{ await view.goTo(initialViewpoint, { duration: 900 }); }catch(_){ } }
   });
 
@@ -581,11 +500,8 @@ require([
       const r = await limDistSrcForZoom.queryFeatures(q);
       const g = r.features?.[0]?.geometry;
       if(!g) return;
-
-      // Mostrar límite de Cuturapi
       limDistDraw.definitionExpression = "UPPER(nom_dist) LIKE '%CUTURAPI%' OR UPPER(NOM_DIST) LIKE '%CUTURAPI%'";
       limDistDraw.visible = true;
-
       await view.goTo({ target: g, padding:{left:50,right:50,top:70,bottom:70} }, { duration: 900 });
       const center = g.extent ? g.extent.center : view.center;
       await view.goTo({ center, scale: 12000 }, { duration: 600 });
@@ -598,7 +514,6 @@ require([
     await cargarLista();
     updatePoliticalLimitVisibility();
     await zoomToCuturapi();
-    // Llenar CCPP si ya hay ámbito seleccionado por el zoom inicial (Cuturapi pertenece a Yunguyo, Puno).
     await populateCCPPOptions();
   })();
 });
