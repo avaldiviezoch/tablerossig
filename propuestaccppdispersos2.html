@@ -35,16 +35,24 @@
     display:grid; grid-template-rows:auto auto 1fr; gap:12px; min-height:0;
   }
 
+  /* ====== BARRA DE FILTROS (los 4 arriba) ====== */
   .filtersBar{background:#fff;border:1px solid var(--sep);border-radius:16px;
     box-shadow:0 10px 22px rgba(2,6,23,.06);padding:12px;display:grid;gap:10px}
-  .filtersGrid{display:grid;grid-template-columns:1fr;gap:10px}
-  @media (min-width:560px){.filtersGrid{grid-template-columns:1fr 1fr 1fr}}
+  .filtersGrid{
+    display:grid;gap:10px;align-items:end; /* evita saltos */
+    grid-template-columns:1fr; /* móvil: 1 por fila */
+  }
+  @media (min-width:560px){.filtersGrid{grid-template-columns:1fr 1fr}}
+  @media (min-width:820px){.filtersGrid{grid-template-columns:1fr 1fr 1fr}}
+  @media (min-width:1040px){.filtersGrid{grid-template-columns:1fr 1fr 1fr 1fr}} /* 4 columnas */
   .fld{display:grid;gap:6px;min-width:0}
   .fld label{font-size:12px;color:#47606b;font-weight:900;letter-spacing:.2px}
   .fld select{
     padding:10px 12px;border:1px solid #cfe7e3;border-radius:12px;background:#e8f5f3;
     color:#0b3b38;font-weight:800;font-size:13.5px;outline:none;width:100%;
-    min-width:0;text-overflow:ellipsis;white-space:nowrap;overflow:hidden
+    min-width:0; /* permite encoger dentro del grid */
+    text-overflow:ellipsis;white-space:nowrap;overflow:hidden; /* nombres largos con … */
+    -webkit-appearance:none;appearance:none;
   }
   .fld select:disabled{opacity:.6}
   .rowBtns{display:flex;justify-content:flex-end}
@@ -52,13 +60,10 @@
     padding:9px 14px;border-radius:12px;font-weight:900;cursor:pointer}
   .btn:hover{filter:brightness(1.05)}
 
-  .indFilters{background:#fff;border:1px solid var(--sep);border-radius:16px;
-    box-shadow:0 10px 22px rgba(2,6,23,.06);padding:12px;display:grid;gap:10px;
-    min-height:min(16vh,140px)}
-
+  /* ====== Tarjetas inferiores ====== */
   .lowerGrid{display:grid;grid-template-columns:1fr 1fr;gap:12px;min-height:0}
   @media (max-width:900px){.shell{grid-template-columns:1fr}
-    #viewWrap{height:54vh}.indFilters{min-height:120px}}
+    #viewWrap{height:54vh}}
   @media (max-width:900px){.lowerGrid{grid-template-columns:1fr}}
 
   .listCard{background:#fff;border:1px solid var(--sep);border-radius:16px;
@@ -77,6 +82,7 @@
   .commentWrap p{margin:0;font-size:13.6px;color:#243b41}
   .commentImg{width:70%;max-width:220px;height:auto;border-radius:12px;border:1px solid #e3ecea;justify-self:center;display:block}
 
+  /* Botones flotantes y burbujas */
   .fab-wrap{position:absolute;right:14px;top:14px;display:flex;flex-direction:column;gap:10px;z-index:7}
   .fab{width:44px;height:44px;border-radius:50%;display:grid;place-items:center;background:var(--brand);
     color:#e6fffb;border:1px solid #0e4a43;cursor:pointer;box-shadow:0 10px 22px rgba(0,0,0,.22);font-weight:900;user-select:none}
@@ -122,6 +128,7 @@
     </div>
 
     <aside class="sidebar">
+      <!-- ======= TODOS LOS FILTROS ARRIBA (4 columnas) ======= -->
       <section class="filtersBar" aria-label="Filtros de ubicación">
         <div class="filtersGrid">
           <div class="fld">
@@ -136,20 +143,17 @@
             <label for="selDist">Distrito</label>
             <select id="selDist" disabled><option value="">(Todos)</option></select>
           </div>
+          <div class="fld">
+            <label for="selCP">Centro poblado</label>
+            <select id="selCP" disabled><option value="">(Todos)</option></select>
+          </div>
         </div>
         <div class="rowBtns">
           <button id="btnClear" class="btn" type="button">Limpiar filtros</button>
         </div>
       </section>
 
-      <section class="indFilters" aria-label="Filtro de Centro Poblado">
-        <div class="filtersGrid">
-          <div class="fld">
-            <label for="selCP">Centro Poblado</label>
-            <select id="selCP" disabled><option value="">(Todos)</option></select>
-          </div>
-        </div>
-      </section>
+      <!-- (Se eliminó la sección separada de indFilters; solo estética, misma funcionalidad) -->
 
       <section class="lowerGrid">
         <div class="listCard">
@@ -272,7 +276,7 @@ require([
     renderer:new SimpleRenderer({ symbol: mk([231,76,60,0.95], 7.5) })
   });
 
-  // Vivienda Rural (3 categorías)
+  // Vivienda Rural
   const FIELD="dhabcual";
   const defExp = `${FIELD} IN ('Con Deficit Cualitativo','Sin Dcficit Cualitativo','Otro')`;
   const COL_DEF=[198,42,75,0.90], COL_SIN=[60,130,246,0.90], COL_OTR=[168,170,175,0.70];
@@ -395,9 +399,9 @@ require([
     $selDist.disabled = false;
   }
 
-  // Cargar CCPP usando la clave: ubigeo (CCPP) == id_dist (Límite distrital)
+  // Cargar CCPP por ubigeo == id_dist
   async function loadCPs(){
-    const distId = $selDist.value.trim(); // id_dist (6 dígitos)
+    const distId = $selDist.value.trim();
     $selCP.innerHTML = `<option value="">(Todos)</option>`;
     if(!distId){ $selCP.disabled = true; return; }
 
@@ -415,7 +419,6 @@ require([
       if(name && u && !seen.has(name)){ seen.add(name); rows.push({name, ubigeo:u}); }
     });
 
-    // value: "UBIGEO::NOMBRE" (lo usamos luego para filtrar y para zoom)
     $selCP.innerHTML += rows.map(o=>`<option value="${o.ubigeo}::${o.name.replace(/"/g,'&quot;')}">${o.name}</option>`).join("");
     $selCP.disabled = rows.length === 0;
   }
@@ -457,12 +460,11 @@ require([
     }catch(_){}
   }
 
-  // value de selCP -> { ubigeo, name }
   function parseCPValue(){
     const v = $selCP.value.trim();
     if(!v) return null;
     const [u, ...nameParts] = v.split("::");
-    const name = nameParts.join("::"); // por si el nombre contiene "::"
+    const name = nameParts.join("::");
     return { ubigeo:u, name };
   }
 
@@ -476,7 +478,6 @@ require([
     if(dep)  parts.push(`id_dpto='${dep}'`);
     if(prov) parts.push(`id_prov='${prov}'`);
     if(dist) parts.push(`id_dist='${dist}'`);
-    // Cuando hay CCPP seleccionado, reforzamos por nombre
     if(cpSel && cpSel.name){ parts.push(`nom_cp='${cpSel.name.replace(/'/g,"''")}'`); }
     return parts.join(" AND ");
   }
@@ -493,7 +494,6 @@ require([
     pintarLista(res.features || []);
   }
 
-  // zoom panorámico por OID (lista)
   async function flyToFeatureByOID(oid){
     const q = cpLayer.createQuery();
     q.objectIds=[oid]; q.outFields=[]; q.returnGeometry=true;
@@ -541,9 +541,7 @@ require([
     });
   }
 
-  // Flash helper para el CCPP
   function flashGraphic(geometry){
-    guideLayer.removeAll();
     const g = new Graphic({
       geometry,
       symbol: new SimpleMarkerSymbol({
@@ -552,7 +550,7 @@ require([
         outline:{ color:[255,255,0,1], width:2 }
       })
     });
-    guideLayer.add(g);
+    guideLayer.removeAll(); guideLayer.add(g);
     let i=0;
     const int = setInterval(()=>{
       const o = (i%2===0)? 1 : 0.05;
@@ -562,7 +560,6 @@ require([
     }, 220);
   }
 
-  // Eventos filtros + botón limpiar (OJO: funciones flecha correctas)
   $selDep.addEventListener('change', async ()=>{
     await loadProvs();
     await cargarLista();
@@ -582,15 +579,13 @@ require([
     await zoomToPolitical();
   });
 
-  // Al cambiar CCPP: filtramos lista, zoom al punto y flash
   $selCP.addEventListener('change', async ()=>{
     await cargarLista();
     updatePoliticalLimitVisibility();
-    await zoomToPolitical(); // mantiene el área del distrito
+    await zoomToPolitical();
     const sel = parseCPValue();
     if(!sel) return;
 
-    // Buscar el punto en la capa 4 por ubigeo + nombre
     const q = lyrCPGrado.createQuery();
     q.where = `ubigeo='${sel.ubigeo}' AND nom_ccpp='${sel.name.replace(/'/g,"''")}'`;
     q.returnGeometry = true; q.outFields = []; q.num = 1;
@@ -616,7 +611,6 @@ require([
     if(hl){ hl.remove(); hl=null; }
   });
 
-  // init
   (async function init(){
     await loadDeps();
     await cargarLista();
