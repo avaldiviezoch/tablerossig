@@ -39,8 +39,8 @@
   .filtersBar{background:#fff;border:1px solid var(--sep);border-radius:16px;
     box-shadow:0 10px 22px rgba(2,6,23,.06);padding:12px;display:grid;gap:10px}
   .filtersGrid{
-    display:grid;gap:10px;align-items:end; /* evita saltos */
-    grid-template-columns:1fr; /* móvil: 1 por fila */
+    display:grid;gap:10px;align-items:end;
+    grid-template-columns:1fr;
   }
   @media (min-width:560px){.filtersGrid{grid-template-columns:1fr 1fr}}
   @media (min-width:820px){.filtersGrid{grid-template-columns:1fr 1fr 1fr}}
@@ -50,11 +50,24 @@
   .fld select{
     padding:10px 12px;border:1px solid #cfe7e3;border-radius:12px;background:#e8f5f3;
     color:#0b3b38;font-weight:800;font-size:13.5px;outline:none;width:100%;
-    min-width:0; /* permite encoger dentro del grid */
-    text-overflow:ellipsis;white-space:nowrap;overflow:hidden; /* nombres largos con … */
+    min-width:0;text-overflow:ellipsis;white-space:nowrap;overflow:hidden;
     -webkit-appearance:none;appearance:none;
   }
   .fld select:disabled{opacity:.6}
+
+  /* ====== Chips de categoría ====== */
+  .chipBar{display:grid;gap:8px;border-top:1px dashed var(--sep);padding-top:8px}
+  .chipTitle{font-size:12px;color:#47606b;font-weight:900;letter-spacing:.2px}
+  .chips{display:flex;flex-wrap:wrap;gap:8px}
+  .chip{
+    padding:8px 12px;border-radius:999px;cursor:pointer;user-select:none;
+    border:1px solid #cfe7e3;background:#f2fbfa;color:#0b3b38;font-weight:800;font-size:13px;
+    white-space:nowrap;
+  }
+  .chip:hover{filter:brightness(1.02)}
+  .chip.on{background:#0b3b38;color:#ecfffb;border-color:#0e4a43}
+  .chip[hidden]{display:none!important}
+
   .rowBtns{display:flex;justify-content:flex-end}
   .btn{background:#0b3b38;color:#ecfffb;border:1px solid #0e4a43;
     padding:9px 14px;border-radius:12px;font-weight:900;cursor:pointer}
@@ -70,7 +83,7 @@
     box-shadow:0 10px 24px rgba(2,6,23,.06);overflow:hidden;display:grid;
     grid-template-rows:auto 1fr;min-height:0}
   .listCard header{padding:10px 12px;background:#fff;border-bottom:1px solid var(--sep)}
-  .listCard h3{margin:0;font-size:14px;font-weight:1000;color:var(--brand);letter-spacing:.2px}
+  .listCard h3{margin:0;font-size:14px;font-weight:1000;color:#var(--brand);letter-spacing:.2px}
   .list{overflow:auto;min-height:0}
   .item{padding:10px 12px;border-bottom:1px solid #edf2f7;cursor:pointer;transition:background .15s ease}
   .item:hover{background:#f5faf8}
@@ -82,7 +95,7 @@
   .commentWrap p{margin:0;font-size:13.6px;color:#243b41}
   .commentImg{width:70%;max-width:220px;height:auto;border-radius:12px;border:1px solid #e3ecea;justify-self:center;display:block}
 
-  /* Botones flotantes y burbujas */
+  /* flotantes y burbujas */
   .fab-wrap{position:absolute;right:14px;top:14px;display:flex;flex-direction:column;gap:10px;z-index:7}
   .fab{width:44px;height:44px;border-radius:50%;display:grid;place-items:center;background:var(--brand);
     color:#e6fffb;border:1px solid #0e4a43;cursor:pointer;box-shadow:0 10px 22px rgba(0,0,0,.22);font-weight:900;user-select:none}
@@ -128,7 +141,7 @@
     </div>
 
     <aside class="sidebar">
-      <!-- ======= TODOS LOS FILTROS ARRIBA (4 columnas) ======= -->
+      <!-- ======= TODOS LOS FILTROS ARRIBA ======= -->
       <section class="filtersBar" aria-label="Filtros de ubicación">
         <div class="filtersGrid">
           <div class="fld">
@@ -148,12 +161,19 @@
             <select id="selCP" disabled><option value="">(Todos)</option></select>
           </div>
         </div>
+
+        <!-- Chips de categoría -->
+        <div id="catChipsWrap" class="chipBar" aria-label="Grado de Dispersión del CCPP">
+          <div class="chipTitle">Grado de Dispersión del CCPP</div>
+          <div id="chipList" class="chips">
+            <!-- Se llena dinámicamente -->
+          </div>
+        </div>
+
         <div class="rowBtns">
           <button id="btnClear" class="btn" type="button">Limpiar filtros</button>
         </div>
       </section>
-
-      <!-- (Se eliminó la sección separada de indFilters; solo estética, misma funcionalidad) -->
 
       <section class="lowerGrid">
         <div class="listCard">
@@ -201,10 +221,10 @@ require([
   const CCPP = "https://pportalgis.vivienda.gob.pe/pfdserver1/rest/services/OGEI/CCPP_Dispersos/FeatureServer";
   const VR   = "https://dportalgis.vivienda.gob.pe/dfdserver/rest/services/OGEI/vivienda_rural/FeatureServer/0";
   const LIM_BASE = "https://pportalgis.vivienda.gob.pe/pfdserver/rest/services/COES/Limites_Pol%C3%ADticos/MapServer";
-  const LIM0 = `${LIM_BASE}/0`; // deps: id_dpto, nom_dep
-  const LIM1 = `${LIM_BASE}/1`; // provs: id_dep, id_prov, nom_prov
-  const LIM2 = `${LIM_BASE}/2`; // dists: id_dpto, id_prov, id_dist (6 dígitos), nom_dist 
-  const CP_LAYER = `${CCPP}/4`; // Centro Poblado por grado de dispersión: nom_ccpp, ubigeo
+  const LIM0 = `${LIM_BASE}/0`;
+  const LIM1 = `${LIM_BASE}/1`;
+  const LIM2 = `${LIM_BASE}/2`;
+  const CP_LAYER = `${CCPP}/4`;
 
   /* ===== MAPA ===== */
   const map = new Map({ basemap:"satellite" });
@@ -218,13 +238,12 @@ require([
   view.ui.add(new ScaleBar({view,unit:"metric"}),"bottom-left");
   view.qualityProfile = "low";
 
-  /* ===== Simbología ===== */
+  /* ===== Simbología (igual) ===== */
   const mk=(c,s=6)=> new SimpleMarkerSymbol({style:"circle",color:c,size:s,outline:{color:[255,255,255,180],width:0.5}});
   const tri=(c,s=7)=> new SimpleMarkerSymbol({style:"triangle",color:c,size:s,outline:{color:[255,255,255,180],width:0.5}});
   const diam=(c,s=8)=> new SimpleMarkerSymbol({style:"diamond",color:c,size:s,outline:{color:[255,255,255,180],width:0.5}});
   const line=(c,w=1.2)=> new SimpleLineSymbol({color:c,width:w});
   const poly=(fill,outline)=> new SimpleFillSymbol({color:fill,outline});
-
   function glowCIM(rgb=[255,255,255]){const [r,g,b]=rgb;return{
     type:"cim",
     data:{type:"CIMSymbolReference",
@@ -235,48 +254,30 @@ require([
           {type:"CIMSolidStroke",enable:true,width:1.6,color:[r,g,b,255]}
         ]}}};}
 
-  /* ===== Rangos de visibilidad ===== */
-  const SCALE_PROV = 1200000;
-  const SCALE_RED  = 600000;
+  const SCALE_PROV = 1200000, SCALE_RED=600000;
 
-  // Capas CCPP
-  const lyrAreasAgrup = new FeatureLayer({
-    url:`${CCPP}/6`, title:"Áreas agrupadas (densidad y viviendas)",
+  const lyrAreasAgrup = new FeatureLayer({ url:`${CCPP}/6`, title:"Áreas agrupadas (densidad y viviendas)",
     visible:true, minScale:SCALE_PROV,
     renderer:new SimpleRenderer({ symbol: poly([212,124,242,0.35], new SimpleLineSymbol({color:[0,0,0,0.9], width:1.2, style:"short-dot"})) })
   });
-  const lyrAmbito = new FeatureLayer({
-    url:`${CCPP}/5`, title:"Ámbito territorial de centros poblados",
+  const lyrAmbito = new FeatureLayer({ url:`${CCPP}/5`, title:"Ámbito territorial de centros poblados",
     visible:true, minScale:SCALE_PROV,
     renderer:new SimpleRenderer({ symbol: poly([0,0,0,0], new SimpleLineSymbol({color:[0,0,0,0.9], width:1.2, style:"short-dot"})) })
   });
-  const lyrCPGrado = new FeatureLayer({
-    url:`${CCPP}/4`, title:"Centro poblado por grado de dispersión",
+  const lyrCPGrado = new FeatureLayer({ url:`${CCPP}/4`, title:"Centro poblado por grado de dispersión",
     visible:true, minScale:1000000,
     renderer:new SimpleRenderer({ symbol: mk([200,200,200,0.95], 5.5) })
   });
-  const lyrRedes   = new FeatureLayer({
-    url:`${CCPP}/3`, title:"Redes - DATASS",
-    visible:true, minScale:SCALE_RED,
-    renderer:new SimpleRenderer({ symbol: line([95,210,255,0.95], 1.4) })
-  });
-  const lyrReserv  = new FeatureLayer({
-    url:`${CCPP}/2`, title:"Reservorio - DATASS",
-    visible:true, minScale:SCALE_PROV,
-    renderer:new SimpleRenderer({ symbol: diam([46,204,64,0.95], 8) })
-  });
-  const lyrCapt    = new FeatureLayer({
-    url:`${CCPP}/1`, title:"Captación - DTASS",
-    visible:true, minScale:SCALE_PROV,
-    renderer:new SimpleRenderer({ symbol: tri([52,152,219,0.95], 8) })
-  });
-  const lyrPTAP    = new FeatureLayer({
-    url:`${CCPP}/0`, title:"PTAP - DATASS",
-    visible:true, minScale:SCALE_PROV,
-    renderer:new SimpleRenderer({ symbol: mk([231,76,60,0.95], 7.5) })
-  });
+  const lyrRedes = new FeatureLayer({ url:`${CCPP}/3`, title:"Redes - DATASS",
+    visible:true, minScale:SCALE_RED, renderer:new SimpleRenderer({ symbol: line([95,210,255,0.95], 1.4) })});
+  const lyrReserv = new FeatureLayer({ url:`${CCPP}/2`, title:"Reservorio - DATASS",
+    visible:true, minScale:SCALE_PROV, renderer:new SimpleRenderer({ symbol: diam([46,204,64,0.95], 8) })});
+  const lyrCapt = new FeatureLayer({ url:`${CCPP}/1`, title:"Captación - DTASS",
+    visible:true, minScale:SCALE_PROV, renderer:new SimpleRenderer({ symbol: tri([52,152,219,0.95], 8) })});
+  const lyrPTAP = new FeatureLayer({ url:`${CCPP}/0`, title:"PTAP - DATASS",
+    visible:true, minScale:SCALE_PROV, renderer:new SimpleRenderer({ symbol: mk([231,76,60,0.95], 7.5) })});
 
-  // Vivienda Rural
+  // Vivienda Rural (igual)
   const FIELD="dhabcual";
   const defExp = `${FIELD} IN ('Con Deficit Cualitativo','Sin Dcficit Cualitativo','Otro')`;
   const COL_DEF=[198,42,75,0.90], COL_SIN=[60,130,246,0.90], COL_OTR=[168,170,175,0.70];
@@ -297,18 +298,12 @@ require([
   map.addMany([lyrAreasAgrup, viviendaRural, lyrPTAP, lyrCapt, lyrReserv, lyrRedes, lyrCPGrado, lyrAmbito]);
 
   // LÍMITES con brillo
-  const limDeptDraw = new FeatureLayer({
-    url:LIM0, title:"Límite Departamental", visible:false,
-    renderer:new SimpleRenderer({ symbol: glowCIM([0,255,255]) }), blendMode:"screen"
-  });
-  const limProvDraw = new FeatureLayer({
-    url:LIM1, title:"Límite Provincial", visible:false,
-    renderer:new SimpleRenderer({ symbol: glowCIM([255,215,0]) }), blendMode:"screen"
-  });
-  const limDistDraw = new FeatureLayer({
-    url:LIM2, title:"Límite Distrital", visible:false,
-    renderer:new SimpleRenderer({ symbol: glowCIM([255,105,180]) }), blendMode:"screen"
-  });
+  const limDeptDraw = new FeatureLayer({ url:LIM0, title:"Límite Departamental", visible:false,
+    renderer:new SimpleRenderer({ symbol: glowCIM([0,255,255]) }), blendMode:"screen" });
+  const limProvDraw = new FeatureLayer({ url:LIM1, title:"Límite Provincial", visible:false,
+    renderer:new SimpleRenderer({ symbol: glowCIM([255,215,0]) }), blendMode:"screen" });
+  const limDistDraw = new FeatureLayer({ url:LIM2, title:"Límite Distrital", visible:false,
+    renderer:new SimpleRenderer({ symbol: glowCIM([255,105,180]) }), blendMode:"screen" });
   map.addMany([limDeptDraw, limProvDraw, limDistDraw]);
 
   // Widgets
@@ -320,7 +315,7 @@ require([
   } catch (error) { console.error("Error initializing LayerList:", error); }
 
   /* ===== LISTA + FILTROS ===== */
-  const cpLayer = lyrAmbito; // FeatureServer/5 (lista)
+  const cpLayer = lyrAmbito; // (FeatureServer/5)
   let layerView, hl; view.whenLayerView(cpLayer).then(lv=>layerView=lv);
 
   // fuentes combos
@@ -339,6 +334,10 @@ require([
   const $selDist = document.getElementById('selDist');
   const $selCP   = document.getElementById('selCP');
   const $btnClear= document.getElementById('btnClear');
+  const $chipList= document.getElementById('chipList');
+
+  const CAT_FIELD = "categoria_cp";        // campo del servicio
+  const selectedCats = new Set();          // selección de chips activa
 
   let initialViewpoint = null;
   view.when(()=>{ initialViewpoint = view.viewpoint.clone(); });
@@ -454,12 +453,12 @@ require([
     const r = await src.queryFeatures(q);
     const g = r.features?.[0]?.geometry;
     if(!g) return;
-
     try{
       await view.goTo({ target:g, padding:{ left:40,right:40,top:60,bottom:60 } }, { duration:900, easing:"ease-in-out" });
     }catch(_){}
   }
 
+  // value de selCP -> { ubigeo, name }
   function parseCPValue(){
     const v = $selCP.value.trim();
     if(!v) return null;
@@ -468,7 +467,8 @@ require([
     return { ubigeo:u, name };
   }
 
-  function buildWhere(){
+  // WHERE base + categorías seleccionadas
+  function buildWhere(includeCats=true){
     const dep  = $selDep.value.trim();
     const prov = $selProv.value.trim();
     const dist = $selDist.value.trim();
@@ -479,12 +479,56 @@ require([
     if(prov) parts.push(`id_prov='${prov}'`);
     if(dist) parts.push(`id_dist='${dist}'`);
     if(cpSel && cpSel.name){ parts.push(`nom_cp='${cpSel.name.replace(/'/g,"''")}'`); }
+
+    if(includeCats && selectedCats.size>0){
+      const vals = [...selectedCats].map(s=>`'${s.replace(/'/g,"''")}'`).join(",");
+      parts.push(`${CAT_FIELD} IN (${vals})`);
+    }
     return parts.join(" AND ");
+  }
+
+  // Crear/actualizar chips según el contexto actual (dep/prov/dist/cpp)
+  async function refreshCategoryChips(){
+    // Pedimos los valores distintos disponibles SIN aplicar el filtro de categorías
+    const q = cpLayer.createQuery();
+    q.where = buildWhere(false);
+    q.returnGeometry = false;
+    q.outFields = [CAT_FIELD];
+    q.returnDistinctValues = true;
+    q.orderByFields = [`${CAT_FIELD} ASC`];
+    q.num = 1000;
+
+    const res = await cpLayer.queryFeatures(q);
+    const values = (res.features||[])
+      .map(f=>f.attributes?.[CAT_FIELD])
+      .filter(v=>v!=null && String(v).trim()!=="");
+
+    const uniq = [...new Set(values)];
+
+    // Si alguna categoría seleccionada ya no existe, se desmarca
+    [...selectedCats].forEach(c=>{ if(!uniq.includes(c)) selectedCats.delete(c); });
+
+    // Render chips
+    const toLabel = s => s; // ya vienen con el texto correcto
+    $chipList.innerHTML = uniq.map(v=>{
+      const active = selectedCats.has(v) ? "on" : "";
+      return `<button type="button" class="chip ${active}" data-val="${v.replace(/"/g,'&quot;')}">${toLabel(v)}</button>`;
+    }).join("");
+
+    // Eventos de chips
+    $chipList.querySelectorAll(".chip").forEach(btn=>{
+      btn.addEventListener("click", async ()=>{
+        const val = btn.dataset.val;
+        if(selectedCats.has(val)){ selectedCats.delete(val); btn.classList.remove("on"); }
+        else{ selectedCats.add(val); btn.classList.add("on"); }
+        await cargarLista(); // aplica el filtro
+      });
+    });
   }
 
   async function cargarLista(){
     const q = cpLayer.createQuery();
-    q.where = buildWhere();
+    q.where = buildWhere(true);
     q.outFields = ["objectid","nom_cp","categoria_cp","vivrur_tot","vivrur_agrup_p","sum_pobcensa","distnear_max","distnear_min","id_dpto","id_prov","id_dist"];
     q.returnGeometry = false;
     q.num = 1000;
@@ -541,6 +585,7 @@ require([
     });
   }
 
+  // Flash helper
   function flashGraphic(geometry){
     const g = new Graphic({
       geometry,
@@ -560,39 +605,44 @@ require([
     }, 220);
   }
 
+  /* ===== Eventos ===== */
   $selDep.addEventListener('change', async ()=>{
     await loadProvs();
+    await refreshCategoryChips();
     await cargarLista();
     updatePoliticalLimitVisibility();
     await zoomToPolitical();
   });
   $selProv.addEventListener('change', async ()=>{
     await loadDists();
+    await refreshCategoryChips();
     await cargarLista();
     updatePoliticalLimitVisibility();
     await zoomToPolitical();
   });
   $selDist.addEventListener('change', async ()=>{
     await loadCPs();
+    await refreshCategoryChips();
     await cargarLista();
     updatePoliticalLimitVisibility();
     await zoomToPolitical();
   });
 
+  // Cambio de CCPP: mantiene lógica + chips dependientes
   $selCP.addEventListener('change', async ()=>{
+    await refreshCategoryChips();
     await cargarLista();
     updatePoliticalLimitVisibility();
     await zoomToPolitical();
+
     const sel = parseCPValue();
     if(!sel) return;
-
     const q = lyrCPGrado.createQuery();
     q.where = `ubigeo='${sel.ubigeo}' AND nom_ccpp='${sel.name.replace(/'/g,"''")}'`;
     q.returnGeometry = true; q.outFields = []; q.num = 1;
     const r = await lyrCPGrado.queryFeatures(q);
     const feat = r.features?.[0];
     if(!feat) return;
-
     try{
       await view.goTo({ target: feat.geometry, scale: 18000 }, { duration:900, easing:"ease-in-out" });
       flashGraphic(feat.geometry);
@@ -604,6 +654,8 @@ require([
     $selProv.innerHTML = `<option value="">(Todas)</option>`; $selProv.disabled = true;
     $selDist.innerHTML = `<option value="">(Todos)</option>`; $selDist.disabled = true;
     $selCP.innerHTML   = `<option value="">(Todos)</option>`; $selCP.disabled   = true;
+    selectedCats.clear(); // limpiar chips
+    await refreshCategoryChips();
     updatePoliticalLimitVisibility();
     await cargarLista();
     if(initialViewpoint){ try{ await view.goTo(initialViewpoint, { duration:900 }); }catch(_){ } }
@@ -611,8 +663,10 @@ require([
     if(hl){ hl.remove(); hl=null; }
   });
 
+  // init
   (async function init(){
     await loadDeps();
+    await refreshCategoryChips();
     await cargarLista();
     updatePoliticalLimitVisibility();
   })();
