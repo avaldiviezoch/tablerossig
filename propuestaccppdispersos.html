@@ -219,7 +219,6 @@ require([
 
   /* ===== ENDPOINTS ===== */
   const CCPP = "https://pportalgis.vivienda.gob.pe/pfdserver1/rest/services/OGEI/CCPP_Dispersos/FeatureServer";
-  // Comentado: const VR   = "https://dportalgis.vivienda.gob.pe/dfdserver/rest/services/OGEI/vivienda_rural/FeatureServer/0"; // Servicio no accesible
   const LIM_BASE = "https://pportalgis.vivienda.gob.pe/pfdserver/rest/services/COES/Limites_Pol%C3%ADticos/MapServer";
   const LIM0 = `${LIM_BASE}/0`; // deps
   const LIM1 = `${LIM_BASE}/1`; // provs
@@ -239,20 +238,28 @@ require([
   view.qualityProfile = "low";
 
   /* ===== Simbología ===== */
-  const mk=(c,s=6)=> new SimpleMarkerSymbol({style:"circle",color:c,size:s,outline:{color:[255,255,255,180],width:0.5}});
+  const mk=(c,s=6)=> new SimpleMarkerSymbol({
+    style:"circle",
+    color:c,
+    size:s,
+    outline:{color:[255,255,255,210],width:1.1}
+  });
   const tri=(c,s=7)=> new SimpleMarkerSymbol({style:"triangle",color:c,size:s,outline:{color:[255,255,255,180],width:0.5}});
   const diam=(c,s=8)=> new SimpleMarkerSymbol({style:"diamond",color:c,size:s,outline:{color:[255,255,255,180],width:0.5}});
   const line=(c,w=1.2)=> new SimpleLineSymbol({color:c,width:w});
   const poly=(fill,outline)=> new SimpleFillSymbol({color:fill,outline});
-  function glowCIM(rgb=[255,255,255]){const [r,g,b]=rgb;return{
-    type:"cim",
-    data:{type:"CIMSymbolReference",
-      symbol:{type:"CIMLineSymbol",
-        symbolLayers:[
-          {type:"CIMSolidStroke",enable:true,width:6,color:[r,g,b,40]},
-          {type:"CIMSolidStroke",enable:true,width:3,color:[r,g,b,120]},
-          {type:"CIMSolidStroke",enable:true,width:1.6,color:[r,g,b,255]}
-        ]}}};}
+
+  // ★ Colores solicitados por categoría (insensible a mayúsculas/acentos)
+  function colorForCategory(cat=""){
+    const c = (cat||"").toLowerCase();
+    // priorizar los "predominante ..." para no chocar con "compacta"/"disperso"
+    if(c.includes("predominante") && c.includes("compact"))  return [255,105,180,0.98]; // rosado
+    if(c.includes("predominante") && c.includes("dispers"))  return [139,69,19,0.98];   // marrón
+    if(c.includes("concentración mixta") || c.includes("concentracion mixta") || c.includes("mixta")) return [128,0,128,0.98]; // morado
+    if(c.includes("disperso"))                                return [220,53,69,0.98];  // rojo
+    if(c.includes("compacta"))                                return [255,215,0,0.98];  // amarillo
+    return [160,160,160,0.95]; // fallback gris
+  }
 
   const SCALE_PROV = 1200000, SCALE_RED=600000;
 
@@ -269,7 +276,7 @@ require([
   const lyrCPGrado = new FeatureLayer({
     url:`${CCPP}/4`, title:"Centro poblado por grado de dispersión",
     visible:true, minScale:1000000,
-    renderer:new SimpleRenderer({ symbol: mk([200,200,200,0.95], 5.5) })
+    renderer:new SimpleRenderer({ symbol: mk([200,200,200,0.95], 6.5) }) // tamaño un poco mayor
   });
   const lyrRedes   = new FeatureLayer({
     url:`${CCPP}/3`, title:"Redes - DATASS",
@@ -292,27 +299,18 @@ require([
     renderer:new SimpleRenderer({ symbol: mk([231,76,60,0.95], 7.5) })
   });
 
-  // Vivienda Rural - Comentada porque el servicio no está accesible
-  // const FIELD="dhabcual";
-  // const defExp = `${FIELD} IN ('Con Deficit Cualitativo','Sin Deficit Cualitativo','Otro')`; // Corregido el typo
-  // const COL_DEF=[198,42,75,0.90], COL_SIN=[60,130,246,0.90], COL_OTR=[168,170,175,0.70];
-  // const mkGeom=(g,c)=> g==="polygon" ? poly(c,new SimpleLineSymbol({color:[255,255,255,1],width:0.5})) : (g==="polyline"?line(c,2):mk(c,7));
-  // function vrRenderer(g){ return new UniqueValueRenderer({ field:FIELD, defaultSymbol:null,
-  //   uniqueValueInfos:[
-  //     {value:"Con Deficit Cualitativo",label:"Con Déficit Cualitativo",symbol:mkGeom(g,COL_DEF)},
-  //     {value:"Sin Deficit Cualitativo",label:"Sin Déficit Cualitativo",symbol:mkGeom(g,COL_SIN)},
-  //     {value:"Otro",label:"Otro",symbol:mkGeom(g,COL_OTR)}
-  //   ]});
-  // }
-  // const viviendaRural = new FeatureLayer({
-  //   url:VR, title:"Vivienda rural - Viviendas Rurales",
-  //   outFields:["*"], definitionExpression:defExp, minScale:SCALE_PROV, maxScale:0, visible:true
-  // });
-  // viviendaRural.when(()=>{ viviendaRural.renderer = vrRenderer(viviendaRural.geometryType); });
-
-  map.addMany([lyrAreasAgrup /*, viviendaRural*/, lyrPTAP, lyrCapt, lyrReserv, lyrRedes, lyrCPGrado, lyrAmbito]);
+  map.addMany([lyrAreasAgrup, lyrPTAP, lyrCapt, lyrReserv, lyrRedes, lyrCPGrado, lyrAmbito]);
 
   // LÍMITES con brillo
+  const glowCIM=(rgb=[255,255,255])=>{const [r,g,b]=rgb;return{
+    type:"cim",
+    data:{type:"CIMSymbolReference",
+      symbol:{type:"CIMLineSymbol",
+        symbolLayers:[
+          {type:"CIMSolidStroke",enable:true,width:6,color:[r,g,b,40]},
+          {type:"CIMSolidStroke",enable:true,width:3,color:[r,g,b,120]},
+          {type:"CIMSolidStroke",enable:true,width:1.6,color:[r,g,b,255]}
+        ]}}}};
   const limDeptDraw = new FeatureLayer({ url:LIM0, title:"Límite Departamental", visible:false,
     renderer:new SimpleRenderer({ symbol: glowCIM([0,255,255]) }), blendMode:"screen" });
   const limProvDraw = new FeatureLayer({ url:LIM1, title:"Límite Provincial", visible:false,
@@ -320,6 +318,12 @@ require([
   const limDistDraw = new FeatureLayer({ url:LIM2, title:"Límite Distrital", visible:false,
     renderer:new SimpleRenderer({ symbol: glowCIM([255,105,180]) }), blendMode:"screen" });
   map.addMany([limDeptDraw, limProvDraw, limDistDraw]);
+
+  // ★ Efecto de “brillo” visual en los puntos (no altera datos)
+  view.whenLayerView(lyrCPGrado).then(lv=>{
+    // bloom: intensidad, radio, umbral — y un leve drop-shadow para separarlos del satélite
+    lv.effect = "bloom(1.2, 1.0px, 0.0) drop-shadow(0px, 0px, 0.8px)";
+  });
 
   // Widgets
   new Legend({ view, container:"legendNode" });
@@ -351,9 +355,9 @@ require([
   const $btnClear= document.getElementById('btnClear');
   const $chipList= document.getElementById('chipList');
 
-  const CAT_FIELD_AMBITO = "categoria_cp";  // Campo para capa 5 (ámbito y lista)
-  const CAT_FIELD_PUNTOS = "categ_cp";      // Campo para capa 4 (puntos) - asumido basado en código original
-  const selectedCats = new Set();           // selección de chips activa
+  const CAT_FIELD_AMBITO = "categoria_cp";  // (capa 5)
+  const CAT_FIELD_PUNTOS = "categ_cp";      // (capa 4)
+  const selectedCats = new Set();
 
   let initialViewpoint = null;
   view.when(()=>{ initialViewpoint = view.viewpoint.clone(); });
@@ -524,17 +528,7 @@ require([
     return parts.join(" AND ");
   }
 
-  /* === NUEVO: paleta de colores por categoría (para puntos) === */
-  function colorForCategory(cat=""){
-    const c = (cat||"").toLowerCase();
-    if(c.includes("dispers"))   return [230,57,70,0.98];   // rojo
-    if(c.includes("compact"))   return [34,139,34,0.98];   // verde
-    if(c.includes("mixt"))      return [52,152,219,0.98];  // azul
-    if(c.includes("intermed"))  return [255,165,0,0.98];   // naranja
-    return [128,128,128,0.95];                             // gris por defecto
-  }
-
-  /* 🔧 Aplicar filtros al mapa === */
+  /* 🔧 Aplicar filtros al mapa (colores + brillo en puntos) === */
   async function applyMapFilters(){
     try {
       // Filtrar ámbito (capa 5)
@@ -543,11 +537,12 @@ require([
       // Filtrar y colorear puntos (capa 4)
       lyrCPGrado.definitionExpression = buildWhereForPuntos(true);
 
+      // Si hay chips seleccionados: colorear por categoría con la paleta solicitada
       if(selectedCats.size > 0){
         const uvis = [...selectedCats].map(cat => ({
           value: cat,
           label: cat,
-          symbol: mk(colorForCategory(cat), 8.5)
+          symbol: mk(colorForCategory(cat), 9.5) // un poco más grande para destacar
         }));
         lyrCPGrado.renderer = new UniqueValueRenderer({
           field: CAT_FIELD_PUNTOS,
@@ -555,10 +550,11 @@ require([
           uniqueValueInfos: uvis
         });
       } else {
-        lyrCPGrado.renderer = new SimpleRenderer({ symbol: mk([200,200,200,0.95], 5.5) });
+        // Sin chips, dejamos un punto neutro (se mantiene el comportamiento original)
+        lyrCPGrado.renderer = new SimpleRenderer({ symbol: mk([200,200,200,0.95], 6.5) });
       }
 
-      // Refrescar capas si es necesario
+      // Refrescar capas
       lyrAmbito.refresh();
       lyrCPGrado.refresh();
     } catch (error) {
@@ -671,7 +667,7 @@ require([
     await zoomToPolitical();
   });
 
-  // Cambio de CCPP: mantiene lógica + chips dependientes
+  // Cambio de CCPP
   $selCP.addEventListener('change', async ()=>{
     await refreshCategoryChips();
     await cargarLista();
@@ -693,7 +689,7 @@ require([
     }catch(_){}
   });
 
-  // Chips dependientes del contexto y que filtran puntos
+  // Chips dependientes del contexto
   async function refreshCategoryChips(){
     const q = cpLayer.createQuery();
     q.where = buildWhereForAmbito(false); // SIN aplicar categorías para saber las disponibles
