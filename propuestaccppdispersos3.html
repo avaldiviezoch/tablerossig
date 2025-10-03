@@ -97,7 +97,7 @@
 
   /* flotantes y burbujas */
   .fab-wrap{position:absolute;right:14px;top:14px;display:flex;flex-direction:column;gap:10px;z-index:7}
-  .fab{width:44px;height:44px;border-radius:50%;display:grid;place-items:center;background:var(--brand);
+  .fab{width:44px;height:44px;border-radius:50%;display:grid;place-items:center;background:#0b3b38;
     color:#e6fffb;border:1px solid #0e4a43;cursor:pointer;box-shadow:0 10px 22px rgba(0,0,0,.22);font-weight:900;user-select:none}
   .fab:hover{filter:brightness(1.06)}
 
@@ -114,13 +114,32 @@
     background:transparent;color:#dff7f3;font-size:12.5px}
   .esri-legend__service-label,.esri-layer-list__item-label{color:#e6fffb!important}
 
-  /* ====== SOLO LEYENDA EN BLANCO (override local) ====== */
+  /* ====== SOLO LEYENDA EN BLANCO ====== */
   #bubbleLegend{background:#fff;color:var(--ink);border:1px solid var(--sep);}
   #bubbleLegend header{background:#fff;color:var(--ink);border-bottom:1px solid var(--sep);}
   #bubbleLegend header .x{background:#fff;color:var(--ink);border:1px solid var(--sep);}
   #bubbleLegend .scroll{border:1px solid var(--sep);}
   #bubbleLegend .esri-legend, #bubbleLegend .esri-layer-list{background:#fff;color:var(--ink);}
   #bubbleLegend .esri-legend__service-label, #bubbleLegend .esri-layer-list__item-label{color:var(--ink)!important;}
+
+  /* ====== Tooltip de Áreas agrupadas ====== */
+  .tooltip-card{
+    position:fixed; left:0; top:0; transform:translate(12px,12px);
+    background:#fff; color:var(--ink);
+    border:1px solid var(--sep); border-radius:14px;
+    box-shadow:0 14px 34px rgba(2,6,23,.18);
+    padding:10px 12px; pointer-events:none; z-index:9;
+    min-width:260px; max-width:min(520px, 70vw); font-size:12.8px;
+    backdrop-filter:saturate(110%) blur(2px);
+  }
+  .tooltip-card.hidden{display:none}
+  .tooltip-card .hdr{display:flex;align-items:center;gap:10px;
+    padding-bottom:6px;margin-bottom:8px;border-bottom:1px solid var(--sep)}
+  .tooltip-card .dot{width:10px;height:10px;border-radius:999px;background:#8f1c7d;box-shadow:0 0 0 4px rgba(143,28,125,.10)}
+  .tooltip-card .title{font-weight:1000;font-size:13.8px;letter-spacing:.2px}
+  .tooltip-card .grid{display:grid;grid-template-columns:1fr auto;gap:6px 10px}
+  .tooltip-card .k{color:#47606b;font-weight:800;min-width:0}
+  .tooltip-card .v{font-weight:900;min-width:0; text-align:right}
 </style>
 </head>
 <body>
@@ -146,6 +165,9 @@
         <header data-drag="#bubbleLegend"><span class="ttl">Leyenda</span><button class="x" data-close="#bubbleLegend">Cerrar</button></header>
         <div class="content"><div class="scroll"><div id="legendNode"></div></div></div>
       </div>
+
+      <!-- Tooltip flotante -->
+      <div id="ttAreas" class="tooltip-card hidden" role="status" aria-live="polite"></div>
     </div>
 
     <aside class="sidebar">
@@ -244,6 +266,7 @@ require([
   });
   view.ui.add(new ScaleBar({view,unit:"metric"}),"bottom-left");
   view.qualityProfile = "low";
+  view.highlightOptions = { color:[179,28,125,1], haloOpacity:0.85, fillOpacity:0.08 };
 
   /* ===== Simbología ===== */
   const mk=(c,s=6)=> new SimpleMarkerSymbol({
@@ -257,7 +280,7 @@ require([
   const line=(c,w=1.2)=> new SimpleLineSymbol({color:c,width:w});
   const poly=(fill,outline)=> new SimpleFillSymbol({color:fill,outline});
 
-  // ★ Colores solicitados por categoría (insensible a mayúsculas/acentos)
+  // ★ Colores por categoría
   function colorForCategory(cat=""){
     const c = (cat||"").toLowerCase();
     if(c.includes("predominante") && c.includes("compact"))  return [255,105,180,0.98]; // rosado
@@ -265,15 +288,18 @@ require([
     if(c.includes("concentración mixta") || c.includes("concentracion mixta") || c.includes("mixta")) return [128,0,128,0.98]; // morado
     if(c.includes("disperso"))                                return [220,53,69,0.98];  // rojo
     if(c.includes("compacta"))                                return [255,215,0,0.98];  // amarillo
-    return [160,160,160,0.95]; // fallback gris
+    return [160,160,160,0.95]; // gris
   }
 
   const SCALE_PROV = 100000, SCALE_RED=50000;
 
   /* === CAPAS OBJETIVO (siempre visibles) === */
   const lyrAreasAgrup = new FeatureLayer({
-    url:`${CCPP}/6`, title:"Áreas agrupadas (densidad y viviendas)",
+    url:`${CCPP}/6`,
+    title:"Áreas agrupadas (densidad y viviendas)",
     visible:true,
+    outFields:["*"],           // <- Asegura traer todos los atributos
+    popupEnabled:false,
     renderer:new SimpleRenderer({
       symbol: poly([212,124,242,1], new SimpleLineSymbol({color:[0,0,0,1], width:1.2, style:"short-dot"}))
     })
@@ -311,7 +337,7 @@ require([
     renderer:new SimpleRenderer({ symbol: mk([231,76,60,0.95], 7.5) })
   });
 
-  /* === NUEVO SERVICIO: Viviendas rurales (MapServer con 2 subcapas)
+  /* === NUEVO SERVICIO: Viviendas rurales (2 subcapas)
          /1 = CON ACCESO (AZUL)  |  /2 = SIN ACCESO (ROJO) === */
   const VR_URL = "https://pportalgis.vivienda.gob.pe/phtserver/rest/services/viviendas_rurales/MapServer";
   const lyrVivConAcceso = new FeatureLayer({
@@ -329,8 +355,8 @@ require([
     renderer: new SimpleRenderer({ symbol: mk([220,53,69,0.95], 4.8) }) // rojo
   });
 
-  /* === Orden de capas (de abajo hacia arriba):
-         polígonos -> líneas -> puntos infra -> viviendas rurales -> CCPP grado === */
+  /* === Orden de capas (abajo->arriba):
+     polígonos -> líneas -> puntos infra -> viviendas rurales -> CCPP grado === */
   map.addMany([lyrAreasAgrup, lyrAmbito, lyrRedes, lyrPTAP, lyrCapt, lyrReserv, lyrVivConAcceso, lyrVivSinAcceso, lyrCPGrado]);
 
   // LÍMITES con brillo
@@ -342,7 +368,7 @@ require([
           {type:"CIMSolidStroke",enable:true,width:6,color:[r,g,b,40]},
           {type:"CIMSolidStroke",enable:true,width:3,color:[r,g,b,120]},
           {type:"CIMSolidStroke",enable:true,width:1.6,color:[r,g,b,255]}
-        ]}}}};
+        ]}}}}; 
   const limDeptDraw = new FeatureLayer({ url:LIM0, title:"Límite Departamental", visible:false,
     renderer:new SimpleRenderer({ symbol: glowCIM([0,255,255]) }), blendMode:"screen" });
   const limProvDraw = new FeatureLayer({ url:LIM1, title:"Límite Provincial", visible:false,
@@ -351,7 +377,7 @@ require([
     renderer:new SimpleRenderer({ symbol: glowCIM([255,105,180]) }), blendMode:"screen" });
   map.addMany([limDeptDraw, limProvDraw, limDistDraw]);
 
-  // ★ Efecto de “brillo” visual en los puntos
+  // Bloom en puntos de CCPP
   view.whenLayerView(lyrCPGrado).then(lv=>{
     lv.effect = "bloom(1.2, 1.0px, 0.0) drop-shadow(0px, 0px, 0.8px)";
   });
@@ -386,8 +412,6 @@ require([
   const $btnClear= document.getElementById('btnClear');
   const $chipList= document.getElementById('chipList');
 
-  const CAT_FIELD_AMBITO = "categoria_cp";  // (capa 5)
-  const CAT_FIELD_PUNTOS = "categ_cp";      // (capa 4)
   const selectedCats = new Set();
 
   let initialViewpoint = null;
@@ -519,7 +543,7 @@ require([
     return { ubigeo:u, name };
   }
 
-  // WHERE base + categorías seleccionadas (para la lista/ámbito - capa 5)
+  // WHERE base + categorías seleccionadas (ámbito)
   function buildWhereForAmbito(includeCats=true){
     const dep  = $selDep.value.trim();
     const prov = $selProv.value.trim();
@@ -539,7 +563,7 @@ require([
     return parts.join(" AND ");
   }
 
-  // WHERE para puntos (capa 4) - usa ubigeo en lugar de id_*
+  // WHERE para puntos (capa 4)
   function buildWhereForPuntos(includeCats=true){
     const dep  = $selDep.value.trim();
     const prov = $selProv.value.trim();
@@ -559,13 +583,10 @@ require([
     return parts.join(" AND ");
   }
 
-  /* 🔧 Aplicar filtros al mapa (colores + brillo en puntos) === */
+  /* 🔧 Aplicar filtros */
   async function applyMapFilters(){
     try {
-      // Filtrar ámbito (capa 5)
       lyrAmbito.definitionExpression = buildWhereForAmbito(true);
-
-      // Filtrar y colorear puntos (capa 4)
       lyrCPGrado.definitionExpression = buildWhereForPuntos(true);
 
       if(selectedCats.size > 0){
@@ -669,6 +690,119 @@ require([
     }, 220);
   }
 
+  /* ===== Tooltip dinámico para Áreas agrupadas ===== */
+  const $tt = document.getElementById('ttAreas');
+  let hlArea = null, lvAreas = null, lastAreasOid = null, lastAreasAttrs = null;
+  view.whenLayerView(lyrAreasAgrup).then(lv => { lvAreas = lv; });
+
+  const garbageRx = /(shape|objectid|globalid|fid|geom|extent|bbox|shape_area|shape_length|st_area|st_length|__)/i;
+
+  function prettyLabel(field){
+    const base = (field.alias && field.alias !== field.name) ? field.alias : field.name || "";
+    let lbl = base.replace(/_/g," ").trim();
+    lbl = lbl
+      .replace(/\bcp\b/gi,"Centro poblado")
+      .replace(/\bvivrur\b/gi,"Viviendas rurales")
+      .replace(/\bcateg?\b/gi,"Categoría")
+      .replace(/\bpob\b/gi,"Población")
+      .replace(/\bsum\b/gi,"Total")
+      .replace(/\btot\b/gi,"Total")
+      .replace(/\bporc\b/gi,"Porcentaje")
+      .replace(/\bkm2\b/gi,"km²");
+    return lbl.charAt(0).toUpperCase()+lbl.slice(1);
+  }
+  function decodeDomain(field, value){
+    const dom = field?.domain?.codedValues;
+    if(dom && dom.length){ const m = dom.find(cv=>cv.code===value); return m? m.name : value; }
+    return value;
+  }
+  function fmtVal(field, value){
+    if(value==null) return "—";
+    if(field?.type === "date"){
+      try{ return new Intl.DateTimeFormat("es-PE").format(new Date(value)); }catch(_){ return "—"; }
+    }
+    if(typeof value === "number"){
+      const isPct = /(porc|porcentaje|_p$|percent)/i.test(field.name) || /(porc|porcentaje)/i.test(field.alias||"");
+      const digits = isPct ? 1 : 2;
+      return new Intl.NumberFormat("es-PE",{maximumFractionDigits:digits}).format(value) + (isPct ? " %" : "");
+    }
+    return String(value);
+  }
+  function bestTitle(attrs, fields){
+    const nameField = fields.find(f=>/^(nom|nombre|name|titulo|title)/i.test(f.name));
+    return (nameField && attrs[nameField.name]) ? attrs[nameField.name] : "Área agrupada";
+  }
+
+  async function fetchFullAttrsIfNeeded(graphic){
+    const attrs = graphic.attributes || {};
+    const oidField = lyrAreasAgrup.objectIdField;
+    const oid = attrs?.[oidField];
+    // Si ya consultamos este OID, usa caché
+    if(oid && lastAreasOid === oid && lastAreasAttrs){ return lastAreasAttrs; }
+    // Heurística: si hay <= 3 llaves, probablemente vino “ligero”
+    if(!oid || Object.keys(attrs).length > 3){
+      return attrs;
+    }
+    // Consultar atributos completos
+    try{
+      const q = lyrAreasAgrup.createQuery();
+      q.objectIds = [oid];
+      q.outFields = ["*"];
+      q.returnGeometry = false;
+      const r = await lyrAreasAgrup.queryFeatures(q);
+      const full = r.features?.[0]?.attributes || attrs;
+      lastAreasOid = oid;
+      lastAreasAttrs = full;
+      return full;
+    }catch(_){
+      return attrs;
+    }
+  }
+
+  function buildTooltipHTML(attrs){
+    const fields = (lyrAreasAgrup.fields || []).filter(f=>!garbageRx.test(f.name));
+    const title = bestTitle(attrs, fields);
+    const rows = fields.map(f=>{
+      const raw = attrs[f.name];
+      const val = decodeDomain(f, raw);
+      return `<div class="k">${prettyLabel(f)}</div><div class="v">${fmtVal(f,val)}</div>`;
+    }).join("");
+    return `
+      <div class="hdr"><span class="dot" aria-hidden="true"></span><div class="title">${title}</div></div>
+      <div class="grid">${rows}</div>
+    `;
+  }
+  function showTooltip(x,y,html){
+    $tt.innerHTML = html;
+    $tt.classList.remove("hidden");
+    const pad = 14;
+    let left = x + pad, top = y + pad;
+    const vw = window.innerWidth, vh = window.innerHeight;
+    const r = $tt.getBoundingClientRect();
+    if(left + r.width > vw - 8) left = x - r.width - pad;
+    if(top + r.height > vh - 8) top = y - r.height - pad;
+    $tt.style.left = left + "px";
+    $tt.style.top  = top  + "px";
+  }
+  function hideTooltip(){ $tt.classList.add("hidden"); }
+
+  view.on("pointer-move", async (evt)=>{
+    const {x,y} = evt;
+    const hit = await view.hitTest({x,y}, { include: lyrAreasAgrup });
+    const g = hit?.results?.[0]?.graphic;
+    if(g){
+      if(lvAreas){
+        if(hlArea){ try{ hlArea.remove(); }catch(_){} hlArea=null; }
+        try{ hlArea = lvAreas.highlight(g); }catch(_){}
+      }
+      const fullAttrs = await fetchFullAttrsIfNeeded(g);
+      showTooltip(x,y, buildTooltipHTML(fullAttrs));
+    }else{
+      if(hlArea){ try{ hlArea.remove(); }catch(_){} hlArea=null; }
+      hideTooltip();
+    }
+  });
+
   /* ===== Eventos ===== */
   $selDep.addEventListener('change', async ()=>{
     await loadProvs();
@@ -720,7 +854,7 @@ require([
   // Chips dependientes del contexto
   async function refreshCategoryChips(){
     const q = cpLayer.createQuery();
-    q.where = buildWhereForAmbito(false); // SIN aplicar categorías para saber las disponibles
+    q.where = buildWhereForAmbito(false); // sin categorías para listar disponibles
     q.returnGeometry = false;
     q.outFields = ["categoria_cp"];
     q.returnDistinctValues = true;
@@ -734,7 +868,7 @@ require([
 
     const uniq = [...new Set(values)];
 
-    // Si una categoría seleccionada ya no está disponible, desmarcarla
+    // Limpiar las que ya no aplican
     [...selectedCats].forEach(c=>{ if(!uniq.includes(c)) selectedCats.delete(c); });
 
     // Pintar chips
@@ -761,7 +895,7 @@ require([
     $selProv.innerHTML = `<option value="">(Todas)</option>`; $selProv.disabled = true;
     $selDist.innerHTML = `<option value="">(Todos)</option>`; $selDist.disabled = true;
     $selCP.innerHTML   = `<option value="">(Todos)</option>`; $selCP.disabled   = true;
-    selectedCats.clear(); // limpiar chips
+    selectedCats.clear();
     await refreshCategoryChips();
     updatePoliticalLimitVisibility();
     await cargarLista();
