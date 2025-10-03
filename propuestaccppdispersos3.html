@@ -311,7 +311,27 @@ require([
     renderer:new SimpleRenderer({ symbol: mk([231,76,60,0.95], 7.5) })
   });
 
-  map.addMany([lyrAreasAgrup, lyrAmbito, lyrRedes, lyrPTAP, lyrCapt, lyrReserv, lyrCPGrado]);
+  /* === NUEVO SERVICIO: Viviendas rurales (MapServer con 2 subcapas)
+         /1 = CON ACCESO (AZUL)  |  /2 = SIN ACCESO (ROJO) === */
+  const VR_URL = "https://pportalgis.vivienda.gob.pe/phtserver/rest/services/viviendas_rurales/MapServer";
+  const lyrVivConAcceso = new FeatureLayer({
+    url: `${VR_URL}/1`,
+    title: "Viviendas rurales (con acceso)",
+    visible: true,
+    minScale: SCALE_PROV,
+    renderer: new SimpleRenderer({ symbol: mk([30,110,182,0.95], 4.8) }) // azul
+  });
+  const lyrVivSinAcceso = new FeatureLayer({
+    url: `${VR_URL}/2`,
+    title: "Viviendas rurales (sin acceso)",
+    visible: true,
+    minScale: SCALE_PROV,
+    renderer: new SimpleRenderer({ symbol: mk([220,53,69,0.95], 4.8) }) // rojo
+  });
+
+  /* === Orden de capas (de abajo hacia arriba):
+         polígonos -> líneas -> puntos infra -> viviendas rurales -> CCPP grado === */
+  map.addMany([lyrAreasAgrup, lyrAmbito, lyrRedes, lyrPTAP, lyrCapt, lyrReserv, lyrVivConAcceso, lyrVivSinAcceso, lyrCPGrado]);
 
   // LÍMITES con brillo
   const glowCIM=(rgb=[255,255,255])=>{const [r,g,b]=rgb;return{
