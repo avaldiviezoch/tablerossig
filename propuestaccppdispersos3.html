@@ -113,6 +113,14 @@
   .esri-legend,.esri-layer-list{--esri-widget-padding:8px;--esri-widget-border-color:transparent;--esri-widget-shadow:none;
     background:transparent;color:#dff7f3;font-size:12.5px}
   .esri-legend__service-label,.esri-layer-list__item-label{color:#e6fffb!important}
+
+  /* ====== SOLO LEYENDA EN BLANCO (override local) ====== */
+  #bubbleLegend{background:#fff;color:var(--ink);border:1px solid var(--sep);}
+  #bubbleLegend header{background:#fff;color:var(--ink);border-bottom:1px solid var(--sep);}
+  #bubbleLegend header .x{background:#fff;color:var(--ink);border:1px solid var(--sep);}
+  #bubbleLegend .scroll{border:1px solid var(--sep);}
+  #bubbleLegend .esri-legend, #bubbleLegend .esri-layer-list{background:#fff;color:var(--ink);}
+  #bubbleLegend .esri-legend__service-label, #bubbleLegend .esri-layer-list__item-label{color:var(--ink)!important;}
 </style>
 </head>
 <body>
@@ -219,7 +227,6 @@ require([
 
   /* ===== ENDPOINTS ===== */
   const CCPP = "https://pportalgis.vivienda.gob.pe/pfdserver1/rest/services/OGEI/CCPP_Dispersos/FeatureServer";
-  const VR   = "https://dportalgis.vivienda.gob.pe/dfdserver/rest/services/OGEI/vivienda_rural/FeatureServer/0";
   const LIM_BASE = "https://pportalgis.vivienda.gob.pe/pfdserver/rest/services/COES/Limites_Pol%C3%ADticos/MapServer";
   const LIM0 = `${LIM_BASE}/0`; // deps
   const LIM1 = `${LIM_BASE}/1`; // provs
@@ -239,37 +246,49 @@ require([
   view.qualityProfile = "low";
 
   /* ===== Simbología ===== */
-  const mk=(c,s=6)=> new SimpleMarkerSymbol({style:"circle",color:c,size:s,outline:{color:[255,255,255,180],width:0.5}});
+  const mk=(c,s=6)=> new SimpleMarkerSymbol({
+    style:"circle",
+    color:c,
+    size:s,
+    outline:{color:[255,255,255,210],width:1.1}
+  });
   const tri=(c,s=7)=> new SimpleMarkerSymbol({style:"triangle",color:c,size:s,outline:{color:[255,255,255,180],width:0.5}});
   const diam=(c,s=8)=> new SimpleMarkerSymbol({style:"diamond",color:c,size:s,outline:{color:[255,255,255,180],width:0.5}});
   const line=(c,w=1.2)=> new SimpleLineSymbol({color:c,width:w});
   const poly=(fill,outline)=> new SimpleFillSymbol({color:fill,outline});
-  function glowCIM(rgb=[255,255,255]){const [r,g,b]=rgb;return{
-    type:"cim",
-    data:{type:"CIMSymbolReference",
-      symbol:{type:"CIMLineSymbol",
-        symbolLayers:[
-          {type:"CIMSolidStroke",enable:true,width:6,color:[r,g,b,40]},
-          {type:"CIMSolidStroke",enable:true,width:3,color:[r,g,b,120]},
-          {type:"CIMSolidStroke",enable:true,width:1.6,color:[r,g,b,255]}
-        ]}}};}
+
+  // ★ Colores solicitados por categoría (insensible a mayúsculas/acentos)
+  function colorForCategory(cat=""){
+    const c = (cat||"").toLowerCase();
+    if(c.includes("predominante") && c.includes("compact"))  return [255,105,180,0.98]; // rosado
+    if(c.includes("predominante") && c.includes("dispers"))  return [139,69,19,0.98];   // marrón
+    if(c.includes("concentración mixta") || c.includes("concentracion mixta") || c.includes("mixta")) return [128,0,128,0.98]; // morado
+    if(c.includes("disperso"))                                return [220,53,69,0.98];  // rojo
+    if(c.includes("compacta"))                                return [255,215,0,0.98];  // amarillo
+    return [160,160,160,0.95]; // fallback gris
+  }
 
   const SCALE_PROV = 1200000, SCALE_RED=600000;
 
+  /* === CAPAS OBJETIVO (siempre visibles) === */
   const lyrAreasAgrup = new FeatureLayer({
     url:`${CCPP}/6`, title:"Áreas agrupadas (densidad y viviendas)",
-    visible:true, minScale:SCALE_PROV,
-    renderer:new SimpleRenderer({ symbol: poly([212,124,242,0.35], new SimpleLineSymbol({color:[0,0,0,0.9], width:1.2, style:"short-dot"})) })
+    visible:true,
+    renderer:new SimpleRenderer({
+      symbol: poly([212,124,242,1], new SimpleLineSymbol({color:[0,0,0,1], width:1.2, style:"short-dot"}))
+    })
   });
   const lyrAmbito = new FeatureLayer({
     url:`${CCPP}/5`, title:"Ámbito territorial de centros poblados",
-    visible:true, minScale:SCALE_PROV,
+    visible:true,
     renderer:new SimpleRenderer({ symbol: poly([0,0,0,0], new SimpleLineSymbol({color:[0,0,0,0.9], width:1.2, style:"short-dot"})) })
   });
+
+  /* === Resto de capas === */
   const lyrCPGrado = new FeatureLayer({
     url:`${CCPP}/4`, title:"Centro poblado por grado de dispersión",
     visible:true, minScale:1000000,
-    renderer:new SimpleRenderer({ symbol: mk([200,200,200,0.95], 5.5) })
+    renderer:new SimpleRenderer({ symbol: mk([200,200,200,0.95], 6.5) })
   });
   const lyrRedes   = new FeatureLayer({
     url:`${CCPP}/3`, title:"Redes - DATASS",
@@ -292,27 +311,18 @@ require([
     renderer:new SimpleRenderer({ symbol: mk([231,76,60,0.95], 7.5) })
   });
 
-  // Vivienda Rural
-  const FIELD="dhabcual";
-  const defExp = `${FIELD} IN ('Con Deficit Cualitativo','Sin Dcficit Cualitativo','Otro')`;
-  const COL_DEF=[198,42,75,0.90], COL_SIN=[60,130,246,0.90], COL_OTR=[168,170,175,0.70];
-  const mkGeom=(g,c)=> g==="polygon" ? poly(c,new SimpleLineSymbol({color:[255,255,255,1],width:0.5})) : (g==="polyline"?line(c,2):mk(c,7));
-  function vrRenderer(g){ return new UniqueValueRenderer({ field:FIELD, defaultSymbol:null,
-    uniqueValueInfos:[
-      {value:"Con Deficit Cualitativo",label:"Con Déficit Cualitativo",symbol:mkGeom(g,COL_DEF)},
-      {value:"Sin Dcficit Cualitativo",label:"Sin Déficit Cualitativo",symbol:mkGeom(g,COL_SIN)},
-      {value:"Otro",label:"Otro",symbol:mkGeom(g,COL_OTR)}
-    ]});
-  }
-  const viviendaRural = new FeatureLayer({
-    url:VR, title:"Vivienda rural - Viviendas Rurales",
-    outFields:["*"], definitionExpression:defExp, minScale:SCALE_PROV, maxScale:0, visible:true
-  });
-  viviendaRural.when(()=>{ viviendaRural.renderer = vrRenderer(viviendaRural.geometryType); });
-
-  map.addMany([lyrAreasAgrup, viviendaRural, lyrPTAP, lyrCapt, lyrReserv, lyrRedes, lyrCPGrado, lyrAmbito]);
+  map.addMany([lyrAreasAgrup, lyrPTAP, lyrCapt, lyrReserv, lyrRedes, lyrCPGrado, lyrAmbito]);
 
   // LÍMITES con brillo
+  const glowCIM=(rgb=[255,255,255])=>{const [r,g,b]=rgb;return{
+    type:"cim",
+    data:{type:"CIMSymbolReference",
+      symbol:{type:"CIMLineSymbol",
+        symbolLayers:[
+          {type:"CIMSolidStroke",enable:true,width:6,color:[r,g,b,40]},
+          {type:"CIMSolidStroke",enable:true,width:3,color:[r,g,b,120]},
+          {type:"CIMSolidStroke",enable:true,width:1.6,color:[r,g,b,255]}
+        ]}}}};
   const limDeptDraw = new FeatureLayer({ url:LIM0, title:"Límite Departamental", visible:false,
     renderer:new SimpleRenderer({ symbol: glowCIM([0,255,255]) }), blendMode:"screen" });
   const limProvDraw = new FeatureLayer({ url:LIM1, title:"Límite Provincial", visible:false,
@@ -320,6 +330,11 @@ require([
   const limDistDraw = new FeatureLayer({ url:LIM2, title:"Límite Distrital", visible:false,
     renderer:new SimpleRenderer({ symbol: glowCIM([255,105,180]) }), blendMode:"screen" });
   map.addMany([limDeptDraw, limProvDraw, limDistDraw]);
+
+  // ★ Efecto de “brillo” visual en los puntos
+  view.whenLayerView(lyrCPGrado).then(lv=>{
+    lv.effect = "bloom(1.2, 1.0px, 0.0) drop-shadow(0px, 0px, 0.8px)";
+  });
 
   // Widgets
   new Legend({ view, container:"legendNode" });
@@ -351,13 +366,15 @@ require([
   const $btnClear= document.getElementById('btnClear');
   const $chipList= document.getElementById('chipList');
 
-  const CAT_FIELD = "categoria_cp";        // campo del servicio
-  const selectedCats = new Set();          // selección de chips activa
+  const CAT_FIELD_AMBITO = "categoria_cp";  // (capa 5)
+  const CAT_FIELD_PUNTOS = "categ_cp";      // (capa 4)
+  const selectedCats = new Set();
 
   let initialViewpoint = null;
   view.when(()=>{ initialViewpoint = view.viewpoint.clone(); });
 
   const fmt = (n, d=0)=> (n==null||isNaN(n)) ? "—" : new Intl.NumberFormat('es-PE',{maximumFractionDigits:d}).format(Number(n));
+  const esc = s => String(s).replace(/'/g,"''");
 
   /* ===== Combos ===== */
   async function loadDeps(){
@@ -383,7 +400,7 @@ require([
     $selCP.innerHTML   = `<option value="">(Todos)</option>`; $selCP.disabled   = true;
     if(!dep){ $selProv.disabled = true; return; }
     const q = limProvSrc.createQuery();
-    q.where = `id_dep='${dep}'`; q.returnGeometry=false;
+    q.where = `id_dep='${esc(dep)}'`; q.returnGeometry=false;
     q.outFields = ["id_prov","nom_prov"]; q.orderByFields = ["nom_prov ASC"]; q.num = 1000; q.cacheHint = true;
     const r = await limProvSrc.queryFeatures(q);
     const seen = new Set(), rows=[];
@@ -401,7 +418,7 @@ require([
     $selCP.innerHTML   = `<option value="">(Todos)</option>`; $selCP.disabled = true;
     if(!prov){ $selDist.disabled = true; return; }
     const q = limDistSrc.createQuery();
-    q.where = `id_prov='${prov}'`; q.returnGeometry=false;
+    q.where = `id_prov='${esc(prov)}'`; q.returnGeometry=false;
     q.outFields = ["id_dist","nom_dist"]; q.orderByFields = ["nom_dist ASC"]; q.num = 3000; q.cacheHint = true;
     const r = await limDistSrc.queryFeatures(q);
     const seen = new Set(), rows=[];
@@ -420,7 +437,7 @@ require([
     if(!distId){ $selCP.disabled = true; return; }
 
     const q = cpSrc.createQuery();
-    q.where = `ubigeo='${distId}'`;
+    q.where = `ubigeo='${esc(distId)}'`;
     q.returnGeometry = false;
     q.outFields = ["nom_ccpp","ubigeo"];
     q.orderByFields = ["nom_ccpp ASC"]; q.num = 5000; q.cacheHint = true;
@@ -447,9 +464,9 @@ require([
       ly.visible = false; ly.definitionExpression = null;
     });
 
-    if(dist){ limDistDraw.definitionExpression = `id_dist='${dist}'`; limDistDraw.visible = true; return; }
-    if(prov){ limProvDraw.definitionExpression = `id_prov='${prov}'`; limProvDraw.visible = true; return; }
-    if(dep ){ limDeptDraw.definitionExpression = `id_dpto='${dep}'`; limDeptDraw.visible = true; return; }
+    if(dist){ limDistDraw.definitionExpression = `id_dist='${esc(dist)}'`; limDistDraw.visible = true; return; }
+    if(prov){ limProvDraw.definitionExpression = `id_prov='${esc(prov)}'`; limProvDraw.visible = true; return; }
+    if(dep ){ limDeptDraw.definitionExpression = `id_dpto='${esc(dep)}'`; limDeptDraw.visible = true; return; }
   }
 
   async function zoomToPolitical(){
@@ -458,9 +475,9 @@ require([
     const prov = $selProv.value.trim();
     const dep  = $selDep.value.trim();
 
-    if(dist){ src = limDistSrc; where = `id_dist='${dist}'`; }
-    else if(prov){ src = limProvSrc; where = `id_prov='${prov}'`; }
-    else if(dep){ src = limDeptSrc; where = `id_dpto='${dep}'`; }
+    if(dist){ src = limDistSrc; where = `id_dist='${esc(dist)}'`; }
+    else if(prov){ src = limProvSrc; where = `id_prov='${esc(prov)}'`; }
+    else if(dep){ src = limDeptSrc; where = `id_dpto='${esc(dep)}'`; }
     else{ return; }
 
     const q = src.createQuery();
@@ -482,97 +499,80 @@ require([
     return { ubigeo:u, name };
   }
 
-  // WHERE base + categorías seleccionadas (para la lista/ámbito)
-  function buildWhere(includeCats=true){
+  // WHERE base + categorías seleccionadas (para la lista/ámbito - capa 5)
+  function buildWhereForAmbito(includeCats=true){
     const dep  = $selDep.value.trim();
     const prov = $selProv.value.trim();
     const dist = $selDist.value.trim();
     const cpSel= parseCPValue();
 
     const parts = ["1=1"];
-    if(dep)  parts.push(`id_dpto='${dep}'`);
-    if(prov) parts.push(`id_prov='${prov}'`);
-    if(dist) parts.push(`id_dist='${dist}'`);
-    if(cpSel && cpSel.name){ parts.push(`nom_cp='${cpSel.name.replace(/'/g,"''")}'`); }
+    if(dep)  parts.push(`id_dpto='${esc(dep)}'`);
+    if(prov) parts.push(`id_prov='${esc(prov)}'`);
+    if(dist) parts.push(`id_dist='${esc(dist)}'`);
+    if(cpSel && cpSel.name){ parts.push(`nom_cp='${esc(cpSel.name)}'`); }
 
     if(includeCats && selectedCats.size>0){
-      const vals = [...selectedCats].map(s=>`'${s.replace(/'/g,"''")}'`).join(",");
-      parts.push(`${CAT_FIELD} IN (${vals})`);
+      const vals = [...selectedCats].map(s=>`'${esc(s)}'`).join(",");
+      parts.push(`categoria_cp IN (${vals})`);
     }
     return parts.join(" AND ");
   }
 
-  /* === NUEVO: paleta de colores por categoría (para puntos) === */
-  function colorForCategory(cat=""){
-    const c = (cat||"").toLowerCase();
-    if(c.includes("dispers"))   return [230,57,70,0.98];   // rojo
-    if(c.includes("compact"))   return [34,139,34,0.98];   // verde
-    if(c.includes("mixt"))      return [52,152,219,0.98];  // azul
-    if(c.includes("intermed"))  return [255,165,0,0.98];   // naranja
-    return [128,128,128,0.95];                             // gris por defecto
-  }
-
-  /* 🔧 NUEVO: WHERE para filtrar PUNTOS de CCPP (capa 4) */
-  function buildWhereForCPPoints(){
+  // WHERE para puntos (capa 4) - usa ubigeo en lugar de id_*
+  function buildWhereForPuntos(includeCats=true){
     const dep  = $selDep.value.trim();
     const prov = $selProv.value.trim();
     const dist = $selDist.value.trim();
     const cpSel= parseCPValue();
 
-    const parts = ["1=1"]; // <- si NO usas filtros superiores, igual funciona con solo chips
-    if(dep)  parts.push(`id_dpto='${dep}'`);
-    if(prov) parts.push(`id_prov='${prov}'`);
-    if(dist) parts.push(`id_dist='${dist}'`);
-    if(cpSel && cpSel.name){ parts.push(`nom_ccpp='${cpSel.name.replace(/'/g,"''")}'`); }
+    const parts = ["1=1"];
+    if(dep)  parts.push(`SUBSTRING(ubigeo,1,2) = '${esc(dep)}'`);
+    if(prov) parts.push(`SUBSTRING(ubigeo,1,4) = '${esc(prov)}'`);
+    if(dist) parts.push(`ubigeo = '${esc(dist)}'`);
+    if(cpSel && cpSel.name){ parts.push(`nom_ccpp = '${esc(cpSel.name)}'`); }
 
-    if(selectedCats.size>0){
-      const vals = [...selectedCats].map(s=>`'${s.replace(/'/g,"''")}'`).join(",");
-      parts.push(`${CAT_FIELD} IN (${vals})`);
+    if(includeCats && selectedCats.size>0){
+      const vals = [...selectedCats].map(s=>`'${esc(s)}'`).join(",");
+      parts.push(`categ_cp IN (${vals})`);
     }
     return parts.join(" AND ");
   }
 
-  /* 🔧 NUEVO: aplicar filtro + renderer a los puntos */
-  function applyCPPointsFilter(){
-    try{
-      // 1) Filtra puntos según filtros superiores + chips (o solo chips si no hay superiores)
-      const defExp = buildWhereForCPPoints();
-      lyrCPGrado.definitionExpression = defExp;
+  /* 🔧 Aplicar filtros al mapa (colores + brillo en puntos) === */
+  async function applyMapFilters(){
+    try {
+      // Filtrar ámbito (capa 5)
+      lyrAmbito.definitionExpression = buildWhereForAmbito(true);
 
-      // 2) Si hay chips activos, colorea por categoría seleccionada; si no, estilo base
-      if(selectedCats.size>0){
-        const uvis = [...selectedCats].map(cat=>({
+      // Filtrar y colorear puntos (capa 4)
+      lyrCPGrado.definitionExpression = buildWhereForPuntos(true);
+
+      if(selectedCats.size > 0){
+        const uvis = [...selectedCats].map(cat => ({
           value: cat,
           label: cat,
-          symbol: {
-            type:"simple-marker",
-            style:"circle",
-            size:8.5,
-            color: colorForCategory(cat),
-            outline:{ color:[255,255,255,200], width:0.8 }
-          }
+          symbol: mk(colorForCategory(cat), 9.5)
         }));
         lyrCPGrado.renderer = new UniqueValueRenderer({
-          field: CAT_FIELD,
-          defaultSymbol: { // por si algún registro cae por cache/asincronía
-            type:"simple-marker",
-            style:"circle",
-            size:7,
-            color:[160,160,160,0.9],
-            outline:{ color:[255,255,255,160], width:0.6 }
-          },
+          field: "categ_cp",
+          defaultSymbol: mk([160,160,160,0.9], 7),
           uniqueValueInfos: uvis
         });
-      }else{
-        // Sin chips activos: regresar al renderer base
-        lyrCPGrado.renderer = new SimpleRenderer({ symbol: mk([200,200,200,0.95], 5.5) });
+      } else {
+        lyrCPGrado.renderer = new SimpleRenderer({ symbol: mk([200,200,200,0.95], 6.5) });
       }
-    }catch(_){}
+
+      lyrAmbito.refresh();
+      lyrCPGrado.refresh();
+    } catch (error) {
+      console.error("Error aplicando filtros al mapa:", error);
+    }
   }
 
   async function cargarLista(){
     const q = cpLayer.createQuery();
-    q.where = buildWhere(true);
+    q.where = buildWhereForAmbito(true);
     q.outFields = ["objectid","nom_cp","categoria_cp","vivrur_tot","vivrur_agrup_p","sum_pobcensa","distnear_max","distnear_min","id_dpto","id_prov","id_dist"];
     q.returnGeometry = false;
     q.num = 1000;
@@ -654,7 +654,7 @@ require([
     await loadProvs();
     await refreshCategoryChips();
     await cargarLista();
-    applyCPPointsFilter();              // NUEVO
+    await applyMapFilters();
     updatePoliticalLimitVisibility();
     await zoomToPolitical();
   });
@@ -662,7 +662,7 @@ require([
     await loadDists();
     await refreshCategoryChips();
     await cargarLista();
-    applyCPPointsFilter();              // NUEVO
+    await applyMapFilters();
     updatePoliticalLimitVisibility();
     await zoomToPolitical();
   });
@@ -670,23 +670,23 @@ require([
     await loadCPs();
     await refreshCategoryChips();
     await cargarLista();
-    applyCPPointsFilter();              // NUEVO
+    await applyMapFilters();
     updatePoliticalLimitVisibility();
     await zoomToPolitical();
   });
 
-  // Cambio de CCPP: mantiene lógica + chips dependientes
+  // Cambio de CCPP
   $selCP.addEventListener('change', async ()=>{
     await refreshCategoryChips();
     await cargarLista();
-    applyCPPointsFilter();              // NUEVO
+    await applyMapFilters();
     updatePoliticalLimitVisibility();
     await zoomToPolitical();
 
     const sel = parseCPValue();
     if(!sel) return;
     const q = lyrCPGrado.createQuery();
-    q.where = `ubigeo='${sel.ubigeo}' AND nom_ccpp='${sel.name.replace(/'/g,"''")}'`;
+    q.where = `ubigeo='${esc(sel.ubigeo)}' AND nom_ccpp='${esc(sel.name)}'`;
     q.returnGeometry = true; q.outFields = []; q.num = 1;
     const r = await lyrCPGrado.queryFeatures(q);
     const feat = r.features?.[0];
@@ -697,19 +697,19 @@ require([
     }catch(_){}
   });
 
-  // Chips dependientes del contexto y que filtran puntos
+  // Chips dependientes del contexto
   async function refreshCategoryChips(){
     const q = cpLayer.createQuery();
-    q.where = buildWhere(false); // SIN aplicar categorías para saber las disponibles
+    q.where = buildWhereForAmbito(false); // SIN aplicar categorías para saber las disponibles
     q.returnGeometry = false;
-    q.outFields = [CAT_FIELD];
+    q.outFields = ["categoria_cp"];
     q.returnDistinctValues = true;
-    q.orderByFields = [`${CAT_FIELD} ASC`];
+    q.orderByFields = [`categoria_cp ASC`];
     q.num = 1000;
 
     const res = await cpLayer.queryFeatures(q);
     const values = (res.features||[])
-      .map(f=>f.attributes?.[CAT_FIELD])
+      .map(f=>f.attributes?.["categoria_cp"])
       .filter(v=>v!=null && String(v).trim()!=="");
 
     const uniq = [...new Set(values)];
@@ -731,7 +731,7 @@ require([
         if(selectedCats.has(val)){ selectedCats.delete(val); btn.classList.remove("on"); }
         else{ selectedCats.add(val); btn.classList.add("on"); }
         await cargarLista();
-        applyCPPointsFilter();          // NUEVO (filtra y recolorea puntos aunque no uses filtros superiores)
+        await applyMapFilters();
       });
     });
   }
@@ -745,7 +745,7 @@ require([
     await refreshCategoryChips();
     updatePoliticalLimitVisibility();
     await cargarLista();
-    applyCPPointsFilter();              // NUEVO
+    await applyMapFilters();
     if(initialViewpoint){ try{ await view.goTo(initialViewpoint, { duration:900 }); }catch(_){ } }
     guideLayer.removeAll();
     if(hl){ hl.remove(); hl=null; }
@@ -755,7 +755,7 @@ require([
     await loadDeps();
     await refreshCategoryChips();
     await cargarLista();
-    applyCPPointsFilter();              // NUEVO
+    await applyMapFilters();
     updatePoliticalLimitVisibility();
   })();
 });
