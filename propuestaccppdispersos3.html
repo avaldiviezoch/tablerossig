@@ -268,7 +268,7 @@ require([
     return [160,160,160,0.95]; // fallback gris
   }
 
-  const SCALE_PROV = 1200000, SCALE_RED=600000;
+  const SCALE_PROV = 100000, SCALE_RED=50000;
 
   /* === CAPAS OBJETIVO (siempre visibles) === */
   const lyrAreasAgrup = new FeatureLayer({
@@ -311,7 +311,7 @@ require([
     renderer:new SimpleRenderer({ symbol: mk([231,76,60,0.95], 7.5) })
   });
 
-  map.addMany([lyrAreasAgrup, lyrPTAP, lyrCapt, lyrReserv, lyrRedes, lyrCPGrado, lyrAmbito]);
+  map.addMany([lyrAreasAgrup, lyrAmbito, lyrRedes, lyrPTAP, lyrCapt, lyrReserv, lyrCPGrado]);
 
   // LÍMITES con brillo
   const glowCIM=(rgb=[255,255,255])=>{const [r,g,b]=rgb;return{
