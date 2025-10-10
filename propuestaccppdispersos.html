@@ -48,7 +48,6 @@
     -webkit-appearance:none; appearance:none;
   }
 
-  /* Chips */
   .chipBar { display:grid; gap:8px; border-top:1px dashed var(--sep); padding-top:8px; }
   .chipTitle { font-size:12px; color:#47606b; font-weight:900; letter-spacing:.2px; }
   .chips { display:flex; flex-wrap:wrap; gap:8px; }
@@ -253,7 +252,8 @@
         if(selectedCats.has(val)){ selectedCats.delete(val); btn.classList.remove('on'); }
         else{ selectedCats.add(val); btn.classList.add('on'); }
         redrawCPPoints(); // recolor puntos
-        filterHeat();     // heat queda igual (o filtrado si trae cat)
+        filterHeat();     // heat filtrado por cat si aplica
+        applyScaleVisibility(); // respeta reglas de visibilidad
         emitDispersionChange();
       });
     });
@@ -307,8 +307,8 @@
   }
 
   /* ====== PUNTOS CCPP (capa 4) ====== */
-  const cpPoints = []; // {lat,lng,cat,id_dpto,id_prov,id_dist}
-  const cpLayerGroup = L.layerGroup().addTo(map); // usa canvas por preferCanvas:true
+  const cpPoints = []; // {lat,lng,cat,id_dpto,id_prov,id_dist,name,oid?}
+  const cpLayerGroup = L.layerGroup().addTo(map); // se mostrará/ocultará por escala
 
   function drawPoints(points){
     cpLayerGroup.clearLayers();
@@ -316,9 +316,7 @@
     const useColors = activeCats.length>0;
 
     points.forEach(p=>{
-      // color base: blanco; si hay chips activos y la cat coincide => color; sino atenuado
       let fill = '#ffffff', fillOpacity = 0.95, stroke = '#90a4ae', strokeOpacity = 0.7, radius = 3.5;
-
       if(useColors){
         if(p.cat && activeCats.includes(p.cat)){
           const col = rgba(colorForCategory(p.cat));
@@ -327,11 +325,11 @@
           fill = '#cfd8dc'; fillOpacity = 0.45; stroke = '#90a4ae'; strokeOpacity = 0.5; radius = 3.2;
         }
       }
-
-      L.circleMarker([p.lat,p.lng], {
+      const m = L.circleMarker([p.lat,p.lng], {
         radius, fillColor: fill, color: stroke, opacity: strokeOpacity,
         weight: 1, fillOpacity: fillOpacity
-      }).addTo(cpLayerGroup);
+      });
+      m.addTo(cpLayerGroup);
     });
   }
   function filterCPPoints(){
@@ -363,19 +361,23 @@
           const [lng,lat]=f.geometry.coordinates;
           const a=f.properties||f.attributes||{};
           const cat = CAT_FIELDS.map(k=>a[k]).find(v=>v!=null && String(v).trim()!=="") || null;
+          const name = pick(a, NAME_FIELDS) ? String(pick(a, NAME_FIELDS)).trim() : null;
+          const oid  = pick(a, OID_FIELDS);
           cpPoints.push({
             lat,lng,
             cat: cat?String(cat).trim():null,
-            id_dpto: a.id_dpto??(a.ID_DPTO??null),
-            id_prov: a.id_prov??(a.ID_PROV??null),
-            id_dist: a.id_dist??(a.ID_DIST??a.ubigeo??null)?.toString().slice(0,6)
+            id_dpto: (a.id_dpto??a.ID_DPTO??null)?.toString(),
+            id_prov: (a.id_prov??a.ID_PROV??null)?.toString(),
+            id_dist: (a.id_dist??a.ID_DIST??a.ubigeo??null)?.toString().slice(0,6),
+            name, oid
           });
         });
 
         offset+=2000;
         if(feats.length<2000 && raw && raw.exceededTransferLimit!==true) break;
       }
-      redrawCPPoints(); // dibuja en blanco inicialmente
+      redrawCPPoints(); // dibuja (se ocultará por escala si corresponde)
+      applyScaleVisibility();
     })().catch(console.error);
   }
 
@@ -417,7 +419,7 @@
     cpSelectedLayer.addLayer(pulse).addLayer(marker);
     let i=0, seq=[80,120,80,120,80];
     const anim=setInterval(()=>{ if(!map.hasLayer(pulse)) return clearInterval(anim); pulse.setRadius(seq[i++%seq.length]); }, 160);
-    map.setView([lat,lng], 14);
+    map.setView([lat,lng], Z_CP); // asegúrate de caer en nivel distrital
   }
   document.getElementById('chkCP').addEventListener('change',(e)=>{
     if(e.target.checked){ cpSelectedLayer.addTo(map); } else { map.removeLayer(cpSelectedLayer); }
@@ -447,32 +449,32 @@
   }
   function loadProvs(){
     const dep=$dep.value.trim();
-    document.getElementById('selProv').innerHTML=`<option value="">(Todas)</option>`; document.getElementById('selProv').disabled=true;
-    document.getElementById('selDist').innerHTML=`<option value="">(Todos)</option>`; document.getElementById('selDist').disabled=true;
-    document.getElementById('selCP').innerHTML  =`<option value="">(Todos)</option>`; document.getElementById('selCP').disabled=true;
+    $prov.innerHTML=`<option value="">(Todas)</option>`; $prov.disabled=true;
+    $dist.innerHTML=`<option value="">(Todos)</option>`; $dist.disabled=true;
+    $cp.innerHTML  =`<option value="">(Todos)</option>`; $cp.disabled=true;
     if(!dep){ clearGlow(); redrawCPPoints(); filterHeat(); return; }
     L.esri.query({url:LIM1}).where(`id_dep='${dep.replace(/'/g,"''")}'`).returnGeometry(false).fields(['id_prov','nom_prov']).orderBy('nom_prov')
     .run((err,fc)=>{
       if(err){console.error("[Provs]",err);return;}
       const opts=(fc.features||[]).map(f=>`<option value="${(f.properties||f.attributes).id_prov}">${(f.properties||f.attributes).nom_prov}</option>`).join('');
-      document.getElementById('selProv').innerHTML+=opts; document.getElementById('selProv').disabled=false;
+      $prov.innerHTML+=opts; $prov.disabled=false;
     });
   }
   function loadDists(){
-    const prov=document.getElementById('selProv').value.trim();
-    document.getElementById('selDist').innerHTML=`<option value="">(Todos)</option>`; document.getElementById('selDist').disabled=true;
-    document.getElementById('selCP').innerHTML  =`<option value="">(Todos)</option>`; document.getElementById('selCP').disabled=true;
+    const prov=$prov.value.trim();
+    $dist.innerHTML=`<option value="">(Todos)</option>`; $dist.disabled=true;
+    $cp.innerHTML  =`<option value="">(Todos)</option>`; $cp.disabled=true;
     if(!prov){ clearGlow(); redrawCPPoints(); filterHeat(); return; }
     L.esri.query({url:LIM2}).where(`id_prov='${prov.replace(/'/g,"''")}'`).returnGeometry(false).fields(['id_dist','nom_dist']).orderBy('nom_dist')
     .run((err,fc)=>{
       if(err){console.error("[Dists]",err);return;}
       const opts=(fc.features||[]).map(f=>`<option value="${(f.properties||f.attributes).id_dist}">${(f.properties||f.attributes).nom_dist}</option>`).join('');
-      document.getElementById('selDist').innerHTML+=opts; document.getElementById('selDist').disabled=false;
+      $dist.innerHTML+=opts; $dist.disabled=false;
     });
   }
   function loadCPs(){
-    const dist=document.getElementById('selDist').value.trim();
-    document.getElementById('selCP').innerHTML=`<option value="">(Todos)</option>`; document.getElementById('selCP').disabled=true;
+    const dist=$dist.value.trim();
+    $cp.innerHTML=`<option value="">(Todos)</option>`; $cp.disabled=true;
     if(!dist) return;
 
     L.esri.query({url:CP_LAYER})
@@ -480,7 +482,7 @@
       .run((err,fc)=>{
         if(err){console.error("[CPs]",err);return;}
         const feats = fc && fc.features ? fc.features : [];
-        if(!feats.length){ document.getElementById('selCP').disabled=true; return; }
+        if(!feats.length){ $cp.disabled=true; return; }
 
         const a0 = (feats[0].properties || feats[0].attributes || {});
         cpMeta.nameField   = NAME_FIELDS.find(k => pick(a0,[k]) != null) || 'nom_ccpp';
@@ -506,38 +508,87 @@
           opts.push(`<option value="${v}">${r.name}</option>`);
         });
 
-        document.getElementById('selCP').innerHTML = `<option value="">(Todos)</option>` + opts.join('');
-        document.getElementById('selCP').disabled = (opts.length === 0);
+        $cp.innerHTML = `<option value="">(Todos)</option>` + opts.join('');
+        $cp.disabled = (opts.length === 0);
       });
   }
 
   /* ===== Eventos de combos ===== */
-  document.getElementById('selDep').addEventListener('change', ()=>{ loadProvs(); redrawCPPoints(); filterHeat(); zoomGlowTo($dep.value.trim(), $prov.value.trim(), $dist.value.trim()); });
-  document.getElementById('selProv').addEventListener('change', ()=>{ loadDists(); redrawCPPoints(); filterHeat(); zoomGlowTo($dep.value.trim(), $prov.value.trim(), $dist.value.trim()); });
-  document.getElementById('selDist').addEventListener('change', ()=>{ loadCPs();  redrawCPPoints(); filterHeat(); zoomGlowTo($dep.value.trim(), $prov.value.trim(), $dist.value.trim()); });
+  function onGeoChange(){
+    redrawCPPoints();
+    filterHeat();
+    zoomGlowTo($dep.value.trim(), $prov.value.trim(), $dist.value.trim());
+    applyScaleVisibility();
+  }
+  $dep.addEventListener('change', ()=>{ loadProvs();  onGeoChange(); });
+  $prov.addEventListener('change', ()=>{ loadDists();  onGeoChange(); });
+  $dist.addEventListener('change', ()=>{ loadCPs();   onGeoChange(); });
 
-  document.getElementById('selCP').addEventListener('change', async ()=>{
-    const v=document.getElementById('selCP').value.trim();
-    if(!v){ filterHeat(); return; }
-    const [ubg] = v.split('|');
-    const dep=ubg.slice(0,2), prov=ubg.slice(0,4), dist=ubg.slice(0,6);
-    filterHeat(); zoomGlowTo(dep,prov,dist);
+  $cp.addEventListener('change', ()=>{
+    const v=$cp.value.trim();
+    if(!v){ filterHeat(); applyScaleVisibility(); return; }
+    const [ubg, oidEnc, nameEnc] = v.split('|');
+    const name = decodeURIComponent(nameEnc||'').trim();
+    const dist = ubg.slice(0,6), prov = ubg.slice(0,4), dep = ubg.slice(0,2);
+
+    // Glow al distrito del CCPP
+    zoomGlowTo(dep,prov,dist);
+
+    // Buscar coordenadas del CCPP y enfocarlo
+    let target = cpPoints.find(p => (p.id_dist===dist) && p.name && p.name.toLowerCase() === name.toLowerCase());
+    if(!target && oidEnc){
+      const oid = decodeURIComponent(oidEnc||'');
+      target = cpPoints.find(p => p.oid!=null && String(p.oid)===String(oid));
+    }
+    if(target){
+      showSelectedCP(target.lat, target.lng, target.name || 'Centro poblado');
+    }
+
+    filterHeat();
+    applyScaleVisibility(); // fuerza puntos visibles y heat apagado a nivel distrital
   });
 
   document.getElementById('btnClear').addEventListener('click', ()=>{
     $dep.value="";
-    document.getElementById('selProv').innerHTML=`<option value="">(Todas)</option>`; document.getElementById('selProv').disabled=true;
-    document.getElementById('selDist').innerHTML=`<option value="">(Todos)</option>`; document.getElementById('selDist').disabled=true;
-    document.getElementById('selCP').innerHTML=`<option value="">(Todos)</option>`;   document.getElementById('selCP').disabled=true;
+    $prov.innerHTML=`<option value="">(Todas)</option>`; $prov.disabled=true;
+    $dist.innerHTML=`<option value="">(Todos)</option>`; $dist.disabled=true;
+    $cp.innerHTML=`<option value="">(Todos)</option>`;   $cp.disabled=true;
     selectedCats.clear(); renderChips(currentCats, []);
-    clearGlow();
+    clearGlow(); cpSelectedLayer.clearLayers();
     redrawCPPoints(); filterHeat(); map.setView([-9,-75],5);
+    applyScaleVisibility();
   });
-  document.getElementById('btnZoom').addEventListener('click', ()=> zoomGlowTo($dep.value.trim(), $prov.value.trim(), $dist.value.trim()));
+  document.getElementById('btnZoom').addEventListener('click', ()=> {
+    zoomGlowTo($dep.value.trim(), $prov.value.trim(), $dist.value.trim());
+    applyScaleVisibility();
+  });
 
-  $chkHeat.addEventListener('change', (e)=>{ if(!heatLayer) return; if(e.target.checked){heatLayer.addTo(map);} else {map.removeLayer(heatLayer);} });
+  $chkHeat.addEventListener('change', ()=> applyScaleVisibility());
   $chkLabels.addEventListener('change', (e)=>{ if(e.target.checked){imageryLabels.addTo(map);} else {map.removeLayer(imageryLabels);} });
   $chkGlow.addEventListener('change', (e)=>{ if(!e.target.checked) clearGlow(); else zoomGlowTo($dep.value.trim(), $prov.value.trim(), $dist.value.trim()); });
+
+  /* ===== Reglas de visibilidad por escala ===== */
+  const Z_CP = 11; // umbral de "nivel distrital"
+  function applyScaleVisibility(){
+    const z = map.getZoom();
+    const showPoints = (z >= Z_CP);
+    // Heat
+    if(heatLayer){
+      if($chkHeat.checked && !showPoints){
+        if(!map.hasLayer(heatLayer)) heatLayer.addTo(map);
+      } else {
+        if(map.hasLayer(heatLayer)) map.removeLayer(heatLayer);
+      }
+    }
+    // Puntos
+    if(showPoints){
+      if(!map.hasLayer(cpLayerGroup)) cpLayerGroup.addTo(map);
+      redrawCPPoints();
+    } else {
+      if(map.hasLayer(cpLayerGroup)) map.removeLayer(cpLayerGroup);
+    }
+  }
+  map.on('zoomend', applyScaleVisibility);
 
   /* ===== Carga inicial ===== */
   const pageSize=2000; let resultOffset=0;
@@ -557,7 +608,7 @@
     // Puntos CCPP (capa 4)
     loadCPPoints();
 
-    // Heat (capa 6)
+    // Heat (capa 6): convertir polígonos a puntos (centroides sobre superficie)
     while(true){
       const {fc,raw}=await fetchHeatPage(resultOffset);
       const feats=fc && fc.features ? fc.features : [];
@@ -570,7 +621,13 @@
           const c=turf.pointOnSurface(f); if(!c||!c.geometry) return;
           const [lng,lat]=c.geometry.coordinates;
           const cat = CAT_FIELDS.map(k=>a[k]).find(v=>v!=null && String(v).trim()!=="") || null;
-          allHeatPoints.push({ lat,lng,w:1, id_dpto:a.id_dpto??null, id_prov:a.id_prov??null, id_dist:a.id_dist??null, cat: cat?String(cat).trim():null });
+          allHeatPoints.push({
+            lat,lng,w:1,
+            id_dpto:(a.id_dpto??null)?.toString(),
+            id_prov:(a.id_prov??null)?.toString(),
+            id_dist:(a.id_dist??null)?.toString(),
+            cat: cat?String(cat).trim():null
+          });
         }
       });
 
@@ -581,7 +638,20 @@
 
     // Combos
     loadDeps();
+
+    // Asegurar visibilidad correcta al inicio
+    applyScaleVisibility();
   })().catch(console.error);
+
+  /* ===== Utilidades de arrastre para las burbujas ===== */
+  document.querySelectorAll('[data-drag]').forEach(h=>{
+    const sel=h.getAttribute('data-drag'); const el=document.querySelector(sel);
+    let sx=0,sy=0,ex=0,ey=0,dragging=false;
+    h.addEventListener('mousedown',e=>{dragging=true; sx=e.clientX; sy=e.clientY; const r=el.getBoundingClientRect(); ex=r.left; ey=r.top; document.body.style.userSelect='none';});
+    window.addEventListener('mousemove',e=>{ if(!dragging) return; const dx=e.clientX-sx, dy=e.clientY-sy; el.style.position='absolute'; el.style.left=(ex+dx)+'px'; el.style.top=(ey+dy)+'px'; el.style.right='auto';});
+    window.addEventListener('mouseup',()=>{dragging=false; document.body.style.userSelect='auto';});
+  });
+
 })();
 </script>
 </body>
