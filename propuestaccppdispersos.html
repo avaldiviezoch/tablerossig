@@ -11,9 +11,13 @@
 <style>
   :root { --ink:#0b2532; --muted:#64748b; --line:#0e4a43; --panel:#f7fbfa; --brand:#0b3b38; --accent:#0f2e29; --sep:#e6ecea; }
   html,body{height:100%;margin:0;background:#eef5f3;color:var(--ink);font-family:system-ui,-apple-system,Segoe UI,Roboto,Inter,Arial}
-  body{display:grid;grid-template-rows:auto 1fr;overflow:hidden}
-  .mainTitleBar{width:100%;background:#fff;border-bottom:1px solid var(--sep);box-shadow:0 2px 6px rgba(0,0,0,.08);padding:12px 10px;position:sticky;top:0;z-index:20}
-  .mainTitle{margin:0;text-align:center;font-weight:1000;font-size:clamp(22px,3.6vh,30px);color:var(--brand);letter-spacing:.3px}
+  /* Se elimina la fila del header fijo; la shell ocupa todo */
+  body{display:grid;grid-template-rows:1fr;overflow:hidden}
+
+  /* (Opcional) estilos del header eliminados; no se usan */
+  .mainTitleBar{display:none}
+  .mainTitle{display:none}
+
   .shell{display:grid;grid-template-columns:65% 35%;height:100%;width:100%;overflow:hidden}
   #viewWrap{position:relative;height:100%;overflow:hidden}
   #viewDiv{position:relative;width:100%;height:100%}
@@ -77,13 +81,11 @@
 </style>
 </head>
 <body>
-  <header class="mainTitleBar">
-    <h1 class="mainTitle">Grado de dispersión de centros poblados - PNSR</h1>
-  </header>
+  <!-- Se eliminó la barra superior fija -->
 
   <div class="shell">
     <div id="viewWrap">
-      <!-- Título flotante (nuevo) -->
+      <!-- Título flotante ÚNICO -->
       <div class="floatTitle">🛰 Grado de dispersión de centros poblados - PNSR</div>
 
       <div id="viewDiv"></div>
@@ -253,13 +255,13 @@ require([
     const s = view.scale || 1e7;
     let blur, minD, maxD;
 
-    if (s > 5_000_000) {       // País muy lejos
+    if (s > 5_000_000) {
       blur = 1.2;  minD = 0.24; maxD = 0.95;
-    } else if (s > 2_000_000){ // Macro-regional
+    } else if (s > 2_000_000){
       blur = 1.6;  minD = 0.20; maxD = 0.85;
-    } else if (s > 900_000){   // Departamental
+    } else if (s > 900_000){
       blur = 2.2;  minD = 0.14; maxD = 0.65;
-    } else {                    // Provincial/Distrital
+    } else {
       blur = 3.0;  minD = 0.10; maxD = 0.50;
     }
 
@@ -282,29 +284,23 @@ require([
   const lyrVivConAcceso = new FeatureLayer({ url:`${VR_URL}/1`, title:"Viviendas rurales (con acceso)",        visible:true,  minScale:100000, renderer:new SimpleRenderer({ symbol: mkSolid([30,110,182,1], 4.8) }) });
   const lyrVivSinAcceso = new FeatureLayer({ url:`${VR_URL}/2`, title:"Viviendas rurales (sin acceso)",        visible:true,  minScale:100000, renderer:new SimpleRenderer({ symbol: mkSolid([220,53,69,1], 4.8) }) });
 
-  /* === LÍMITES CON GLOW (DE VUELTA) === */
+  /* === LÍMITES CON GLOW === */
   const glowCIM = (rgb=[255,255,255]) => {
     const [r,g,b]=rgb;
     return {
       type:"cim",
-      data:{
-        type:"CIMSymbolReference",
-        symbol:{
-          type:"CIMLineSymbol",
+      data:{ type:"CIMSymbolReference",
+        symbol:{ type:"CIMLineSymbol",
           symbolLayers:[
             { type:"CIMSolidStroke", enable:true, width:6,   color:[r,g,b,40]  },
             { type:"CIMSolidStroke", enable:true, width:3,   color:[r,g,b,120] },
             { type:"CIMSolidStroke", enable:true, width:1.6, color:[r,g,b,255] }
           ]
-        }
-      }
-    };
-  };
+  }}}};
   const limDeptDraw = new FeatureLayer({ url:LIM0, title:"Límite Departamental", visible:false, renderer:new SimpleRenderer({ symbol:glowCIM([0,255,255]) }), blendMode:"screen" });
   const limProvDraw = new FeatureLayer({ url:LIM1, title:"Límite Provincial",    visible:false, renderer:new SimpleRenderer({ symbol:glowCIM([255,215,0]) }), blendMode:"screen" });
   const limDistDraw = new FeatureLayer({ url:LIM2, title:"Límite Distrital",     visible:false, renderer:new SimpleRenderer({ symbol:glowCIM([255,105,180]) }), blendMode:"screen" });
 
-  // Orden de capas
   map.addMany([
     lyrAreasAgrup, lyrAmbito,
     lyrRedes, lyrPTAP, lyrCapt, lyrReserv,
