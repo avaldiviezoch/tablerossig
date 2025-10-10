@@ -11,18 +11,16 @@
 <style>
   :root { --ink:#0b2532; --muted:#64748b; --line:#0e4a43; --panel:#f7fbfa; --brand:#0b3b38; --accent:#0f2e29; --sep:#e6ecea; }
   html,body{height:100%;margin:0;background:#eef5f3;color:var(--ink);font-family:system-ui,-apple-system,Segoe UI,Roboto,Inter,Arial}
-  /* Se elimina la fila del header fijo; la shell ocupa todo */
   body{display:grid;grid-template-rows:1fr;overflow:hidden}
 
-  /* (Opcional) estilos del header eliminados; no se usan */
-  .mainTitleBar{display:none}
-  .mainTitle{display:none}
+  /* (se quitó la “cinta” superior) */
+  .mainTitleBar,.mainTitle{display:none}
 
   .shell{display:grid;grid-template-columns:65% 35%;height:100%;width:100%;overflow:hidden}
   #viewWrap{position:relative;height:100%;overflow:hidden}
   #viewDiv{position:relative;width:100%;height:100%}
 
-  /* === Título flotante sobre el mapa === */
+  /* Título flotante único */
   .floatTitle{
     position:absolute; left:50%; top:12px; transform:translateX(-50%);
     background:rgba(255,255,255,0.92); border:1px solid #d8e1df; border-radius:14px;
@@ -73,7 +71,7 @@
   .bubble header .ttl{font-weight:900;letter-spacing:.2px}
   .bubble header .x{cursor:pointer;border:1px solid #0e4a43;background:#114d46;color:#e6fffb;border-radius:10px;padding:6px 10px;font-weight:800}
   .bubble .content{padding:10px 10px 12px}
-  .scroll{max-height:65vh;overflow:auto;border-radius:10px;border:1px solid #0e4a43}
+  .scroll{max-height:65vh;overflow:auto;border-radius:16px;border:1px solid #0e4a43}
   #bubbleLegend{background:#fff;color:var(--ink);border:1px solid var(--sep)}
   #bubbleLegend header{background:#fff;color:var(--ink);border-bottom:1px solid var(--sep)}
   #bubbleLegend header .x{background:#fff;color:var(--ink);border:1px solid var(--sep)}
@@ -81,65 +79,64 @@
 </style>
 </head>
 <body>
-  <!-- Se eliminó la barra superior fija -->
 
-  <div class="shell">
-    <div id="viewWrap">
-      <!-- Título flotante ÚNICO -->
-      <div class="floatTitle">🛰 Grado de dispersión de centros poblados - PNSR</div>
+<div class="shell">
+  <div id="viewWrap">
+    <!-- Título flotante -->
+    <div class="floatTitle">🛰 Grado de dispersión de centros poblados - PNSR</div>
 
-      <div id="viewDiv"></div>
+    <div id="viewDiv"></div>
 
-      <div class="fab-wrap">
-        <div id="btnLayers" class="fab" title="Capas">🗂️</div>
-        <div id="btnLegend" class="fab" title="Leyenda">🏷️</div>
-      </div>
-
-      <div id="bubbleLayers" class="bubble" style="top:14px;">
-        <header data-drag="#bubbleLayers"><span class="ttl">Capas</span><button class="x" data-close="#bubbleLayers">Cerrar</button></header>
-        <div class="content"><div class="scroll"><div id="layerListNode"></div></div></div>
-      </div>
-
-      <div id="bubbleLegend" class="bubble" style="top:190px;">
-        <header data-drag="#bubbleLegend"><span class="ttl">Leyenda</span><button class="x" data-close="#bubbleLegend">Cerrar</button></header>
-        <div class="content"><div class="scroll"><div id="legendNode"></div></div></div>
-      </div>
+    <div class="fab-wrap">
+      <div id="btnLayers" class="fab" title="Capas">🗂️</div>
+      <div id="btnLegend" class="fab" title="Leyenda">🏷️</div>
     </div>
 
-    <aside class="sidebar">
-      <section class="filtersBar" aria-label="Filtros de ubicación">
-        <div class="filtersGrid">
-          <div class="fld"><label for="selDep">Departamento</label><select id="selDep"><option value="">(Todos)</option></select></div>
-          <div class="fld"><label for="selProv">Provincia</label><select id="selProv" disabled><option value="">(Todas)</option></select></div>
-          <div class="fld"><label for="selDist">Distrito</label><select id="selDist" disabled><option value="">(Todos)</option></select></div>
-          <div class="fld"><label for="selCP">Centro poblado</label><select id="selCP" disabled><option value="">(Todos)</option></select></div>
-        </div>
+    <div id="bubbleLayers" class="bubble" style="top:14px;">
+      <header data-drag="#bubbleLayers"><span class="ttl">Capas</span><button class="x" data-close="#bubbleLayers">Cerrar</button></header>
+      <div class="content"><div class="scroll"><div id="layerListNode"></div></div></div>
+    </div>
 
-        <div id="catChipsWrap" class="chipBar" aria-label="Grado de Dispersión del CCPP">
-          <div class="chipTitle">Grado de Dispersión del CCPP</div>
-          <div id="chipList" class="chips"></div>
-        </div>
-
-        <div class="rowBtns">
-          <button id="btnClear" class="btn" type="button">Limpiar filtros</button>
-        </div>
-      </section>
-
-      <section class="lowerGrid">
-        <div class="listCard">
-          <header><h3>Centros poblados (lista)</h3></header>
-          <div class="list" id="cpList"><div class="empty">Cargando…</div></div>
-        </div>
-        <div class="listCard">
-          <header><h3>Comentario</h3></header>
-          <div class="commentWrap">
-            <p>La herramienta muestra las <b>áreas de concentración</b> y las <b>viviendas rurales con y sin acceso a agua</b> (Censo 2017). También incluye viviendas sin dato de acceso y se complementa con información de <b>componentes y redes de agua del DATASS</b> (módulo 3 y 5).</p>
-            <img class="commentImg" loading="lazy" alt="Esquema de criterios" src="https://lh3.googleusercontent.com/d/1OPw9CWsW8xmgL6sjGuZcyvAtz2qJi0RF=w1000"/>
-          </div>
-        </div>
-      </section>
-    </aside>
+    <div id="bubbleLegend" class="bubble" style="top:190px;">
+      <header data-drag="#bubbleLegend"><span class="ttl">Leyenda</span><button class="x" data-close="#bubbleLegend">Cerrar</button></header>
+      <div class="content"><div class="scroll"><div id="legendNode"></div></div></div>
+    </div>
   </div>
+
+  <aside class="sidebar">
+    <section class="filtersBar" aria-label="Filtros de ubicación">
+      <div class="filtersGrid">
+        <div class="fld"><label for="selDep">Departamento</label><select id="selDep"><option value="">(Todos)</option></select></div>
+        <div class="fld"><label for="selProv">Provincia</label><select id="selProv" disabled><option value="">(Todas)</option></select></div>
+        <div class="fld"><label for="selDist">Distrito</label><select id="selDist" disabled><option value="">(Todos)</option></select></div>
+        <div class="fld"><label for="selCP">Centro poblado</label><select id="selCP" disabled><option value="">(Todos)</option></select></div>
+      </div>
+
+      <div id="catChipsWrap" class="chipBar" aria-label="Grado de Dispersión del CCPP">
+        <div class="chipTitle">Grado de Dispersión del CCPP</div>
+        <div id="chipList" class="chips"></div>
+      </div>
+
+      <div class="rowBtns">
+        <button id="btnClear" class="btn" type="button">Limpiar filtros</button>
+      </div>
+    </section>
+
+    <section class="lowerGrid">
+      <div class="listCard">
+        <header><h3>Centros poblados (lista)</h3></header>
+        <div class="list" id="cpList"><div class="empty">Cargando…</div></div>
+      </div>
+      <div class="listCard">
+        <header><h3>Comentario</h3></header>
+        <div class="commentWrap">
+          <p>La herramienta muestra las <b>áreas de concentración</b> y las <b>viviendas rurales con y sin acceso a agua</b> (Censo 2017). También incluye viviendas sin dato de acceso y se complementa con información de <b>componentes y redes de agua del DATASS</b> (módulo 3 y 5).</p>
+          <img class="commentImg" loading="lazy" alt="Esquema de criterios" src="https://lh3.googleusercontent.com/d/1OPw9CWsW8xmgL6sjGuZcyvAtz2qJi0RF=w1000"/>
+        </div>
+      </div>
+    </section>
+  </aside>
+</div>
 
 <script>
 require([
@@ -182,6 +179,7 @@ require([
   const map = new Map({ basemap: "satellite" });
   const view = new MapView({
     container: "viewDiv", map,
+    // el centro/zoom inicial se ajustará al “extent Perú” más abajo
     center: [-75, -9], zoom: 5,
     constraints: { minZoom: 4, snapToZoom: false }
   });
@@ -208,12 +206,8 @@ require([
   const lyrAreasAgrup = new FeatureLayer({
     url:`${CCPP}/6`,
     title:"Áreas agrupadas (densidad y viviendas)",
-    visible:true,
-    outFields:["*"],
-    popupEnabled:false,
-    renderer:new SimpleRenderer({
-      symbol: poly([212,124,242,1], new SimpleLineSymbol({ color:[0,0,0,1], width:1.2, style:"short-dot" }))
-    })
+    visible:true, outFields:["*"], popupEnabled:false,
+    renderer:new SimpleRenderer({ symbol: poly([212,124,242,1], new SimpleLineSymbol({ color:[0,0,0,1], width:1.2, style:"short-dot" })) })
   });
 
   const lyrAmbito = new FeatureLayer({
@@ -225,18 +219,13 @@ require([
 
   /* === CCPP PUNTOS === */
   const lyrCPGrado = new FeatureLayer({
-    url: CP_LAYER,
-    title:"Centro poblado (puntos / por grado)",
-    visible:true,
-    minScale: 1000000,
+    url: CP_LAYER, title:"Centro poblado (puntos / por grado)", visible:true, minScale: 1000000,
     renderer:new SimpleRenderer({ symbol: mk([200,200,200,0.95], 6.5) })
   });
 
   /* === HEATMAP CCPP — tamaño inicial pequeño + colores claros === */
   const lyrCPHeat = new FeatureLayer({
-    url: CP_LAYER,
-    title: "Heatmap de centros poblados",
-    visible: true,
+    url: CP_LAYER, title: "Heatmap de centros poblados", visible: true,
     renderer: new HeatmapRenderer({
       blurRadius: 1.6,
       minDensity: 0.20,
@@ -254,24 +243,12 @@ require([
   function applyScaleAdaptiveHeat(){
     const s = view.scale || 1e7;
     let blur, minD, maxD;
-
-    if (s > 5_000_000) {
-      blur = 1.2;  minD = 0.24; maxD = 0.95;
-    } else if (s > 2_000_000){
-      blur = 1.6;  minD = 0.20; maxD = 0.85;
-    } else if (s > 900_000){
-      blur = 2.2;  minD = 0.14; maxD = 0.65;
-    } else {
-      blur = 3.0;  minD = 0.10; maxD = 0.50;
-    }
-
-    const r = lyrCPHeat.renderer.clone ?
-              lyrCPHeat.renderer.clone() :
-              new HeatmapRenderer(lyrCPHeat.renderer);
-    r.blurRadius = blur;
-    r.minDensity = minD;
-    r.maxDensity = maxD;
-    lyrCPHeat.renderer = r;
+    if (s > 5_000_000) { blur = 1.2; minD = 0.24; maxD = 0.95; }
+    else if (s > 2_000_000){ blur = 1.6; minD = 0.20; maxD = 0.85; }
+    else if (s > 900_000){ blur = 2.2; minD = 0.14; maxD = 0.65; }
+    else { blur = 3.0; minD = 0.10; maxD = 0.50; }
+    const r = lyrCPHeat.renderer.clone ? lyrCPHeat.renderer.clone() : new HeatmapRenderer(lyrCPHeat.renderer);
+    r.blurRadius = blur; r.minDensity = minD; r.maxDensity = maxD; lyrCPHeat.renderer = r;
   }
 
   /* === DATASS + Viviendas === */
@@ -287,16 +264,13 @@ require([
   /* === LÍMITES CON GLOW === */
   const glowCIM = (rgb=[255,255,255]) => {
     const [r,g,b]=rgb;
-    return {
-      type:"cim",
-      data:{ type:"CIMSymbolReference",
-        symbol:{ type:"CIMLineSymbol",
-          symbolLayers:[
-            { type:"CIMSolidStroke", enable:true, width:6,   color:[r,g,b,40]  },
-            { type:"CIMSolidStroke", enable:true, width:3,   color:[r,g,b,120] },
-            { type:"CIMSolidStroke", enable:true, width:1.6, color:[r,g,b,255] }
-          ]
-  }}}};
+    return { type:"cim", data:{ type:"CIMSymbolReference",
+      symbol:{ type:"CIMLineSymbol",
+        symbolLayers:[
+          { type:"CIMSolidStroke", enable:true, width:6,   color:[r,g,b,40]  },
+          { type:"CIMSolidStroke", enable:true, width:3,   color:[r,g,b,120] },
+          { type:"CIMSolidStroke", enable:true, width:1.6, color:[r,g,b,255] }
+  ]}}};};
   const limDeptDraw = new FeatureLayer({ url:LIM0, title:"Límite Departamental", visible:false, renderer:new SimpleRenderer({ symbol:glowCIM([0,255,255]) }), blendMode:"screen" });
   const limProvDraw = new FeatureLayer({ url:LIM1, title:"Límite Provincial",    visible:false, renderer:new SimpleRenderer({ symbol:glowCIM([255,215,0]) }), blendMode:"screen" });
   const limDistDraw = new FeatureLayer({ url:LIM2, title:"Límite Distrital",     visible:false, renderer:new SimpleRenderer({ symbol:glowCIM([255,105,180]) }), blendMode:"screen" });
@@ -317,6 +291,7 @@ require([
   const cpLayer = lyrAmbito; let layerView, hl;
   view.whenLayerView(cpLayer).then(lv=> layerView = lv);
 
+  // Fuentes para combos
   const limDeptSrc = new FeatureLayer({ url:LIM0, outFields:["id_dpto","nom_dep"], listMode:"hide" });
   const limProvSrc = new FeatureLayer({ url:LIM1, outFields:["id_dep","id_prov","nom_prov"], listMode:"hide" });
   const limDistSrc = new FeatureLayer({ url:LIM2, outFields:["id_dpto","id_prov","id_dist","nom_dist"], listMode:"hide" });
@@ -333,11 +308,24 @@ require([
   const $chipList=document.getElementById('chipList');
 
   const selectedCats=new Set();
-  let initialViewpoint=null; view.when(()=>{ initialViewpoint=view.viewpoint.clone(); });
+  let initialViewpoint=null;
 
   const fmt=(n,d=0)=>(n==null||isNaN(n))?"—":new Intl.NumberFormat('es-PE',{ maximumFractionDigits:d }).format(Number(n));
   const esc=s=>String(s).replace(/'/g,"''");
 
+  /* == Zoom inicial: Perú casi a los bordes == */
+  async function zoomPeruFull(){
+    try{
+      const res = await limDeptSrc.queryExtent({ where:"1=1" });
+      if(res && res.extent){
+        // Padding mínimo para que Perú “toque” casi los bordes
+        await view.goTo({ target: res.extent, padding:{ left:8, right:8, top:8, bottom:8 } });
+        initialViewpoint = view.viewpoint.clone(); // guardar como vista por defecto
+      }
+    }catch(e){ /* fallback: centro/zoom por defecto */ }
+  }
+
+  /* ===== Visibilidad HEAT vs PUNTOS ===== */
   const DIST_VIS_SCALE = 90000;
   function updateVisibility(){
     const dist = $selDist.value.trim();
@@ -349,12 +337,12 @@ require([
   view.watch('scale', updateVisibility);
   view.watch('scale', applyScaleAdaptiveHeat);
 
-  async function updatePoliticalLimitVisibility(){
+  /* ===== LÍMITES ===== */
+  function updatePoliticalLimitVisibility(){
     const dep=$selDep.value.trim();
     const prov=$selProv.value.trim();
     const dist=$selDist.value.trim();
     [limDeptDraw, limProvDraw, limDistDraw].forEach(ly=>{ ly.visible=false; ly.definitionExpression=null; });
-
     if(dist){ limDistDraw.definitionExpression = `id_dist='${esc(dist)}'`; limDistDraw.visible=true; return; }
     if(prov){ limProvDraw.definitionExpression = `id_prov='${esc(prov)}'`; limProvDraw.visible=true; return; }
     if(dep ){ limDeptDraw.definitionExpression = `id_dpto='${esc(dep)}'`; limDeptDraw.visible=true; return; }
@@ -379,6 +367,7 @@ require([
     }catch(_){}
   }
 
+  /* ===== Combos y filtros (sin cambios funcionales) ===== */
   async function loadDeps(){
     const q=limDeptSrc.createQuery();
     q.where="1=1"; q.returnGeometry=false; q.outFields=["id_dpto","nom_dep"]; q.orderByFields=["nom_dep ASC"]; q.num=300; q.cacheHint=true;
@@ -430,7 +419,7 @@ require([
     $selCP.disabled = rows.length===0;
   }
 
-  function parseCPValue(){ const v=$selCP.value.trim(); if(!v) return null; const [u,...nameParts]=v.split("::"); return {ubigeo:u,name:nameParts.join("::")}; }
+  function parseCPValue(){ const v=$selCP.value.trim(); if(!v) return null; const [u,...nameParts]=v.split("::"); return { ubigeo:u, name:nameParts.join("::") }; }
   function buildWhereForAmbito(includeCats=true){
     const dep=$selDep.value.trim(), prov=$selProv.value.trim(), dist=$selDist.value.trim();
     const cpSel = parseCPValue(); const parts=["1=1"];
@@ -593,12 +582,17 @@ require([
     guideLayer.removeAll(); if(hl){ hl.remove(); hl=null; }
   });
 
+  /* ===== Init ===== */
   (async function init(){
     await loadDeps();
     await refreshCategoryChips();
     await cargarLista();
     await applyMapFilters();
     updatePoliticalLimitVisibility();
+
+    // <<< zoom para que el mapa del Perú llegue casi a los bordes >>>
+    await zoomPeruFull();
+
     applyScaleAdaptiveHeat();
   })();
 
