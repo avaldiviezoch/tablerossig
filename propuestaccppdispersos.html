@@ -195,10 +195,6 @@
   const imagery = L.esri.basemapLayer('Imagery').addTo(map);
   const imageryLabels = L.esri.basemapLayer('ImageryLabels').addTo(map);
 
-  // ---- Visibilidad por escala (umbral típico de distrito) ----
-  const HEAT_HIDE_ZOOM = 10;     // Heat visible si zoom < 10
-  const CP_SHOW_ZOOM   = HEAT_HIDE_ZOOM; // Puntos visibles cuando heat se oculta por escala
-
   map.createPane('glow-outer').classList.add('glow-outer');
   map.createPane('glow-mid').classList.add('glow-mid');
   map.createPane('glow-inner').classList.add('glow-inner');
@@ -259,7 +255,6 @@
         redrawCPPoints(); // recolor puntos
         filterHeat();     // heat queda igual (o filtrado si trae cat)
         emitDispersionChange();
-        applyVisibilityByZoom();
       });
     });
     emitDispersionChange();
@@ -309,12 +304,11 @@
     const haveCat = pts.some(p => p.cat!=null);
     if(activeCats.length && haveCat) pts=pts.filter(p=> activeCats.includes(p.cat));
     buildHeat(pts);
-    applyVisibilityByZoom();
   }
 
   /* ====== PUNTOS CCPP (capa 4) ====== */
   const cpPoints = []; // {lat,lng,cat,id_dpto,id_prov,id_dist}
-  const cpLayerGroup = L.layerGroup(); // se añade/oculta según escala
+  const cpLayerGroup = L.layerGroup().addTo(map); // usa canvas por preferCanvas:true
 
   function drawPoints(points){
     cpLayerGroup.clearLayers();
@@ -322,7 +316,7 @@
     const useColors = activeCats.length>0;
 
     points.forEach(p=>{
-      // color base: blanco; si hay chips activos y coincide => color; si no, atenuado
+      // color base: blanco; si hay chips activos y la cat coincide => color; sino atenuado
       let fill = '#ffffff', fillOpacity = 0.95, stroke = '#90a4ae', strokeOpacity = 0.7, radius = 3.5;
 
       if(useColors){
@@ -381,8 +375,7 @@
         offset+=2000;
         if(feats.length<2000 && raw && raw.exceededTransferLimit!==true) break;
       }
-      redrawCPPoints();           // dibuja en blanco inicialmente
-      applyVisibilityByZoom();    // respeta escala al terminar de cargar
+      redrawCPPoints(); // dibuja en blanco inicialmente
     })().catch(console.error);
   }
 
@@ -457,7 +450,7 @@
     document.getElementById('selProv').innerHTML=`<option value="">(Todas)</option>`; document.getElementById('selProv').disabled=true;
     document.getElementById('selDist').innerHTML=`<option value="">(Todos)</option>`; document.getElementById('selDist').disabled=true;
     document.getElementById('selCP').innerHTML  =`<option value="">(Todos)</option>`; document.getElementById('selCP').disabled=true;
-    if(!dep){ clearGlow(); redrawCPPoints(); filterHeat(); applyVisibilityByZoom(); return; }
+    if(!dep){ clearGlow(); redrawCPPoints(); filterHeat(); return; }
     L.esri.query({url:LIM1}).where(`id_dep='${dep.replace(/'/g,"''")}'`).returnGeometry(false).fields(['id_prov','nom_prov']).orderBy('nom_prov')
     .run((err,fc)=>{
       if(err){console.error("[Provs]",err);return;}
@@ -469,7 +462,7 @@
     const prov=document.getElementById('selProv').value.trim();
     document.getElementById('selDist').innerHTML=`<option value="">(Todos)</option>`; document.getElementById('selDist').disabled=true;
     document.getElementById('selCP').innerHTML  =`<option value="">(Todos)</option>`; document.getElementById('selCP').disabled=true;
-    if(!prov){ clearGlow(); redrawCPPoints(); filterHeat(); applyVisibilityByZoom(); return; }
+    if(!prov){ clearGlow(); redrawCPPoints(); filterHeat(); return; }
     L.esri.query({url:LIM2}).where(`id_prov='${prov.replace(/'/g,"''")}'`).returnGeometry(false).fields(['id_dist','nom_dist']).orderBy('nom_dist')
     .run((err,fc)=>{
       if(err){console.error("[Dists]",err);return;}
@@ -480,14 +473,14 @@
   function loadCPs(){
     const dist=document.getElementById('selDist').value.trim();
     document.getElementById('selCP').innerHTML=`<option value="">(Todos)</option>`; document.getElementById('selCP').disabled=true;
-    if(!dist){ applyVisibilityByZoom(); return; }
+    if(!dist) return;
 
     L.esri.query({url:CP_LAYER})
       .where(`ubigeo='${dist.replace(/'/g,"''")}'`).returnGeometry(false).fields(['*'])
       .run((err,fc)=>{
         if(err){console.error("[CPs]",err);return;}
         const feats = fc && fc.features ? fc.features : [];
-        if(!feats.length){ document.getElementById('selCP').disabled=true; applyVisibilityByZoom(); return; }
+        if(!feats.length){ document.getElementById('selCP').disabled=true; return; }
 
         const a0 = (feats[0].properties || feats[0].attributes || {});
         cpMeta.nameField   = NAME_FIELDS.find(k => pick(a0,[k]) != null) || 'nom_ccpp';
@@ -515,21 +508,20 @@
 
         document.getElementById('selCP').innerHTML = `<option value="">(Todos)</option>` + opts.join('');
         document.getElementById('selCP').disabled = (opts.length === 0);
-        applyVisibilityByZoom();
       });
   }
 
   /* ===== Eventos de combos ===== */
-  document.getElementById('selDep').addEventListener('change', ()=>{ loadProvs(); redrawCPPoints(); filterHeat(); zoomGlowTo($dep.value.trim(), $prov.value.trim(), $dist.value.trim()); applyVisibilityByZoom(); });
-  document.getElementById('selProv').addEventListener('change', ()=>{ loadDists(); redrawCPPoints(); filterHeat(); zoomGlowTo($dep.value.trim(), $prov.value.trim(), $dist.value.trim()); applyVisibilityByZoom(); });
-  document.getElementById('selDist').addEventListener('change', ()=>{ loadCPs();  redrawCPPoints(); filterHeat(); zoomGlowTo($dep.value.trim(), $prov.value.trim(), $dist.value.trim()); applyVisibilityByZoom(); });
+  document.getElementById('selDep').addEventListener('change', ()=>{ loadProvs(); redrawCPPoints(); filterHeat(); zoomGlowTo($dep.value.trim(), $prov.value.trim(), $dist.value.trim()); });
+  document.getElementById('selProv').addEventListener('change', ()=>{ loadDists(); redrawCPPoints(); filterHeat(); zoomGlowTo($dep.value.trim(), $prov.value.trim(), $dist.value.trim()); });
+  document.getElementById('selDist').addEventListener('change', ()=>{ loadCPs();  redrawCPPoints(); filterHeat(); zoomGlowTo($dep.value.trim(), $prov.value.trim(), $dist.value.trim()); });
 
   document.getElementById('selCP').addEventListener('change', async ()=>{
     const v=document.getElementById('selCP').value.trim();
-    if(!v){ filterHeat(); applyVisibilityByZoom(); return; }
+    if(!v){ filterHeat(); return; }
     const [ubg] = v.split('|');
     const dep=ubg.slice(0,2), prov=ubg.slice(0,4), dist=ubg.slice(0,6);
-    filterHeat(); zoomGlowTo(dep,prov,dist); applyVisibilityByZoom();
+    filterHeat(); zoomGlowTo(dep,prov,dist);
   });
 
   document.getElementById('btnClear').addEventListener('click', ()=>{
@@ -540,35 +532,12 @@
     selectedCats.clear(); renderChips(currentCats, []);
     clearGlow();
     redrawCPPoints(); filterHeat(); map.setView([-9,-75],5);
-    applyVisibilityByZoom();
   });
-  document.getElementById('btnZoom').addEventListener('click', ()=> { zoomGlowTo($dep.value.trim(), $prov.value.trim(), $dist.value.trim()); applyVisibilityByZoom(); });
+  document.getElementById('btnZoom').addEventListener('click', ()=> zoomGlowTo($dep.value.trim(), $prov.value.trim(), $dist.value.trim()));
 
-  // Respetar escala al togglear heat
-  $chkHeat.addEventListener('change', ()=> applyVisibilityByZoom());
+  $chkHeat.addEventListener('change', (e)=>{ if(!heatLayer) return; if(e.target.checked){heatLayer.addTo(map);} else {map.removeLayer(heatLayer);} });
   $chkLabels.addEventListener('change', (e)=>{ if(e.target.checked){imageryLabels.addTo(map);} else {map.removeLayer(imageryLabels);} });
   $chkGlow.addEventListener('change', (e)=>{ if(!e.target.checked) clearGlow(); else zoomGlowTo($dep.value.trim(), $prov.value.trim(), $dist.value.trim()); });
-
-  /* ===== Visibilidad por escala (heat vs puntos) ===== */
-  function showCpGroup(){ if(!map.hasLayer(cpLayerGroup)) cpLayerGroup.addTo(map); }
-  function hideCpGroup(){ if( map.hasLayer(cpLayerGroup)) map.removeLayer(cpLayerGroup); }
-
-  function applyVisibilityByZoom(){
-    const z = map.getZoom();
-
-    // Heat visible solo si el check está activo y estamos a escala menor al umbral
-    const shouldShowHeat = ($chkHeat.checked && z < HEAT_HIDE_ZOOM);
-    if (heatLayer){
-      if (shouldShowHeat) { heatLayer.addTo(map); } else { map.removeLayer(heatLayer); }
-    }
-
-    // Si el heat se esconde por escala, mostramos puntos
-    const shouldShowCP = (!shouldShowHeat && z >= CP_SHOW_ZOOM);
-    if (shouldShowCP) showCpGroup(); else hideCpGroup();
-  }
-
-  // Re-evaluar al cambiar el zoom
-  map.on('zoomend', applyVisibilityByZoom);
 
   /* ===== Carga inicial ===== */
   const pageSize=2000; let resultOffset=0;
@@ -612,9 +581,6 @@
 
     // Combos
     loadDeps();
-
-    // Enforzar visibilidad correcta inicial
-    applyVisibilityByZoom();
   })().catch(console.error);
 })();
 </script>
