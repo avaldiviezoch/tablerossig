@@ -280,7 +280,6 @@ require([
     visible:false,
     outFields:["*"], popupEnabled:false,
     renderer:new SimpleRenderer({
-      /* AUMENTO de visibilidad: más sólido y contorno un poco más notorio */
       symbol: poly([255,77,166,0.50], new SimpleLineSymbol({ color:[255,77,166,1.0], width:1.3 }))
     })
   });
@@ -289,7 +288,6 @@ require([
     url:`${CCPP}/5`,
     title:"Ámbito territorial de centros poblados",
     visible:false,
-    /* AUMENTO de visibilidad: punteado más grueso y totalmente opaco */
     renderer:new SimpleRenderer({ symbol: poly([0,0,0,0], new SimpleLineSymbol({ color:[0,0,0,1], width:2.2, style:"short-dot" })) })
   });
 
@@ -731,13 +729,24 @@ require([
   });
 
   $btnClear.addEventListener('click', async ()=>{
+    // Limpiar selects y chips
     $selDep.value="";
     $selProv.innerHTML=`<option value="">(Todas)</option>`; $selProv.disabled=true;
     $selDist.innerHTML=`<option value="">(Todos)</option>`; $selDist.disabled=true;
     $selCP.innerHTML  =`<option value="">(Todos)</option>`; $selCP.disabled=true;
     selectedCats.clear();
 
-    await refreshCategoryChips(); await cargarLista(); applyMapFilters();
+    // Quitar resaltados/“bordes amarillos” y gráficos guía
+    if (typeof hl !== 'undefined' && hl){ hl.remove(); hl=null; }
+    if (window.__guide){ window.__guide.removeAll(); }
+
+    // Apagar y limpiar límites resaltados
+    limProvDraw.visible = false; limProvDraw.definitionExpression = null;
+    limDistDraw.visible = false; limDistDraw.definitionExpression = null;
+
+    await refreshCategoryChips();
+    await cargarLista();
+    applyMapFilters();
     updateVisibilityByScaleAndSelection();
     await updatePoliticalLimitVisibility();
 
