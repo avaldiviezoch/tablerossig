@@ -13,21 +13,19 @@
   html,body{height:100%;margin:0;background:#eef5f3;color:var(--ink);font-family:system-ui,-apple-system,Segoe UI,Roboto,Inter,Arial}
   body{display:grid;grid-template-rows:1fr;overflow:hidden}
 
-  /* (se quitó la “cinta” superior) */
-  .mainTitleBar,.mainTitle{display:none}
-
   .shell{display:grid;grid-template-columns:65% 35%;height:100%;width:100%;overflow:hidden}
   #viewWrap{position:relative;height:100%;overflow:hidden}
   #viewDiv{position:relative;width:100%;height:100%}
 
-  /* Título flotante único */
   .floatTitle{
     position:absolute; left:50%; top:12px; transform:translateX(-50%);
-    background:rgba(255,255,255,0.92); border:1px solid #d8e1df; border-radius:14px;
+    background:rgba(255,255,255,.92); border:1px solid #d8e1df; border-radius:14px;
     padding:8px 18px; z-index:1000; box-shadow:0 6px 14px rgba(0,0,0,.18);
-    font-weight:1000; font-size:16px; letter-spacing:.2px; color:#0b2532; user-select:none;
-    backdrop-filter:saturate(1.2) blur(2px);
+    font-weight:1000; letter-spacing:.2px; color:#0b2532; user-select:none;
+    backdrop-filter:saturate(1.2) blur(2px); font-size:16px; max-width:min(92vw,800px);
+    text-align:center; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
   }
+  @media (max-width:700px){ .floatTitle{ font-size:14px; padding:6px 12px; } }
 
   .sidebar{background:var(--panel);border-left:1px solid var(--sep);box-shadow:-6px 0 24px rgba(2,6,23,.06);padding:14px 12px;display:grid;grid-template-rows:auto auto 1fr;gap:12px;min-height:0}
   .filtersBar{background:#fff;border:1px solid var(--sep);border-radius:16px;box-shadow:0 10px 22px rgba(2,6,23,.06);padding:12px;display:grid;gap:10px}
@@ -45,11 +43,15 @@
   .chip{padding:8px 12px;border-radius:999px;cursor:pointer;user-select:none;border:1px solid #cfe7e3;background:#f2fbfa;color:#0b3b38;font-weight:800;font-size:13px;white-space:nowrap}
   .chip:hover{filter:brightness(1.02)}
   .chip.on{background:#0b3b38;color:#ecfffb;border-color:#0e4a43}
-  .rowBtns{display:flex;justify-content:flex-end}
+  .chip:focus{outline:2px solid #0e4a43; outline-offset:2px}
+  .rowBtns{display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap}
   .btn{background:#0b3b38;color:#ecfffb;border:1px solid #0e4a43;padding:9px 14px;border-radius:12px;font-weight:900;cursor:pointer}
   .btn:hover{filter:brightness(1.05)}
+  .iconbtn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:9px 12px;border-radius:12px;border:1px solid #0e4a43;background:#fff;color:#0b3b38;cursor:pointer}
+  .iconbtn svg{width:18px;height:18px;display:block}
   .lowerGrid{display:grid;grid-template-columns:1fr 1fr;gap:12px;min-height:0}
   @media (max-width:900px){.shell{grid-template-columns:1fr}#viewWrap{height:54vh}.lowerGrid{grid-template-columns:1fr}}
+
   .listCard{background:#fff;border:1px solid var(--sep);border-radius:16px;box-shadow:0 10px 24px rgba(2,6,23,.06);overflow:hidden;display:grid;grid-template-rows:auto 1fr;min-height:0}
   .listCard header{padding:10px 12px;background:#fff;border-bottom:1px solid var(--sep)}
   .listCard h3{margin:0;font-size:14px;font-weight:1000;color:#0b3b38;letter-spacing:.2px}
@@ -63,6 +65,7 @@
   .commentWrap{padding:12px;overflow:auto;display:grid;gap:10px;align-content:start}
   .commentWrap p{margin:0;font-size:13.6px;color:#243b41}
   .commentImg{width:70%;max-width:220px;height:auto;border-radius:12px;border:1px solid #e3ecea;justify-self:center;display:block}
+
   .fab-wrap{position:absolute;right:14px;top:14px;display:flex;flex-direction:column;gap:10px;z-index:7}
   .fab{width:44px;height:44px;border-radius:50%;display:grid;place-items:center;background:#0b3b38;color:#e6fffb;border:1px solid #0e4a43;cursor:pointer;box-shadow:0 10px 22px rgba(0,0,0,.22);font-weight:900;user-select:none}
   .fab:hover{filter:brightness(1.06)}
@@ -71,102 +74,173 @@
   .bubble header .ttl{font-weight:900;letter-spacing:.2px}
   .bubble header .x{cursor:pointer;border:1px solid #0e4a43;background:#114d46;color:#e6fffb;border-radius:10px;padding:6px 10px;font-weight:800}
   .bubble .content{padding:10px 10px 12px}
-  .scroll{max-height:65vh;overflow:auto;border-radius:16px;border:1px solid #0e4a43}
+  .scroll{max-height:65vh;overflow:auto;border-radius:10px;border:1px solid #0e4a43}
   #bubbleLegend{background:#fff;color:var(--ink);border:1px solid var(--sep)}
   #bubbleLegend header{background:#fff;color:var(--ink);border-bottom:1px solid var(--sep)}
   #bubbleLegend header .x{background:#fff;color:var(--ink);border:1px solid var(--sep)}
   #bubbleLegend .scroll{border:1px solid var(--sep)}
+
+  .mini-hm-legend{display:flex;align-items:center;gap:8px;font-size:12px;color:#334155;padding:8px 10px;border-top:1px dashed var(--sep);margin-top:8px}
+  .mini-hm-bar{height:10px;flex:1;border-radius:999px;border:1px solid #e3ecea;
+    background: linear-gradient(90deg,
+      rgba(255,0,128,0) 0%,
+      rgba(255,214,235,0.9) 25%,
+      rgba(255,153,204,0.95) 50%,
+      rgba(255,77,166,0.98) 75%,
+      rgba(230,0,115,1) 100%
+    );
+  }
+
+  .toast{
+    position:fixed; right:14px; bottom:14px; z-index:9999;
+    background:#0b3b38; color:#ecfffb; border:1px solid #0e4a43;
+    padding:10px 14px; border-radius:12px; box-shadow:0 10px 22px rgba(0,0,0,.22);
+    opacity:0; transform:translateY(8px); transition:.25s ease;
+    pointer-events:none; font-weight:800; letter-spacing:.2px;
+  }
+  .toast.show{opacity:1; transform:translateY(0)}
 </style>
 </head>
 <body>
 
-<div class="shell">
-  <div id="viewWrap">
-    <!-- Título flotante -->
-    <div class="floatTitle">🛰 Grado de dispersión de centros poblados - PNSR</div>
+  <div class="shell">
+    <div id="viewWrap">
+      <div class="floatTitle" title="Grado de dispersión de centros poblados - PNSR">🛰 Grado de dispersión de centros poblados - PNSR</div>
+      <div id="viewDiv" aria-label="Mapa principal"></div>
 
-    <div id="viewDiv"></div>
-
-    <div class="fab-wrap">
-      <div id="btnLayers" class="fab" title="Capas">🗂️</div>
-      <div id="btnLegend" class="fab" title="Leyenda">🏷️</div>
-    </div>
-
-    <div id="bubbleLayers" class="bubble" style="top:14px;">
-      <header data-drag="#bubbleLayers"><span class="ttl">Capas</span><button class="x" data-close="#bubbleLayers">Cerrar</button></header>
-      <div class="content"><div class="scroll"><div id="layerListNode"></div></div></div>
-    </div>
-
-    <div id="bubbleLegend" class="bubble" style="top:190px;">
-      <header data-drag="#bubbleLegend"><span class="ttl">Leyenda</span><button class="x" data-close="#bubbleLegend">Cerrar</button></header>
-      <div class="content"><div class="scroll"><div id="legendNode"></div></div></div>
-    </div>
-  </div>
-
-  <aside class="sidebar">
-    <section class="filtersBar" aria-label="Filtros de ubicación">
-      <div class="filtersGrid">
-        <div class="fld"><label for="selDep">Departamento</label><select id="selDep"><option value="">(Todos)</option></select></div>
-        <div class="fld"><label for="selProv">Provincia</label><select id="selProv" disabled><option value="">(Todas)</option></select></div>
-        <div class="fld"><label for="selDist">Distrito</label><select id="selDist" disabled><option value="">(Todos)</option></select></div>
-        <div class="fld"><label for="selCP">Centro poblado</label><select id="selCP" disabled><option value="">(Todos)</option></select></div>
+      <div class="fab-wrap">
+        <div id="btnLayers" class="fab" title="Capas (L)">🗂️</div>
+        <div id="btnLegend" class="fab" title="Leyenda (J)">🏷️</div>
       </div>
 
-      <div id="catChipsWrap" class="chipBar" aria-label="Grado de Dispersión del CCPP">
-        <div class="chipTitle">Grado de Dispersión del CCPP</div>
-        <div id="chipList" class="chips"></div>
+      <div id="bubbleLayers" class="bubble" style="top:14px;">
+        <header data-drag="#bubbleLayers"><span class="ttl">Capas</span><button class="x" data-close="#bubbleLayers">Cerrar</button></header>
+        <div class="content"><div class="scroll"><div id="layerListNode"></div></div></div>
       </div>
 
-      <div class="rowBtns">
-        <button id="btnClear" class="btn" type="button">Limpiar filtros</button>
-      </div>
-    </section>
-
-    <section class="lowerGrid">
-      <div class="listCard">
-        <header><h3>Centros poblados (lista)</h3></header>
-        <div class="list" id="cpList"><div class="empty">Cargando…</div></div>
-      </div>
-      <div class="listCard">
-        <header><h3>Comentario</h3></header>
-        <div class="commentWrap">
-          <p>La herramienta muestra las <b>áreas de concentración</b> y las <b>viviendas rurales con y sin acceso a agua</b> (Censo 2017). También incluye viviendas sin dato de acceso y se complementa con información de <b>componentes y redes de agua del DATASS</b> (módulo 3 y 5).</p>
-          <img class="commentImg" loading="lazy" alt="Esquema de criterios" src="https://lh3.googleusercontent.com/d/1OPw9CWsW8xmgL6sjGuZcyvAtz2qJi0RF=w1000"/>
+      <div id="bubbleLegend" class="bubble" style="top:190px;">
+        <header data-drag="#bubbleLegend"><span class="ttl">Leyenda</span><button class="x" data-close="#bubbleLegend">Cerrar</button></header>
+        <div class="content">
+          <div class="scroll"><div id="legendNode"></div></div>
+          <div class="mini-hm-legend" aria-hidden="true">
+            <span>Bajo</span><div class="mini-hm-bar" title="Densidad relativa del heatmap"></div><span>Alto</span>
+          </div>
         </div>
       </div>
-    </section>
-  </aside>
-</div>
+    </div>
+
+    <aside class="sidebar">
+      <section class="filtersBar" aria-label="Filtros de ubicación">
+        <div class="filtersGrid">
+          <div class="fld"><label for="selDep">Departamento</label><select id="selDep"><option value="">(Todos)</option></select></div>
+          <div class="fld"><label for="selProv">Provincia</label><select id="selProv" disabled><option value="">(Todas)</option></select></div>
+          <div class="fld"><label for="selDist">Distrito</label><select id="selDist" disabled><option value="">(Todos)</option></select></div>
+          <div class="fld"><label for="selCP">Centro poblado</label><select id="selCP" disabled><option value="">(Todos)</option></select></div>
+        </div>
+
+        <div id="catChipsWrap" class="chipBar" aria-label="Grado de Dispersión del CCPP">
+          <div class="chipTitle">Grado de Dispersión del CCPP</div>
+          <div id="chipList" class="chips"></div>
+        </div>
+
+        <div class="rowBtns">
+          <!-- Orden: limpiar -> excel -> compartir -->
+          <button id="btnClear" class="btn" type="button" title="Limpiar filtros (C)">Limpiar filtros</button>
+
+          <button id="btnExcel" class="iconbtn" type="button" title="Exportar a Excel">
+            <!-- Icono Excel (SVG simple) -->
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <rect x="3" y="3" width="14" height="18" rx="2" fill="#22c55e" stroke="#14532d" stroke-width="1"/>
+              <path d="M6 9l3 6M9 9l-3 6" stroke="#fff" stroke-width="2" stroke-linecap="round"/>
+              <rect x="11" y="3" width="10" height="4" fill="#16a34a"/>
+            </svg>
+          </button>
+
+          <button id="btnShare" class="iconbtn" type="button" title="Compartir vista">
+            <!-- Icono compartir (SVG simple) -->
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <circle cx="18" cy="5" r="3" fill="#0ea5e9"/>
+              <circle cx="6" cy="12" r="3" fill="#0ea5e9"/>
+              <circle cx="18" cy="19" r="3" fill="#0ea5e9"/>
+              <path d="M8.7 11l6.6-4M8.7 13l6.6 4" stroke="#0369a1" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+          </button>
+        </div>
+      </section>
+
+      <section class="lowerGrid">
+        <div class="listCard">
+          <header><h3>Centros poblados (lista)</h3></header>
+          <div class="list" id="cpList"><div class="empty">Cargando…</div></div>
+        </div>
+        <div class="listCard">
+          <header><h3>Comentario</h3></header>
+          <div class="commentWrap">
+            <p>La herramienta muestra las <b>áreas de concentración</b> y las <b>viviendas rurales con y sin acceso a agua</b> (Censo 2017). También incluye viviendas sin dato de acceso y se complementa con información de <b>componentes y redes de agua del DATASS</b> (módulo 3 y 5).</p>
+            <img class="commentImg" loading="lazy" alt="Esquema de criterios" src="https://lh3.googleusercontent.com/d/1OPw9CWsW8xmgL6sjGuZcyvAtz2qJi0RF=w1000"/>
+          </div>
+        </div>
+      </section>
+    </aside>
+  </div>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
 
 <script>
 require([
   "esri/Map","esri/views/MapView",
-  "esri/layers/FeatureLayer","esri/layers/GraphicsLayer",
+  "esri/layers/FeatureLayer","esri/layers/GraphicsLayer","esri/layers/GroupLayer",
   "esri/widgets/Legend","esri/widgets/LayerList","esri/widgets/ScaleBar",
   "esri/Graphic",
   "esri/renderers/UniqueValueRenderer","esri/renderers/SimpleRenderer","esri/renderers/HeatmapRenderer",
   "esri/symbols/SimpleFillSymbol","esri/symbols/SimpleLineSymbol","esri/symbols/SimpleMarkerSymbol"
 ], (
   Map,MapView,
-  FeatureLayer,GraphicsLayer,
+  FeatureLayer,GraphicsLayer,GroupLayer,
   Legend,LayerList,ScaleBar,
   Graphic,
   UniqueValueRenderer,SimpleRenderer,HeatmapRenderer,
   SimpleFillSymbol,SimpleLineSymbol,SimpleMarkerSymbol
 ) => {
 
-  /* === UI básicas === */
-  const toggle = id => { const el=document.querySelector(id); el.style.display=(el.style.display==='block'?'none':'block'); };
-  document.getElementById('btnLayers').onclick=()=>toggle('#bubbleLayers');
-  document.getElementById('btnLegend').onclick=()=>toggle('#bubbleLegend');
-  document.querySelectorAll('[data-close]').forEach(b=>b.onclick=()=>{document.querySelector(b.dataset.close).style.display='none';});
-  function makeDraggable(header){
-    const box=document.querySelector(header.dataset.drag); let ox=0,oy=0,drag=false;
-    header.addEventListener('mousedown',e=>{drag=true;ox=e.clientX-box.offsetLeft;oy=e.clientY-box.offsetTop;e.preventDefault();});
-    window.addEventListener('mousemove',e=>{if(!drag)return;box.style.left=(e.clientX-ox)+'px';box.style.top=(e.clientY-oy)+'px';box.style.right='auto';});
-    window.addEventListener('mouseup',()=>drag=false);
+  /* ===== Utilidades ===== */
+  const qs = sel => document.querySelector(sel);
+  const qsa = sel => Array.from(document.querySelectorAll(sel));
+  const toggle = id => { const el=qs(id); el.style.display=(el.style.display==='block'?'none':'block'); saveBubblePos(el); };
+  const esc = s => String(s).replace(/'/g,"''");
+  const fmt=(n,d=0)=>(n==null||isNaN(n))?"—":new Intl.NumberFormat('es-PE',{ maximumFractionDigits:d }).format(Number(n));
+  const debounce = (fn,ms=250)=>{ let t; return (...a)=>{ clearTimeout(t); t=setTimeout(()=>fn(...a),ms); }; };
+  const showToast = (msg)=>{ const t=qs('#toast'); t.textContent=msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'), 1800); };
+
+  /* ===== Persistencia de burbujas ===== */
+  function saveBubblePos(el){
+    if(!el || !el.id) return;
+    localStorage.setItem("bubble:"+el.id, JSON.stringify({left:el.style.left||"", top:el.style.top||"", right:el.style.right||""}));
   }
-  document.querySelectorAll('[data-drag]').forEach(makeDraggable);
+  function restoreBubblePos(el){
+    if(!el || !el.id) return;
+    const raw=localStorage.getItem("bubble:"+el.id);
+    if(!raw) return;
+    try{
+      const pos=JSON.parse(raw);
+      if(pos.left){ el.style.left=pos.left; el.style.right="auto"; }
+      if(pos.top){ el.style.top=pos.top; }
+    }catch(_){}
+  }
+
+  /* ===== UI básicas ===== */
+  qs('#btnLayers').onclick=()=>toggle('#bubbleLayers');
+  qs('#btnLegend').onclick=()=>toggle('#bubbleLegend');
+  qsa('[data-close]').forEach(b=>b.onclick=()=>{qs(b.dataset.close).style.display='none'; saveBubblePos(qs(b.dataset.close));});
+  function makeDraggable(header){
+    const box=qs(header.dataset.drag); let ox=0,oy=0,drag=false;
+    header.addEventListener('mousedown',e=>{drag=true;ox=e.clientX-(box.offsetLeft||0);oy=e.clientY-(box.offsetTop||0);e.preventDefault();});
+    window.addEventListener('mousemove',e=>{if(!drag)return; box.style.left=(e.clientX-ox)+'px'; box.style.top=(e.clientY-oy)+'px'; box.style.right='auto';});
+    window.addEventListener('mouseup',()=>{ if(drag) saveBubblePos(box); drag=false; });
+  }
+  qsa('[data-drag]').forEach(makeDraggable);
+  restoreBubblePos(qs('#bubbleLayers'));
+  restoreBubblePos(qs('#bubbleLegend'));
 
   /* ===== ENDPOINTS ===== */
   const CCPP = "https://pportalgis.vivienda.gob.pe/pfdserver1/rest/services/OGEI/CCPP_Dispersos/FeatureServer";
@@ -179,12 +253,14 @@ require([
   const map = new Map({ basemap: "satellite" });
   const view = new MapView({
     container: "viewDiv", map,
-    // el centro/zoom inicial se ajustará al “extent Perú” más abajo
     center: [-75, -9], zoom: 5,
     constraints: { minZoom: 4, snapToZoom: false }
   });
   view.ui.add(new ScaleBar({ view, unit:"metric" }), "bottom-left");
   view.qualityProfile = "low";
+
+  const peruExtent = { xmin: -81.6, ymin: -18.4, xmax: -68.6, ymax: 0.2, spatialReference: { wkid: 4326 } };
+  view.when(async ()=>{ try { await view.goTo({ target: peruExtent, padding:{ left:0,right:0,top:40,bottom:30 } }, { duration: 600 }); } catch(_){}});
 
   /* ===== Simbología ===== */
   const mk = (c,s=6)=> new SimpleMarkerSymbol({ style:"circle", color:c, size:s, outline:{ color:[255,255,255,210], width:1.1 } });
@@ -202,12 +278,14 @@ require([
     return [160,160,160,0.95];
   }
 
-  /* === CAPAS BASE (polígonos de referencia) === */
+  /* === CAPAS BASE === */
   const lyrAreasAgrup = new FeatureLayer({
     url:`${CCPP}/6`,
     title:"Áreas agrupadas (densidad y viviendas)",
     visible:true, outFields:["*"], popupEnabled:false,
-    renderer:new SimpleRenderer({ symbol: poly([212,124,242,1], new SimpleLineSymbol({ color:[0,0,0,1], width:1.2, style:"short-dot" })) })
+    renderer:new SimpleRenderer({
+      symbol: poly([212,124,242,0.45], new SimpleLineSymbol({ color:[40,40,40,0.6], width:1.1, style:"short-dot" }))
+    })
   });
 
   const lyrAmbito = new FeatureLayer({
@@ -219,17 +297,34 @@ require([
 
   /* === CCPP PUNTOS === */
   const lyrCPGrado = new FeatureLayer({
-    url: CP_LAYER, title:"Centro poblado (puntos / por grado)", visible:true, minScale: 1000000,
+    url: CP_LAYER,
+    title:"Centro poblado (puntos / por grado)",
+    visible:true,
+    minScale: 1500000,
     renderer:new SimpleRenderer({ symbol: mk([200,200,200,0.95], 6.5) })
   });
 
-  /* === HEATMAP CCPP — tamaño inicial pequeño + colores claros === */
+  /* === LÍMITE DEPARTAMENTAL SIEMPRE DETRÁS DEL HEATMAP === */
+  const limDeptDraw = new FeatureLayer({
+    url:LIM0, title:"Límite Departamental (base)",
+    visible:true, // <- activo desde el inicio
+    renderer:new SimpleRenderer({ symbol:{
+      type:"cim", data:{ type:"CIMSymbolReference",
+        symbol:{ type:"CIMLineSymbol", symbolLayers:[
+          { type:"CIMSolidStroke", enable:true, width:2.4, color:[255,255,255,120] },
+          { type:"CIMSolidStroke", enable:true, width:0.8, color:[0,0,0,180] }
+        ] } }
+    }}),
+    blendMode:"normal"
+  });
+
+  /* === HEATMAP CCPP (encima del límite departamental) === */
   const lyrCPHeat = new FeatureLayer({
-    url: CP_LAYER, title: "Heatmap de centros poblados", visible: true,
+    url: CP_LAYER,
+    title: "Heatmap de centros poblados",
+    visible: true,
     renderer: new HeatmapRenderer({
-      blurRadius: 1.6,
-      minDensity: 0.20,
-      maxDensity: 0.85,
+      blurRadius: 1.4, minDensity: 0.22, maxDensity: 0.82,
       colorStops: [
         { ratio: 0.00, color: [255,   0, 128, 0.00] },
         { ratio: 0.25, color: [255, 214, 235, 0.80] },
@@ -243,44 +338,60 @@ require([
   function applyScaleAdaptiveHeat(){
     const s = view.scale || 1e7;
     let blur, minD, maxD;
-    if (s > 5_000_000) { blur = 1.2; minD = 0.24; maxD = 0.95; }
-    else if (s > 2_000_000){ blur = 1.6; minD = 0.20; maxD = 0.85; }
-    else if (s > 900_000){ blur = 2.2; minD = 0.14; maxD = 0.65; }
-    else { blur = 3.0; minD = 0.10; maxD = 0.50; }
+    if (s > 5_000_000) { blur = 1.1;  minD = 0.26; maxD = 0.92; }
+    else if (s > 2_000_000){ blur = 1.6;  minD = 0.22; maxD = 0.82; }
+    else if (s > 900_000){  blur = 2.2;  minD = 0.14; maxD = 0.64; }
+    else {                   blur = 3.0;  minD = 0.10; maxD = 0.50; }
     const r = lyrCPHeat.renderer.clone ? lyrCPHeat.renderer.clone() : new HeatmapRenderer(lyrCPHeat.renderer);
     r.blurRadius = blur; r.minDensity = minD; r.maxDensity = maxD; lyrCPHeat.renderer = r;
   }
 
   /* === DATASS + Viviendas === */
-  const lyrRedes   = new FeatureLayer({ url:`${CCPP}/3`, title:"Redes - DATASS", visible:false, minScale:50000,  renderer:new SimpleRenderer({ symbol: line([95,210,255,0.95],1.4) }) });
-  const lyrReserv  = new FeatureLayer({ url:`${CCPP}/2`, title:"Reservorio - DATASS", visible:false, minScale:100000, renderer:new SimpleRenderer({ symbol: mk([46,204,64,0.95], 8) }) });
-  const lyrCapt    = new FeatureLayer({ url:`${CCPP}/1`, title:"Captación - DATASS", visible:false, minScale:100000, renderer:new SimpleRenderer({ symbol: mk([52,152,219,0.95], 8) }) });
-  const lyrPTAP    = new FeatureLayer({ url:`${CCPP}/0`, title:"PTAP - DATASS",     visible:false, minScale:100000, renderer:new SimpleRenderer({ symbol: mk([231,76,60,0.95], 7.5) }) });
+  const lyrRedes   = new FeatureLayer({ url:`${CCPP}/3`, title:"Redes - DATASS",      visible:false, minScale:250000, renderer:new SimpleRenderer({ symbol: line([95,210,255,0.95],1.4) }) });
+  const lyrReserv  = new FeatureLayer({ url:`${CCPP}/2`, title:"Reservorio - DATASS", visible:false, minScale:300000, renderer:new SimpleRenderer({ symbol: mk([46,204,64,0.95], 8) }) });
+  const lyrCapt    = new FeatureLayer({ url:`${CCPP}/1`, title:"Captación - DATASS",  visible:false, minScale:300000, renderer:new SimpleRenderer({ symbol: mk([52,152,219,0.95], 8) }) });
+  const lyrPTAP    = new FeatureLayer({ url:`${CCPP}/0`, title:"PTAP - DATASS",       visible:false, minScale:300000, renderer:new SimpleRenderer({ symbol: mk([231,76,60,0.95], 7.5) }) });
 
-  const lyrVivSinDato   = new FeatureLayer({ url:`${VR_URL}/6`, title:"Viviendas rurales (sin dato de acceso)", visible:true,  minScale:100000, renderer:new SimpleRenderer({ symbol: mkSolid([160,160,160,1], 4.8) }) });
-  const lyrVivConAcceso = new FeatureLayer({ url:`${VR_URL}/1`, title:"Viviendas rurales (con acceso)",        visible:true,  minScale:100000, renderer:new SimpleRenderer({ symbol: mkSolid([30,110,182,1], 4.8) }) });
-  const lyrVivSinAcceso = new FeatureLayer({ url:`${VR_URL}/2`, title:"Viviendas rurales (sin acceso)",        visible:true,  minScale:100000, renderer:new SimpleRenderer({ symbol: mkSolid([220,53,69,1], 4.8) }) });
+  const grpDATASS = new GroupLayer({
+    title: "Componentes DATASS",
+    visible: false,
+    visibilityMode: "independent",
+    layers: [lyrPTAP, lyrCapt, lyrReserv, lyrRedes]
+  });
 
-  /* === LÍMITES CON GLOW === */
-  const glowCIM = (rgb=[255,255,255]) => {
-    const [r,g,b]=rgb;
-    return { type:"cim", data:{ type:"CIMSymbolReference",
+  const lyrVivSinDato   = new FeatureLayer({ url:`${VR_URL}/6`, title:"Viviendas rurales (sin dato de acceso)", visible:true,  minScale:250000, renderer:new SimpleRenderer({ symbol: mkSolid([160,160,160,1], 4.8) }) });
+  const lyrVivConAcceso = new FeatureLayer({ url:`${VR_URL}/1`, title:"Viviendas rurales (con acceso)",        visible:true,  minScale:250000, renderer:new SimpleRenderer({ symbol: mkSolid([30,110,182,1], 4.8) }) });
+  const lyrVivSinAcceso = new FeatureLayer({ url:`${VR_URL}/2`, title:"Viviendas rurales (sin acceso)",        visible:true,  minScale:250000, renderer:new SimpleRenderer({ symbol: mkSolid([220,53,69,1], 4.8) }) });
+
+  /* === LÍMITES dinámicos para selección === */
+  const glowCIM = (rgb=[255,255,255]) => ({
+    type:"cim",
+    data:{ type:"CIMSymbolReference",
       symbol:{ type:"CIMLineSymbol",
         symbolLayers:[
-          { type:"CIMSolidStroke", enable:true, width:6,   color:[r,g,b,40]  },
-          { type:"CIMSolidStroke", enable:true, width:3,   color:[r,g,b,120] },
-          { type:"CIMSolidStroke", enable:true, width:1.6, color:[r,g,b,255] }
-  ]}}};};
-  const limDeptDraw = new FeatureLayer({ url:LIM0, title:"Límite Departamental", visible:false, renderer:new SimpleRenderer({ symbol:glowCIM([0,255,255]) }), blendMode:"screen" });
-  const limProvDraw = new FeatureLayer({ url:LIM1, title:"Límite Provincial",    visible:false, renderer:new SimpleRenderer({ symbol:glowCIM([255,215,0]) }), blendMode:"screen" });
-  const limDistDraw = new FeatureLayer({ url:LIM2, title:"Límite Distrital",     visible:false, renderer:new SimpleRenderer({ symbol:glowCIM([255,105,180]) }), blendMode:"screen" });
+          { type:"CIMSolidStroke", enable:true, width:6,   color:[...rgb,40]  },
+          { type:"CIMSolidStroke", enable:true, width:3,   color:[...rgb,120] },
+          { type:"CIMSolidStroke", enable:true, width:1.6, color:[...rgb,255] }
+        ] } }
+  });
+  const limProvDraw = new FeatureLayer({ url:LIM1, title:"Límite Provincial", visible:false, renderer:new SimpleRenderer({ symbol:glowCIM([255,215,0]) }), blendMode:"screen" });
+  const limDistDraw = new FeatureLayer({ url:LIM2, title:"Límite Distrital",  visible:false, renderer:new SimpleRenderer({ symbol:glowCIM([255,105,180]) }), blendMode:"screen" });
 
+  /* ORDEN DE DIBUJO:
+     1) limDeptDraw (base, debajo)
+     2) áreas/ámbito
+     3) heatmap (encima del límite base)
+     4) puntos, viviendas, etc.
+     5) límites resaltados (prov/dist) sobre todo
+  */
   map.addMany([
+    limDeptDraw,                 // <- debajo del heatmap
     lyrAreasAgrup, lyrAmbito,
-    lyrRedes, lyrPTAP, lyrCapt, lyrReserv,
+    lyrCPHeat,                   // <- encima del límite base
+    grpDATASS,
     lyrVivSinDato, lyrVivConAcceso, lyrVivSinAcceso,
-    lyrCPHeat, lyrCPGrado,
-    limDeptDraw, limProvDraw, limDistDraw
+    lyrCPGrado,
+    limProvDraw, limDistDraw     // <- resaltados arriba
   ]);
 
   view.whenLayerView(lyrCPGrado).then(lv=>{ lv.effect = "bloom(1.2, 1.0px, 0.0) drop-shadow(0px, 0px, 0.8px)"; });
@@ -288,44 +399,30 @@ require([
   new Legend({ view, container:"legendNode" });
   new LayerList({ view, container:"layerListNode", listItemCreatedFunction:(e)=>{ e.item.panel={ content:"legend", open:false }; }});
 
+  /* === Fuentes auxiliares === */
   const cpLayer = lyrAmbito; let layerView, hl;
   view.whenLayerView(cpLayer).then(lv=> layerView = lv);
 
-  // Fuentes para combos
   const limDeptSrc = new FeatureLayer({ url:LIM0, outFields:["id_dpto","nom_dep"], listMode:"hide" });
   const limProvSrc = new FeatureLayer({ url:LIM1, outFields:["id_dep","id_prov","nom_prov"], listMode:"hide" });
   const limDistSrc = new FeatureLayer({ url:LIM2, outFields:["id_dpto","id_prov","id_dist","nom_dist"], listMode:"hide" });
   const cpSrc      = new FeatureLayer({ url:CP_LAYER, outFields:["nom_ccpp","ubigeo"], listMode:"hide" });
 
-  const guideLayer = new GraphicsLayer({ listMode:"hide" }); map.add(guideLayer);
-
-  const $list=document.getElementById('cpList');
-  const $selDep=document.getElementById('selDep');
-  const $selProv=document.getElementById('selProv');
-  const $selDist=document.getElementById('selDist');
-  const $selCP=document.getElementById('selCP');
-  const $btnClear=document.getElementById('btnClear');
-  const $chipList=document.getElementById('chipList');
+  /* === UI DOM === */
+  const $list=qs('#cpList');
+  const $selDep=qs('#selDep');
+  const $selProv=qs('#selProv');
+  const $selDist=qs('#selDist');
+  const $selCP=qs('#selCP');
+  const $btnClear=qs('#btnClear');
+  const $btnExcel=qs('#btnExcel');
+  const $btnShare=qs('#btnShare');
+  const $chipList=qs('#chipList');
 
   const selectedCats=new Set();
-  let initialViewpoint=null;
+  let initialViewpoint=null; view.when(()=>{ initialViewpoint=view.viewpoint.clone(); });
 
-  const fmt=(n,d=0)=>(n==null||isNaN(n))?"—":new Intl.NumberFormat('es-PE',{ maximumFractionDigits:d }).format(Number(n));
-  const esc=s=>String(s).replace(/'/g,"''");
-
-  /* == Zoom inicial: Perú casi a los bordes == */
-  async function zoomPeruFull(){
-    try{
-      const res = await limDeptSrc.queryExtent({ where:"1=1" });
-      if(res && res.extent){
-        // Padding mínimo para que Perú “toque” casi los bordes
-        await view.goTo({ target: res.extent, padding:{ left:8, right:8, top:8, bottom:8 } });
-        initialViewpoint = view.viewpoint.clone(); // guardar como vista por defecto
-      }
-    }catch(e){ /* fallback: centro/zoom por defecto */ }
-  }
-
-  /* ===== Visibilidad HEAT vs PUNTOS ===== */
+  /* ===== Visibilidad ===== */
   const DIST_VIS_SCALE = 90000;
   function updateVisibility(){
     const dist = $selDist.value.trim();
@@ -337,15 +434,20 @@ require([
   view.watch('scale', updateVisibility);
   view.watch('scale', applyScaleAdaptiveHeat);
 
-  /* ===== LÍMITES ===== */
-  function updatePoliticalLimitVisibility(){
+  async function updatePoliticalLimitVisibility(){
     const dep=$selDep.value.trim();
     const prov=$selProv.value.trim();
     const dist=$selDist.value.trim();
-    [limDeptDraw, limProvDraw, limDistDraw].forEach(ly=>{ ly.visible=false; ly.definitionExpression=null; });
+
+    // Reset visibles/defs
+    limProvDraw.visible=false; limProvDraw.definitionExpression=null;
+    limDistDraw.visible=false; limDistDraw.definitionExpression=null;
+
     if(dist){ limDistDraw.definitionExpression = `id_dist='${esc(dist)}'`; limDistDraw.visible=true; return; }
     if(prov){ limProvDraw.definitionExpression = `id_prov='${esc(prov)}'`; limProvDraw.visible=true; return; }
-    if(dep ){ limDeptDraw.definitionExpression = `id_dpto='${esc(dep)}'`; limDeptDraw.visible=true; return; }
+
+    // Sin selección específica: mantener SIEMPRE el límite departamental base ya visible
+    // (no se apaga aquí)
   }
 
   async function zoomToPolitical(){
@@ -357,17 +459,17 @@ require([
     if(dist){ src=limDistSrc; where=`id_dist='${esc(dist)}'`; }
     else if(prov){ src=limProvSrc; where=`id_prov='${esc(prov)}'`; }
     else if(dep){ src=limDeptSrc; where=`id_dpto='${esc(dep)}'`; }
-    else{ if(initialViewpoint){ try{ await view.goTo(initialViewpoint,{ duration:900 }); }catch(_){} } return; }
-
+    else{
+      if(initialViewpoint){ try{ await view.goTo(initialViewpoint,{ duration:700 }); }catch(_){ } }
+      return;
+    }
     const q=src.createQuery(); q.where=where; q.returnGeometry=true; q.outFields=[]; q.num=1;
     const r=await src.queryFeatures(q);
     const g=r.features?.[0]?.geometry; if(!g) return;
-    try{
-      await view.goTo({ target:g, padding:{ left:50,right:50,top:70,bottom:60 } }, { duration:900, easing:"ease-in-out" });
-    }catch(_){}
+    try{ await view.goTo({ target:g, padding:{ left:50,right:50,top:70,bottom:60 } }, { duration:700, easing:"ease-in-out" }); }catch(_){}
   }
 
-  /* ===== Combos y filtros (sin cambios funcionales) ===== */
+  /* ===== Combos ===== */
   async function loadDeps(){
     const q=limDeptSrc.createQuery();
     q.where="1=1"; q.returnGeometry=false; q.outFields=["id_dpto","nom_dep"]; q.orderByFields=["nom_dep ASC"]; q.num=300; q.cacheHint=true;
@@ -419,7 +521,9 @@ require([
     $selCP.disabled = rows.length===0;
   }
 
-  function parseCPValue(){ const v=$selCP.value.trim(); if(!v) return null; const [u,...nameParts]=v.split("::"); return { ubigeo:u, name:nameParts.join("::") }; }
+  function parseCPValue(){ const v=$selCP.value.trim(); if(!v) return null; const [u,...nameParts]=v.split("::"); return {ubigeo:u,name:nameParts.join("::")}; }
+
+  /* ===== WHERE builders ===== */
   function buildWhereForAmbito(includeCats=true){
     const dep=$selDep.value.trim(), prov=$selProv.value.trim(), dist=$selDist.value.trim();
     const cpSel = parseCPValue(); const parts=["1=1"];
@@ -440,9 +544,29 @@ require([
     if(includeCats && selectedCats.size>0){ const vals=[...selectedCats].map(s=>`'${esc(s)}'`).join(","); parts.push(`categ_cp IN (${vals})`); }
     return parts.join(" AND ");
   }
-  async function applyMapFilters(){
+
+  /* ===== Estado URL ===== */
+  function updateHashFromState(){
+    const dep=$selDep.value||"", prov=$selProv.value||"", dist=$selDist.value||"", cp=$selCP.value||"";
+    const cats=[...selectedCats].map(encodeURIComponent).join(",");
+    const obj={dep,prov,dist,cp,cats};
+    const hash = Object.entries(obj).map(([k,v])=>`${k}=${encodeURIComponent(v)}`).join("&");
+    if(location.hash.slice(1)!==hash){ history.replaceState(null,"","#"+hash); }
+  }
+  function applyStateFromHash(){
+    if(!location.hash) return null;
+    const params = new URLSearchParams(location.hash.slice(1));
+    const dep=params.get("dep")||"", prov=params.get("prov")||"", dist=params.get("dist")||"", cp=params.get("cp")||"", cats=params.get("cats")||"";
+    return {dep,prov,dist,cp,cats:cats.split(",").filter(Boolean).map(decodeURIComponent)};
+  }
+
+  /* ===== Aplicar filtros ===== */
+  function applyMapFilters(){
     const whereAmb = buildWhereForAmbito(true);
     const wherePts = buildWhereForPuntos(true);
+
+    let needRefreshAmb = lyrAmbito.definitionExpression !== whereAmb;
+    let needRefreshPts = (lyrCPGrado.definitionExpression !== wherePts) || (lyrCPHeat.definitionExpression !== wherePts);
 
     lyrAmbito.definitionExpression = whereAmb;
     lyrCPGrado.definitionExpression = wherePts;
@@ -454,39 +578,47 @@ require([
     }else{
       lyrCPGrado.renderer = new SimpleRenderer({ symbol: mk([200,200,200,0.95], 6.5) });
     }
-    lyrAmbito.refresh(); lyrCPGrado.refresh(); lyrCPHeat.refresh();
-    updateVisibility();
-  }
 
+    if(needRefreshAmb) lyrAmbito.refresh();
+    if(needRefreshPts){ lyrCPGrado.refresh(); lyrCPHeat.refresh(); }
+
+    updateVisibility();
+    updateHashFromState();
+  }
+  const applyMapFiltersDebounced = debounce(applyMapFilters, 150);
+
+  /* ===== Lista ===== */
+  let lastListFeatures = []; // para Excel
   async function cargarLista(){
     const q=cpLayer.createQuery();
     q.where=buildWhereForAmbito(true);
     q.outFields=["objectid","nom_cp","categoria_cp","vivrur_tot","vivrur_agrup_p","sum_pobcensa","distnear_max","distnear_min"];
-    q.returnGeometry=false; q.num=1000; q.orderByFields=["nom_cp ASC"]; q.cacheHint=true;
+    q.returnGeometry=false; q.num=5000; q.orderByFields=["nom_cp ASC"]; q.cacheHint=true;
     const res=await cpLayer.queryFeatures(q);
-    pintarLista(res.features||[]);
+    lastListFeatures = (res.features||[]).map(f=>f.attributes||{});
+    pintarLista(lastListFeatures);
   }
-  function pintarLista(features){
+  function pintarLista(rows){
     if(hl){ hl.remove(); hl=null; }
-    if(!features.length){ $list.innerHTML=`<div class="empty">Sin resultados</div>`; return; }
-    $list.innerHTML = features.map(f=>{
-      const a=f.attributes||{};
-      return `
-        <div class="item" data-oid="${a.objectid}">
-          <div class="title">${a.nom_cp ?? "—"} (${a.categoria_cp ?? "—"})</div>
-          <div class="kv"><b>Vivienda rural total:</b> ${fmt(a.vivrur_tot)}</div>
-          <div class="kv"><b>Vivienda rural concentrado:</b> ${fmt(a.vivrur_agrup_p,1)} %</div>
-          <div class="kv"><b>Población rural:</b> ${fmt(a.sum_pobcensa)}</div>
-          <div class="kv"><b>Distancia máx. entre viv.:</b> ${fmt(a.distnear_max,2)} m</div>
-          <div class="kv"><b>Distancia mín. entre viv.:</b> ${fmt(a.distnear_min,2)} m</div>
-        </div>`;
-    }).join("");
+    if(!rows.length){ $list.innerHTML=`<div class="empty">Sin resultados</div>`; return; }
+    $list.innerHTML = rows.map(a=>`
+      <div class="item" data-oid="${a.objectid}" tabindex="0">
+        <div class="title">${a.nom_cp ?? "—"} (${a.categoria_cp ?? "—"})</div>
+        <div class="kv"><b>Vivienda rural total:</b> ${fmt(a.vivrur_tot)}</div>
+        <div class="kv"><b>Vivienda rural concentrado:</b> ${fmt(a.vivrur_agrup_p,1)} %</div>
+        <div class="kv"><b>Población rural:</b> ${fmt(a.sum_pobcensa)}</div>
+        <div class="kv"><b>Distancia máx. entre viv.:</b> ${fmt(a.distnear_max,2)} m</div>
+        <div class="kv"><b>Distancia mín. entre viv.:</b> ${fmt(a.distnear_min,2)} m</div>
+      </div>`).join("");
+
     $list.querySelectorAll(".item").forEach(el=>{
-      el.addEventListener("click", async ()=>{
+      const go = async ()=>{
         const oid=Number(el.dataset.oid);
         if(layerView){ if(hl) hl.remove(); hl=layerView.highlight(oid); }
         await flyToFeatureByOID(oid);
-      });
+      };
+      el.addEventListener("click", go);
+      el.addEventListener("keydown", (e)=>{ if(e.key==="Enter"||e.key===" "){ e.preventDefault(); go(); }});
     });
   }
   async function flyToFeatureByOID(oid){
@@ -495,24 +627,19 @@ require([
     const feat=r.features?.[0]; if(!feat) return;
     const geom=feat.geometry; const ext=geom.extent;
     try{
-      if(ext && !ext.isEmpty){ await view.goTo({ target: ext.expand(1.7), padding:{ left:120,right:120,top:200,bottom:110 } }, { duration:1100, easing:"ease-in-out" }); }
-      else{ await view.goTo({ center: geom.centroid, scale:24000 }, { duration:1100, easing:"ease-in-out" }); }
+      if(ext && !ext.isEmpty){ await view.goTo({ target: ext.expand(1.7), padding:{ left:120,right:120,top:200,bottom:110 } }, { duration:900, easing:"ease-in-out" }); }
+      else{ await view.goTo({ center: geom.centroid, scale:18000 }, { duration:900, easing:"ease-in-out" }); }
+      flashGraphic(ext ? ext.center : geom);
     }catch(_){}
   }
-
+  const guideLayer = new GraphicsLayer({ listMode:"hide" }); map.add(guideLayer);
   function flashGraphic(geometry){
-    const g=new Graphic({
-      geometry,
-      symbol:new SimpleMarkerSymbol({ style:"circle", size:14, color:[255,255,255,0], outline:{ color:[255,255,0,1], width:2 } })
-    });
+    const g=new Graphic({ geometry, symbol:new SimpleMarkerSymbol({ style:"circle", size:16, color:[255,255,255,0], outline:{ color:[255,230,0,1], width:2.2 } }) });
     guideLayer.removeAll(); guideLayer.add(g);
-    let i=0; const int=setInterval(()=>{
-      const o=(i%2===0)?1:0.05;
-      g.symbol.outline.color.a=o; guideLayer.refresh();
-      if(++i>8){ clearInterval(int); }
-    },220);
+    let i=0; const int=setInterval(()=>{ const o=(i%2===0)?1:0.08; g.symbol.outline.color.a=o; guideLayer.refresh(); if(++i>10){ clearInterval(int); }},200);
   }
 
+  /* ===== Chips ===== */
   async function refreshCategoryChips(){
     const q=cpLayer.createQuery();
     q.where=buildWhereForAmbito(false);
@@ -522,34 +649,31 @@ require([
     const uniq=[...new Set(values)];
     [...selectedCats].forEach(c=>{ if(!uniq.includes(c)) selectedCats.delete(c); });
     $chipList.innerHTML = uniq.map(v=>{
-      const active = selectedCats.has(v) ? "on" : "";
-      return `<button type="button" class="chip ${active}" data-val="${v.replace(/"/g,'&quot;')}">${v}</button>`;
+      const active = selectedCats.has(v);
+      return `<button type="button" class="chip ${active?"on":""}" data-val="${v.replace(/"/g,'&quot;')}" aria-pressed="${active}" aria-label="Filtrar por ${v}" tabindex="0">${v}</button>`;
     }).join("");
     $chipList.querySelectorAll(".chip").forEach(btn=>{
-      btn.addEventListener("click", async ()=>{
+      const toggleChip = async ()=>{
         const val=btn.dataset.val;
-        if(selectedCats.has(val)){ selectedCats.delete(val); btn.classList.remove("on"); }
-        else{ selectedCats.add(val); btn.classList.add("on"); }
-        await cargarLista(); await applyMapFilters();
-      });
+        if(selectedCats.has(val)){ selectedCats.delete(val); btn.classList.remove("on"); btn.setAttribute("aria-pressed","false"); }
+        else{ selectedCats.add(val); btn.classList.add("on"); btn.setAttribute("aria-pressed","true"); }
+        await cargarLista(); applyMapFiltersDebounced();
+      };
+      btn.addEventListener("click", toggleChip);
+      btn.addEventListener("keydown", (e)=>{ if(e.key==="Enter"||e.key===" "){ e.preventDefault(); toggleChip(); }});
     });
   }
 
-  $selDep.addEventListener('change', async ()=>{
-    await loadProvs(); await refreshCategoryChips(); await cargarLista(); await applyMapFilters();
-    updatePoliticalLimitVisibility(); await zoomToPolitical();
-  });
-  $selProv.addEventListener('change', async ()=>{
-    await loadDists(); await refreshCategoryChips(); await cargarLista(); await applyMapFilters();
-    updatePoliticalLimitVisibility(); await zoomToPolitical();
-  });
-  $selDist.addEventListener('change', async ()=>{
-    await loadCPs();  await refreshCategoryChips(); await cargarLista(); await applyMapFilters();
-    updatePoliticalLimitVisibility(); await zoomToPolitical();
-  });
+  /* ===== Manejadores con debounce ===== */
+  const onDepChange  = debounce(async ()=>{ await loadProvs(); await refreshCategoryChips(); await cargarLista(); applyMapFilters(); updatePoliticalLimitVisibility(); await zoomToPolitical(); }, 80);
+  const onProvChange = debounce(async ()=>{ await loadDists(); await refreshCategoryChips(); await cargarLista(); applyMapFilters(); updatePoliticalLimitVisibility(); await zoomToPolitical(); }, 80);
+  const onDistChange = debounce(async ()=>{ await loadCPs();  await refreshCategoryChips(); await cargarLista(); applyMapFilters(); updatePoliticalLimitVisibility(); await zoomToPolitical(); }, 80);
+  $selDep.addEventListener('change', onDepChange);
+  $selProv.addEventListener('change', onProvChange);
+  $selDist.addEventListener('change', onDistChange);
 
   $selCP.addEventListener('change', async ()=>{
-    await refreshCategoryChips(); await cargarLista(); await applyMapFilters();
+    await refreshCategoryChips(); await cargarLista(); applyMapFiltersDebounced();
     const v=$selCP.value.trim();
     if(!v){ updatePoliticalLimitVisibility(); await zoomToPolitical(); return; }
     const [ubg, ...nameParts]=v.split("::"); const name=nameParts.join("::");
@@ -563,9 +687,8 @@ require([
 
     const dist=ubg.slice(0,6); $selDist.value = dist;
     updatePoliticalLimitVisibility();
-
     try{
-      await view.goTo({ target: feat.geometry, scale: 18000 }, { duration:900, easing:"ease-in-out" });
+      await view.goTo({ target: feat.geometry, scale: 16000 }, { duration:800, easing:"ease-in-out" });
       flashGraphic(feat.geometry);
     }catch(_){}
   });
@@ -576,24 +699,96 @@ require([
     $selDist.innerHTML=`<option value="">(Todos)</option>`; $selDist.disabled=true;
     $selCP.innerHTML  =`<option value="">(Todos)</option>`; $selCP.disabled=true;
     selectedCats.clear();
-    await refreshCategoryChips(); await cargarLista(); await applyMapFilters();
+    await refreshCategoryChips(); await cargarLista(); applyMapFilters();
     updatePoliticalLimitVisibility();
-    if(initialViewpoint){ try{ await view.goTo(initialViewpoint, { duration:900 }); }catch(_){} }
+    if(initialViewpoint){ try{ await view.goTo(initialViewpoint, { duration:700 }); }catch(_){ } }
     guideLayer.removeAll(); if(hl){ hl.remove(); hl=null; }
+  });
+
+  /* ===== Compartir vista ===== */
+  function getShareURL(){ updateHashFromState(); return location.href; }
+  async function copyToClipboard(text){
+    try{
+      if(navigator.clipboard && navigator.clipboard.writeText){ await navigator.clipboard.writeText(text); }
+      else{
+        const ta=document.createElement('textarea'); ta.value=text; document.body.appendChild(ta);
+        ta.select(); document.execCommand('copy'); document.body.removeChild(ta);
+      }
+      showToast("🔗 Enlace copiado");
+    }catch(e){ showToast("⚠️ No se pudo copiar"); console.warn(e); }
+  }
+  $btnShare.addEventListener('click', ()=> copyToClipboard(getShareURL()));
+
+  /* ===== Exportar Excel (.xls compatible) =====
+     Generamos una tabla HTML y la servimos con MIME de Excel para abrir en MS Excel.
+  */
+  function exportExcel(){
+    if(!lastListFeatures.length){ showToast("ℹ️ No hay datos para exportar"); return; }
+    const headers = [
+      {k:"nom_cp", t:"Centro poblado"},
+      {k:"categoria_cp", t:"Categoría"},
+      {k:"vivrur_tot", t:"Viviendas rurales (tot.)"},
+      {k:"vivrur_agrup_p", t:"Vivienda rural concentrado (%)"},
+      {k:"sum_pobcensa", t:"Población rural"},
+      {k:"distnear_max", t:"Distancia máx. (m)"},
+      {k:"distnear_min", t:"Distancia mín. (m)"}
+    ];
+    const th = headers.map(h=>`<th style="background:#e2f6ef;border:1px solid #cfe7e3;padding:6px 8px;text-align:left;font-weight:bold">${h.t}</th>`).join("");
+    const tr = lastListFeatures.map(a=>{
+      return "<tr>" + headers.map(h=>{
+        const v = (a[h.k] ?? "");
+        return `<td style="border:1px solid #e5e7eb;padding:6px 8px">${v}</td>`;
+      }).join("") + "</tr>";
+    }).join("");
+
+    const html = `
+      <html xmlns:o="urn:schemas-microsoft-com:office:office"
+            xmlns:x="urn:schemas-microsoft-com:office:excel"
+            xmlns="http://www.w3.org/TR/REC-html40">
+      <head><meta charset="utf-8"/></head>
+      <body>
+        <table>
+          <thead><tr>${th}</tr></thead>
+          <tbody>${tr}</tbody>
+        </table>
+      </body></html>`;
+
+    const blob = new Blob([html], {type:"application/vnd.ms-excel"});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    const ts = new Date().toISOString().replace(/[:T]/g,'-').slice(0,19);
+    a.href=url; a.download=`ccpp_dispersos_${ts}.xls`;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(()=>URL.revokeObjectURL(url), 1000);
+    showToast("📊 Excel exportado");
+  }
+  $btnExcel.addEventListener('click', exportExcel);
+
+  /* ===== Atajos de teclado ===== */
+  window.addEventListener('keydown', (e)=>{
+    if(e.target && (e.target.tagName==='INPUT' || e.target.tagName==='SELECT' || e.target.isContentEditable)) return;
+    if(e.key.toLowerCase()==='l'){ e.preventDefault(); toggle('#bubbleLayers'); }
+    if(e.key.toLowerCase()==='j'){ e.preventDefault(); toggle('#bubbleLegend'); }
+    if(e.key.toLowerCase()==='c'){ e.preventDefault(); $btnClear.click(); }
   });
 
   /* ===== Init ===== */
   (async function init(){
     await loadDeps();
+    const state = applyStateFromHash();
+    if(state){
+      if(state.dep){ $selDep.value=state.dep; await loadProvs(); }
+      if(state.prov){ $selProv.value=state.prov; await loadDists(); }
+      if(state.dist){ $selDist.value=state.dist; await loadCPs(); }
+      if(state.cp){ $selCP.value=state.cp; }
+      state.cats.forEach(c=>selectedCats.add(c));
+    }
     await refreshCategoryChips();
     await cargarLista();
-    await applyMapFilters();
+    applyMapFilters();
     updatePoliticalLimitVisibility();
-
-    // <<< zoom para que el mapa del Perú llegue casi a los bordes >>>
-    await zoomPeruFull();
-
     applyScaleAdaptiveHeat();
+    updateHashFromState();
   })();
 
 });
