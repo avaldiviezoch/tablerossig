@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>Grado de dispersión de centros poblados - PNSR</title>
+<title>Grado de dispersión de centros poblados</title>
 
 <link rel="stylesheet" href="https://js.arcgis.com/4.30/esri/themes/light/main.css">
 <script src="https://js.arcgis.com/4.30/"></script>
@@ -98,14 +98,34 @@
     pointer-events:none; font-weight:800; letter-spacing:.2px;
   }
   .toast.show{opacity:1; transform:translateY(0)}
+
+  /* ===== Tooltip Áreas agrupadas ===== */
+  .tooltip-card{
+    position:fixed; left:0; top:0; transform:translate(12px,12px);
+    background:#fff; color:var(--ink); border:1px solid var(--sep); border-radius:14px;
+    box-shadow:0 14px 34px rgba(2,6,23,.18); padding:10px 12px; pointer-events:none; z-index:9;
+    min-width:260px; max-width:min(520px,70vw); font-size:12.8px; backdrop-filter:saturate(110%) blur(2px);
+  }
+  .tooltip-card.hidden{ display:none; }
+  .tooltip-card .hdr{ display:flex; align-items:center; gap:10px; padding-bottom:6px; margin-bottom:8px; border-bottom:1px solid var(--sep); }
+  .tooltip-card .dot{ width:10px; height:10px; border-radius:999px; background:#8f1c7d; box-shadow:0 0 0 4px rgba(143,28,125,.10); }
+  .tooltip-card .title{ font-weight:1000; font-size:13.8px; letter-spacing:.2px; }
+  .tooltip-card .list{ display:flex; flex-direction:column; gap:6px; }
+  .tooltip-card .entry{ display:flex; justify-content:space-between; gap:8px; }
+  .tooltip-card .k{ color:#47606b; font-weight:800; }
+  .tooltip-card .v{ font-weight:900; }
 </style>
 </head>
 <body>
 
   <div class="shell">
     <div id="viewWrap">
-      <div class="floatTitle" title="Grado de dispersión de centros poblados - PNSR">🛰 Grado de dispersión de centros poblados - PNSR</div>
+      <!-- Título flotante SIN "PNSR" -->
+      <div class="floatTitle" title="Grado de dispersión de centros poblados">🛰 Grado de dispersión de centros poblados</div>
       <div id="viewDiv" aria-label="Mapa principal"></div>
+
+      <!-- Tooltip dinámico -->
+      <div id="ttAreas" class="tooltip-card hidden" role="status" aria-live="polite"></div>
 
       <div class="fab-wrap">
         <div id="btnLayers" class="fab" title="Capas (L)">🗂️</div>
@@ -246,8 +266,15 @@ require([
   view.ui.add(new ScaleBar({ view, unit:"metric" }), "bottom-left");
   view.qualityProfile = "low";
 
+  // Extent de Perú y zoom más cercano para que llene casi todo el mapa
   const peruExtent = { xmin: -81.6, ymin: -18.4, xmax: -68.6, ymax: 0.2, spatialReference: { wkid: 4326 } };
-  view.when(async ()=>{ try { await view.goTo({ target: peruExtent, padding:{ left:0,right:0,top:40,bottom:30 } }, { duration: 600 }); } catch(_){}});
+  view.when(async ()=>{
+    try {
+      await view.goTo({ target: peruExtent, padding:{ left:0,right:0,top:8,bottom:8 } }, { duration: 300 });
+      // acercar un poco más sin recortar (expand < 1 reduce el extent)
+      await view.goTo({ target: view.extent.expand(0.92) }, { duration: 500 });
+    } catch(_){}
+  });
 
   /* ===== Simbología ===== */
   const mk = (c,s=6)=> new SimpleMarkerSymbol({ style:"circle", color:c, size:s, outline:{ color:[255,255,255,210], width:1.1 } });
@@ -282,10 +309,10 @@ require([
     // Contorno blanco delgado y fino, sin relleno
     renderer:new SimpleRenderer({
       symbol: new SimpleFillSymbol({
-        color: [0,0,0,0], // sin relleno
+        color: [0,0,0,0],
         outline: new SimpleLineSymbol({
-          color: [255,255,255,1], // blanco puro
-          width: 1.2,             // delgado y fino
+          color: [255,255,255,1],
+          width: 1.2,
           style: "short-dot"
         })
       })
@@ -696,6 +723,109 @@ require([
     });
   }
 
+  /* ===== Tooltip Áreas agrupadas por CLICK ===== */
+  const $tt = document.getElementById('ttAreas');
+  let lvAreas = null, hlArea = null, lastAreasOid = null, lastAreasAttrs = null;
+  view.whenLayerView(lyrAreasAgrup).then(lv => { lvAreas = lv; });
+
+  const garbageRx = /(shape|objectid|globalid|fid|geom|extent|bbox|shape_area|shape_length|st_area|st_length|gridcode|gridcorde|gridcord|__)/i;
+
+  function prettyLabel(field){
+    const base = (field.alias && field.alias !== field.name) ? field.alias : (field.name || "");
+    let lbl = base.replace(/_/g," ").trim();
+    lbl = lbl
+      .replace(/\bcp\b/gi,"Centro poblado")
+      .replace(/\bvivrur\b/gi,"Viviendas rurales")
+      .replace(/\bcateg?\b/gi,"Categoría")
+      .replace(/\bpob\b/gi,"Población")
+      .replace(/\bsum\b/gi,"Total")
+      .replace(/\btot\b/gi,"Total")
+      .replace(/\bporc\b/gi,"Porcentaje")
+      .replace(/\bkm2\b/gi,"km²");
+    return lbl.charAt(0).toUpperCase() + lbl.slice(1);
+  }
+  function decodeDomain(field, value){
+    const dom = field?.domain?.codedValues;
+    if(dom && dom.length){ const m = dom.find(cv => cv.code === value); return m ? m.name : value; }
+    return value;
+  }
+  function fmtVal(field, value){
+    if(value == null) return "—";
+    if(field?.type === "date"){
+      try{ return new Intl.DateTimeFormat("es-PE").format(new Date(value)); }catch(_){ return "—"; }
+    }
+    if(typeof value === "number"){
+      const isPct = /(porc|porcentaje|_p$|percent)/i.test(field.name) || /(porc|porcentaje)/i.test(field.alias||"");
+      const digits = isPct ? 1 : 2;
+      return new Intl.NumberFormat("es-PE",{ maximumFractionDigits:digits }).format(value) + (isPct ? " %" : "");
+    }
+    return String(value);
+  }
+  function bestTitle(attrs, fields){
+    const nameField = fields.find(f => /^(nom|nombre|name|titulo|title)/i.test(f.name));
+    return (nameField && attrs[nameField.name]) ? attrs[nameField.name] : "Área agrupada";
+  }
+  async function fetchFullAttrsIfNeeded(graphic){
+    const attrs = graphic.attributes || {};
+    const oidField = lyrAreasAgrup.objectIdField;
+    const oid = attrs?.[oidField];
+    if(oid && lastAreasOid === oid && lastAreasAttrs) return lastAreasAttrs;
+    if(!oid || Object.keys(attrs).length > 3) return attrs;
+    try{
+      const q = lyrAreasAgrup.createQuery();
+      q.objectIds = [oid]; q.outFields = ["*"]; q.returnGeometry = false;
+      const r = await lyrAreasAgrup.queryFeatures(q);
+      const full = r.features?.[0]?.attributes || attrs;
+      lastAreasOid = oid; lastAreasAttrs = full;
+      return full;
+    }catch(_){ return attrs; }
+  }
+  function buildTooltipHTML(attrs){
+    const fields = (lyrAreasAgrup.fields || []).filter(f => !garbageRx.test(f.name) && !garbageRx.test(f.alias || ""));
+    const title = bestTitle(attrs, fields);
+    const rows = fields.map(f => {
+      const raw = attrs[f.name];
+      const val = decodeDomain(f, raw);
+      return `<div class="entry"><span class="k">${prettyLabel(f)}</span><span class="v">${fmtVal(f, val)}</span></div>`;
+    }).join("");
+    return `<div class="hdr"><span class="dot" aria-hidden="true"></span><div class="title">${title}</div></div><div class="list">${rows}</div>`;
+  }
+  function showTooltipAt(x, y, html){
+    $tt.innerHTML = html;
+    $tt.classList.remove("hidden");
+    const pad = 14;
+    let left = x + pad, top = y + pad;
+    const vw = window.innerWidth, vh = window.innerHeight;
+    const r = $tt.getBoundingClientRect();
+    if (left + r.width > vw - 8) left = x - r.width - pad;
+    if (top + r.height > vh - 8) top = y - r.height - pad;
+    $tt.style.left = left + "px";
+    $tt.style.top  = top  + "px";
+  }
+  function hideTooltip(){ $tt.classList.add("hidden"); }
+
+  // Mostrar/ocultar por CLICK
+  view.on("click", async (evt) => {
+    const { x, y, mapPoint } = evt;
+    try{
+      const hit = await view.hitTest({ x, y }, { include: lyrAreasAgrup });
+      const g = hit?.results?.[0]?.graphic;
+      if(g){
+        if(lvAreas){
+          if(hlArea){ try{ hlArea.remove(); }catch(_){ } hlArea = null; }
+          try{ hlArea = lvAreas.highlight(g); }catch(_){}
+        }
+        const fullAttrs = await fetchFullAttrsIfNeeded(g);
+        showTooltipAt(x, y, buildTooltipHTML(fullAttrs));
+      }else{
+        if(hlArea){ try{ hlArea.remove(); }catch(_){ } hlArea = null; }
+        hideTooltip();
+      }
+    }catch(_){
+      hideTooltip();
+    }
+  });
+
   /* ===== Manejadores ===== */
   const onDepChange  = debounce(async ()=>{ await loadProvs(); await refreshCategoryChips(); await cargarLista(); applyMapFilters(); await updatePoliticalLimitVisibility(); await zoomToPolitical(); }, 80);
   const onProvChange = debounce(async ()=>{ await loadDists(); await refreshCategoryChips(); await cargarLista(); applyMapFilters(); await updatePoliticalLimitVisibility(); await zoomToPolitical(); }, 80);
@@ -745,6 +875,8 @@ require([
     await updatePoliticalLimitVisibility();
 
     if(initialViewpoint){ try{ await view.goTo(initialViewpoint, { duration:700 }); }catch(_){ } }
+    hideTooltip();
+    if(hlArea){ try{ hlArea.remove(); }catch(_){ } hlArea = null; }
   });
 
   /* ===== Exportar Excel (.xls compatible) ===== */
