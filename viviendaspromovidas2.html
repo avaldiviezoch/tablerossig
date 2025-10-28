@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>Viviendas Promovidas · Burbuja Filtros flotante mejorada</title>
+<title>Viviendas Promovidas · Burbuja Filtros flotante</title>
 
 <link rel="stylesheet" href="https://js.arcgis.com/4.29/esri/themes/light/main.css">
 <script src="https://js.arcgis.com/4.29/"></script>
@@ -40,6 +40,7 @@ html,body{
 #viewDiv{
   position:absolute;
   inset:0;
+  z-index:1;
 }
 
 /* ===== BURBUJA flotante (global, fixed, sobre todo) ===== */
@@ -47,12 +48,13 @@ html,body{
   position:fixed;
   left:16px;
   top:16px;
-  z-index:999999; /* más que todo */
+  z-index:999999;           /* súper arriba */
   display:flex;
   flex-direction:column;
   align-items:flex-start;
   user-select:none;
-  touch-action:none; /* ayuda al drag en mobile */
+  touch-action:none;
+  pointer-events:auto;      /* asegurarnos que sí recibe click */
 }
 .bubbleBtn{
   width:48px;
@@ -68,12 +70,13 @@ html,body{
   place-items:center;
   cursor:pointer;
   line-height:1.1;
+  pointer-events:auto;
 }
 .bubbleBtn:active{
   filter:brightness(1.08);
 }
 
-/* panel flotante, posición dinámica (arriba o abajo) */
+/* panel flotante */
 .bubblePanel{
   position:absolute;
   min-width:250px;
@@ -82,8 +85,9 @@ html,body{
   font-size:13px;
   font-weight:600;
   line-height:1.4;
-  display:none; /* hidden by default */
+  display:none;
   z-index:1000000;
+  pointer-events:auto;
 }
 .bubblePanelInner{
   background:#0f2e29;
@@ -187,6 +191,8 @@ html,body{
   overflow:hidden;
   padding:16px 16px 18px;
   box-sizing:border-box;
+  position:relative;
+  z-index:0; /* globo debe quedar encima del sidebar también */
 }
 .topPlaceholder{
   flex:0 0 auto;
@@ -331,57 +337,7 @@ html,body{
 </head>
 <body>
 
-<div class="shell">
-  <!-- MAP -->
-  <div id="mapWrap">
-    <div id="viewDiv" aria-label="Mapa de Viviendas Promovidas"></div>
-  </div>
-
-  <!-- KPIs -->
-  <aside class="sidebar">
-    <div class="topPlaceholder">
-      Aquí irán KPIs / tarjetas grandes / gráficos.
-    </div>
-
-    <div class="heroLine">
-      Viviendas promovidas
-      <span class="heroNum" id="kpiTotalViv">—</span>
-    </div>
-
-    <div class="bar">Indicadores</div>
-
-    <div class="kpiScroll">
-      <div class="kpiCard">
-        <div class="kpiHead">
-          <div class="kpiIcon">🏠</div>
-          <div>Total registros</div>
-        </div>
-        <div class="kpiVal" id="kpi1">—</div>
-        <div class="kpiLbl">Cantidad de filas filtradas</div>
-      </div>
-
-      <div class="kpiCard">
-        <div class="kpiHead">
-          <div class="kpiIcon">📅</div>
-          <div>Año más reciente</div>
-        </div>
-        <div class="kpiVal" id="kpi2">—</div>
-        <div class="kpiLbl">Máximo "año" dentro del filtro</div>
-      </div>
-
-      <div class="kpiCard">
-        <div class="kpiHead">
-          <div class="kpiIcon">📈</div>
-          <div>—</div>
-        </div>
-        <div class="kpiVal" id="kpi3">—</div>
-        <div class="kpiLbl">Placeholder</div>
-      </div>
-    </div>
-  </aside>
-</div>
-
-<!-- BURBUJA GLOBAL (fuera del layout para que flote sobre todo) -->
+<!-- BURBUJA GLOBAL (IMPORTANTE: está FUERA de .shell para que siempre esté encima de todo) -->
 <div id="bubbleWrap" class="bubbleWrap">
   <div id="bubbleBtn" class="bubbleBtn" title="Filtros (arrástrame)">
     Filtros
@@ -457,16 +413,67 @@ html,body{
   </div><!-- bubblePanel -->
 </div><!-- bubbleWrap -->
 
+<div class="shell">
+  <!-- MAPA -->
+  <div id="mapWrap">
+    <div id="viewDiv" aria-label="Mapa de Viviendas Promovidas"></div>
+  </div>
+
+  <!-- KPIs -->
+  <aside class="sidebar">
+    <div class="topPlaceholder">
+      Aquí irán KPIs / tarjetas grandes / gráficos.
+    </div>
+
+    <div class="heroLine">
+      Viviendas promovidas
+      <span class="heroNum" id="kpiTotalViv">—</span>
+    </div>
+
+    <div class="bar">Indicadores</div>
+
+    <div class="kpiScroll">
+      <div class="kpiCard">
+        <div class="kpiHead">
+          <div class="kpiIcon">🏠</div>
+          <div>Total registros</div>
+        </div>
+        <div class="kpiVal" id="kpi1">—</div>
+        <div class="kpiLbl">Cantidad de filas filtradas</div>
+      </div>
+
+      <div class="kpiCard">
+        <div class="kpiHead">
+          <div class="kpiIcon">📅</div>
+          <div>Año más reciente</div>
+        </div>
+        <div class="kpiVal" id="kpi2">—</div>
+        <div class="kpiLbl">Máximo "año" dentro del filtro</div>
+      </div>
+
+      <div class="kpiCard">
+        <div class="kpiHead">
+          <div class="kpiIcon">📈</div>
+          <div>—</div>
+        </div>
+        <div class="kpiVal" id="kpi3">—</div>
+        <div class="kpiLbl">Placeholder</div>
+      </div>
+    </div>
+  </aside>
+</div>
+
 <script>
 /* =======================
    ENDPOINTS
    ======================= */
 const URL_BASE = "https://devportalgis.vivienda.gob.pe/servergis/rest/services/viv_promovidas_titulos_bfh_tablas/MapServer";
 const URL_VIV  = URL_BASE + "/5"; // Viviendas Promovidas (puntos)
-const LIM_BASE = "https://pportalgis.vivienda.gob.pe/pfdserver/rest/services/COES/Limites_Pol%C3%ADticos/MapServer";
-const URL_DEP  = LIM_BASE + "/0";
-const URL_PROV = LIM_BASE + "/1";
-const URL_DIST = LIM_BASE + "/2";
+const LIM_BASE = "https://pportalgis.vivienda.gob.pe/pfdserver/rest/services/COES/Limites_Pol%C3%9Aticos/MapServer".replace("%3F","?").replace("%9A",""); 
+// arreglamos encoding raro en copia; más seguro lo ponemos literal abajo:
+const URL_DEP  = "https://pportalgis.vivienda.gob.pe/pfdserver/rest/services/COES/Limites_Pol%C3%ADticos/MapServer/0";
+const URL_PROV = "https://pportalgis.vivienda.gob.pe/pfdserver/rest/services/COES/Limites_Pol%C3%ADticos/MapServer/1";
+const URL_DIST = "https://pportalgis.vivienda.gob.pe/pfdserver/rest/services/COES/Limites_Pol%C3%ADticos/MapServer/2";
 
 const fmt = new Intl.NumberFormat("es-PE");
 
@@ -502,7 +509,7 @@ function esriPOST(url, paramsObj){
   });
 }
 
-// carga valores distintos
+// carga valores distintos de un campo
 async function loadDistinct(url, field){
   const page = 2000;
   let offset = 0;
@@ -555,6 +562,10 @@ const bubblePanelInner = document.getElementById("bubblePanelInner");
    BURBUJA: DRAG + TOGGLE
    ======================= */
 (function setupDraggableAndToggle(){
+  // protección por si ya se inicializó antes
+  if(bubbleWrap.__initialized) return;
+  bubbleWrap.__initialized = true;
+
   let dragging=false, offX=0, offY=0, dragStartTime=0;
 
   function savePos(){
@@ -593,12 +604,53 @@ const bubblePanelInner = document.getElementById("bubblePanelInner");
     return dt < 200; // true => tap corto
   }
 
+  function positionPanelAroundBubble(){
+    const vw = window.innerWidth;
+    const vh = window.innerHeight;
+    const r = bubbleWrap.getBoundingClientRect();
+    const openUp = (r.bottom + 260 > vh);
+
+    bubblePanel.style.top = "";
+    bubblePanel.style.bottom = "";
+    bubblePanel.style.left = "";
+
+    let left = r.left;
+    const panelW = 300;
+    if(left + panelW > vw-8){
+      left = vw - panelW - 8;
+    }
+    if(left < 8){
+      left = 8;
+    }
+    bubblePanel.style.left = (left - r.left) + "px";
+
+    if(openUp){
+      bubblePanel.style.bottom = "56px";
+      bubblePanel.style.top = "auto";
+      bubblePanelInner.style.borderRadius = "14px";
+    }else{
+      bubblePanel.style.top = "56px";
+      bubblePanel.style.bottom = "auto";
+      bubblePanelInner.style.borderRadius = "14px";
+    }
+  }
+
+  function togglePanel(){
+    if(bubblePanel.style.display==="block"){
+      bubblePanel.style.display="none";
+      return;
+    }
+    positionPanelAroundBubble();
+    bubblePanel.style.display="block";
+  }
+
   // mouse
   bubbleBtn.addEventListener("mousedown", e=>{
     startDrag(e.clientX,e.clientY);
     e.preventDefault();
   });
   window.addEventListener("mousemove", e=>{
+    if(!dragging) return;
     moveDrag(e.clientX,e.clientY);
   });
   window.addEventListener("mouseup", ()=>{
@@ -612,11 +664,12 @@ const bubblePanelInner = document.getElementById("bubblePanelInner");
   bubbleBtn.addEventListener("touchstart", e=>{
     const t=e.touches[0];
     startDrag(t.clientX,t.clientY);
-  }, {passive:false});
+  }, {passive:true});
   window.addEventListener("touchmove", e=>{
+    if(!dragging) return;
     const t=e.touches[0];
     moveDrag(t.clientX,t.clientY);
-  }, {passive:false});
+  }, {passive:true});
   window.addEventListener("touchend", ()=>{
     const isTap = endDrag();
     if(isTap){
@@ -624,55 +677,7 @@ const bubblePanelInner = document.getElementById("bubblePanelInner");
     }
   });
 
-  function togglePanel(){
-    if(bubblePanel.style.display==="block"){
-      bubblePanel.style.display="none";
-      return;
-    }
-    // vamos a decidir si abrimos hacia abajo o hacia arriba
-    positionPanelAroundBubble();
-    bubblePanel.style.display="block";
-  }
-
-  function positionPanelAroundBubble(){
-    const vw = window.innerWidth;
-    const vh = window.innerHeight;
-    const r = bubbleWrap.getBoundingClientRect();
-    const openUp = (r.bottom + 260 > vh); // si abajo no hay espacio
-
-    // reseteamos estilos
-    bubblePanel.style.top = "";
-    bubblePanel.style.bottom = "";
-    bubblePanel.style.left = "";
-
-    // horizontal: que no se salga
-    let left = r.left;
-    const panelW = 300; // max-width
-    if(left + panelW > vw-8){
-      left = vw - panelW - 8;
-    }
-    if(left < 8){
-      left = 8;
-    }
-
-    bubblePanel.style.left = (left - r.left) + "px";
-
-    if(openUp){
-      // abre hacia arriba
-      bubblePanel.style.bottom = "56px"; // un poco arriba de la burbuja
-      bubblePanel.style.top = "auto";
-
-      bubblePanelInner.style.borderRadius = "14px 14px 14px 14px";
-    }else{
-      // abre hacia abajo
-      bubblePanel.style.top = "56px";
-      bubblePanel.style.bottom = "auto";
-
-      bubblePanelInner.style.borderRadius = "14px 14px 14px 14px";
-    }
-  }
-
-  // si haces scroll/resize y está abierto, reubicar
+  // cerrar / recolocar si viewport cambia
   window.addEventListener("resize", ()=>{
     if(bubblePanel.style.display==="block"){
       positionPanelAroundBubble();
@@ -689,6 +694,7 @@ const bubblePanelInner = document.getElementById("bubblePanelInner");
    MAP + LAYERS
    ======================= */
 let view, vivLayer, limProvDraw, limDistDraw, limDeptDraw, initialViewpointPromise;
+let limDeptSrc, limProvSrc, limDistSrc;
 
 require([
   "esri/Map",
@@ -710,6 +716,7 @@ require([
 
   initialViewpointPromise = view.when().then(()=>view.viewpoint.clone());
 
+  // símbolos glow
   function glowCIM(rgb){
     return {
       type:"cim",
@@ -727,6 +734,7 @@ require([
     };
   }
 
+  // capas limites
   limDeptDraw = new FeatureLayer({
     url: URL_DEP,
     title:"Límite Departamental (base)",
@@ -772,6 +780,7 @@ require([
   map.add(limProvDraw);
   map.add(limDistDraw);
 
+  // capa puntos viviendas
   vivLayer = new FeatureLayer({
     url: URL_VIV,
     title:"Viviendas Promovidas",
@@ -826,19 +835,19 @@ require([
   view.ui.move("zoom","bottom-right");
 
   /* =======================
-     FUENTES para combos
+     FUENTES para combos UBIGEO
      ======================= */
-  const limDeptSrc = new FeatureLayer({
+  limDeptSrc = new FeatureLayer({
     url: URL_DEP,
     outFields:["id_dpto","nom_dep"],
     listMode:"hide"
   });
-  const limProvSrc = new FeatureLayer({
+  limProvSrc = new FeatureLayer({
     url: URL_PROV,
     outFields:["id_dep","id_prov","nom_prov"],
     listMode:"hide"
   });
-  const limDistSrc = new FeatureLayer({
+  limDistSrc = new FeatureLayer({
     url: URL_DIST,
     outFields:["id_dpto","id_prov","id_dist","nom_dist"],
     listMode:"hide"
@@ -928,9 +937,21 @@ require([
   }
 
   /* =======================
-     WHERE builders
+     WHERE helpers
      ======================= */
-  function buildWhereUbigeo(){
+
+  // helper para cláusulas numéricas vs texto
+  function clauseEq(field, val, isNumber){
+    if(val===""||val==null) return null;
+    if(isNumber){
+      return `${field}=${Number(val)}`;
+    }else{
+      return `${field}='${esc(String(val))}'`;
+    }
+  }
+
+  // arma where para zoom/resaltado político
+  function buildWhereUbigeoZoom(){
     const dep  = selDep.value.trim();
     const prov = selProv.value.trim();
     const dist = selDist.value.trim();
@@ -940,17 +961,19 @@ require([
     }else if(prov){
       return { level:"prov", where:`id_prov='${esc(prov)}'` };
     }else if(dep){
-      return { level:"dep",  where:`id_dep='${esc(dep)}'` };
+      // OJO: en capa departamental el campo es id_dpto
+      return { level:"dep", where:`id_dpto='${esc(dep)}'` };
     }else{
       return { level:null, where:null };
     }
   }
 
-  // mezcla ubigeo + atributos => filtra SOLO la capa de puntos
+  // arma where para filtrar puntos (viveLayer)
+  // mezcla ubigeo + atributos
   function buildWherePuntos(){
     const parts = ["1=1"];
 
-    // ubigeo
+    // ubigeo (en la capa viviendas_promovidas: id_dep, id_prov, id_dist)
     if(selDep.value.trim()!==""){
       parts.push(`id_dep='${esc(selDep.value.trim())}'`);
     }
@@ -961,19 +984,16 @@ require([
       parts.push(`id_dist='${esc(selDist.value.trim())}'`);
     }
 
-    // atributos
-    if(selAnio.value.trim()!==""){
-      parts.push(`anio='${esc(selAnio.value.trim())}'`);
-    }
-    if(selModalidad.value.trim()!==""){
-      parts.push(`modalidad='${esc(selModalidad.value.trim())}'`);
-    }
-    if(selModalidad1.value.trim()!==""){
-      parts.push(`modalidad_1='${esc(selModalidad1.value.trim())}'`);
-    }
-    if(selFlag.value.trim()!==""){
-      parts.push(`flag_viviendas='${esc(selFlag.value.trim())}'`);
-    }
+    // atributos vivienda
+    const cAnio   = clauseEq("anio", selAnio.value.trim(), true);        // numérico
+    const cMod    = clauseEq("modalidad", selModalidad.value.trim(), false);   // texto
+    const cMod1   = clauseEq("modalidad_1", selModalidad1.value.trim(), false);// texto
+    const cFlag   = clauseEq("flag_viviendas", selFlag.value.trim(), true);    // numérico
+
+    if(cAnio) parts.push(cAnio);
+    if(cMod)  parts.push(cMod);
+    if(cMod1) parts.push(cMod1);
+    if(cFlag) parts.push(cFlag);
 
     return parts.join(" AND ");
   }
@@ -1023,49 +1043,50 @@ require([
      ZOOM / RESALTADO límites
      ======================= */
   async function applyBoundaryZoom(){
-    const info = buildWhereUbigeo();
+    const info = buildWhereUbigeoZoom();
     const level = info.level;
     const where = info.where;
+
+    // reset visibles por defecto
+    limProvDraw.visible=false;
+    limProvDraw.definitionExpression=null;
+    limDistDraw.visible=false;
+    limDistDraw.definitionExpression=null;
 
     if(!level){
       const vp = await initialViewpointPromise;
       try{ await view.goTo(vp, { duration:700 }); }catch(_){}
-      limProvDraw.visible=false;
-      limProvDraw.definitionExpression=null;
-      limDistDraw.visible=false;
-      limDistDraw.definitionExpression=null;
       return;
     }
 
+    // set highlight segun nivel
     if(level==="dist"){
       limDistDraw.definitionExpression = where;
       limDistDraw.visible=true;
-      limProvDraw.visible=false;
-      limProvDraw.definitionExpression=null;
     }else if(level==="prov"){
       limProvDraw.definitionExpression = where;
       limProvDraw.visible=true;
-      limDistDraw.visible=false;
-      limDistDraw.definitionExpression=null;
     }else{
-      // dep: no resaltamos con glow distinto, dejamos solo base
-      limProvDraw.visible=false;
-      limProvDraw.definitionExpression=null;
-      limDistDraw.visible=false;
-      limDistDraw.definitionExpression=null;
+      // dep -> usamos sólo limDeptDraw base
+    }
+
+    // zoom al feature correspondiente
+    let srcLayer;
+    if(level==="dist"){
+      srcLayer = limDistDraw;
+    }else if(level==="prov"){
+      srcLayer = limProvDraw;
+    }else if(level==="dep"){
+      srcLayer = limDeptDraw;
     }
 
     try{
-      const src = (level==="dist")? limDistDraw :
-                  (level==="prov")? limProvDraw :
-                  limDeptDraw;
-
-      const q = src.createQuery();
+      const q = srcLayer.createQuery();
       q.where = where;
       q.returnGeometry = true;
       q.outFields = ["*"];
       q.num = 1;
-      const r = await src.queryFeatures(q);
+      const r = await srcLayer.queryFeatures(q);
       const g = r.features?.[0]?.geometry;
       if(g){
         await view.goTo(
@@ -1090,14 +1111,14 @@ require([
      REFRESH GENERAL
      ======================= */
   async function refreshAll(){
-    await applyPointFilterOnly(); // siempre actualizar puntos/KPIs
-    await applyBoundaryZoom();    // y actualizar zoom si cambió ubigeo
+    await applyPointFilterOnly(); // actualiza puntos/KPIs con TODOS los filtros
+    await applyBoundaryZoom();    // ajusta zoom/contornos si cambiaron dep/prov/dist
   }
 
   /* =======================
      LISTENERS
      ======================= */
-  // Territorio (estos sí mueven zoom):
+  // Territorio: disparan recarga completa (puntos+zoom)
   selDep.addEventListener("change", async ()=>{
     await loadProvs();
     await refreshAll();
@@ -1110,7 +1131,7 @@ require([
     await refreshAll();
   });
 
-  // Atributos (estos NO mueven zoom, solo puntos/KPIs):
+  // Atributos vivienda: sólo cambian puntos/KPIs
   selAnio.addEventListener("change", async ()=>{
     await applyPointFilterOnly();
   });
@@ -1142,10 +1163,8 @@ require([
     limDistDraw.visible=false;
     limDistDraw.definitionExpression=null;
 
-    // reset puntos/kpis
-    await applyPointFilterOnly();
-    // reset zoom
-    await applyBoundaryZoom();
+    await applyPointFilterOnly();  // resetea puntos/KPIs
+    await applyBoundaryZoom();     // regresa al panorama inicial
   });
 
   /* =======================
@@ -1164,11 +1183,12 @@ require([
     fillSelectStatic(selAnio, anios, "(Todos)");
     fillSelectStatic(selModalidad, mods, "(Todos)");
     fillSelectStatic(selModalidad1, mods1, "(Todos)");
-    // selFlag ya está definido fijo
+    // selFlag ya está lleno fijo
 
     // primera carga: puntos y KPIs
     await applyPointFilterOnly();
-    // zoom inicial al país (no necesitamos boundary todavía)
+
+    // panorama Perú
     const vp = await initialViewpointPromise;
     try{ await view.goTo(vp, { duration:0 }); }catch(_){}
   })();
