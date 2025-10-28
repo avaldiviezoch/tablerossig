@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>Viviendas Promovidas · Burbuja Filtros</title>
+<title>Viviendas Promovidas · Burbuja Filtros flotante mejorada</title>
 
 <link rel="stylesheet" href="https://js.arcgis.com/4.29/esri/themes/light/main.css">
 <script src="https://js.arcgis.com/4.29/"></script>
@@ -42,16 +42,17 @@ html,body{
   inset:0;
 }
 
-/* ===== BURBUJA flotante (estilo chat-head) ===== */
+/* ===== BURBUJA flotante (global, fixed, sobre todo) ===== */
 .bubbleWrap{
-  position:absolute;
+  position:fixed;
   left:16px;
   top:16px;
-  z-index:9999;
+  z-index:999999; /* más que todo */
   display:flex;
   flex-direction:column;
   align-items:flex-start;
   user-select:none;
+  touch-action:none; /* ayuda al drag en mobile */
 }
 .bubbleBtn{
   width:48px;
@@ -71,19 +72,25 @@ html,body{
 .bubbleBtn:active{
   filter:brightness(1.08);
 }
+
+/* panel flotante, posición dinámica (arriba o abajo) */
 .bubblePanel{
-  margin-top:8px;
+  position:absolute;
   min-width:250px;
   max-width:300px;
-  background:#0b3b38;
-  border:1px solid #0e4a43;
-  border-radius:14px;
-  box-shadow:0 16px 32px rgba(0,0,0,.4);
   color:#e6fffb;
   font-size:13px;
   font-weight:600;
   line-height:1.4;
   display:none; /* hidden by default */
+  z-index:1000000;
+}
+.bubblePanelInner{
+  background:#0f2e29;
+  border:1px solid #0e4a43;
+  border-radius:14px;
+  box-shadow:0 24px 40px rgba(0,0,0,.5);
+  overflow:hidden;
 }
 .bubbleHead{
   padding:10px 12px;
@@ -92,7 +99,6 @@ html,body{
   color:#e6fffb;
   background:#0b3b38;
   border-bottom:1px solid rgba(255,255,255,.08);
-  border-radius:14px 14px 0 0;
   display:flex;
   justify-content:space-between;
   align-items:center;
@@ -105,8 +111,6 @@ html,body{
 .bubbleBody{
   padding:12px 12px 14px;
   background:#0f2e29;
-  border-radius:0 0 14px 14px;
-  border-top:1px solid rgba(255,255,255,.05);
   display:grid;
   gap:12px;
 }
@@ -156,6 +160,8 @@ html,body{
 .bubbleFooter{
   display:flex;
   justify-content:flex-end;
+  align-items:flex-end;
+  height:100%;
 }
 .btnMini{
   background:#114d46;
@@ -172,7 +178,7 @@ html,body{
   filter:brightness(1.08);
 }
 
-/* ====== Sidebar ===== */
+/* ====== Sidebar (KPIs) ===== */
 .sidebar{
   background:var(--panel);
   display:flex;
@@ -324,92 +330,14 @@ html,body{
 </style>
 </head>
 <body>
-<div class="shell">
 
-  <!-- MAP WRAP -->
+<div class="shell">
+  <!-- MAP -->
   <div id="mapWrap">
     <div id="viewDiv" aria-label="Mapa de Viviendas Promovidas"></div>
-
-    <!-- BURBUJA FLOTANTE -->
-    <div id="bubbleWrap" class="bubbleWrap">
-      <div id="bubbleBtn" class="bubbleBtn" title="Filtros (arrástrame)">
-        Filtros
-      </div>
-
-      <div id="bubblePanel" class="bubblePanel" role="dialog" aria-modal="false">
-        <div class="bubbleHead">
-          <div class="ttl">
-            <span>Filtros</span>
-          </div>
-        </div>
-
-        <div class="bubbleBody">
-
-          <!-- Bloque Ubigeo -->
-          <div class="formRowGroup">
-            <div class="subBlockTitle">Ubicación</div>
-            <div class="fldGroup3">
-              <div class="fld">
-                <label for="selDep">Departamento</label>
-                <select id="selDep"><option value="">(Todos)</option></select>
-              </div>
-              <div class="fld">
-                <label for="selProv">Provincia</label>
-                <select id="selProv" disabled><option value="">(Todas)</option></select>
-              </div>
-              <div class="fld">
-                <label for="selDist">Distrito</label>
-                <select id="selDist" disabled><option value="">(Todos)</option></select>
-              </div>
-            </div>
-          </div>
-
-          <!-- Bloque atributos -->
-          <div class="formRowGroup">
-            <div class="subBlockTitle">Atributos Vivienda</div>
-            <div class="fldGroup3">
-              <div class="fld">
-                <label for="selAnio">Año</label>
-                <select id="selAnio"><option value="">(Todos)</option></select>
-              </div>
-
-              <div class="fld">
-                <label for="selModalidad">Modalidad</label>
-                <select id="selModalidad"><option value="">(Todos)</option></select>
-              </div>
-
-              <div class="fld">
-                <label for="selModalidad1">Modalidad_1</label>
-                <select id="selModalidad1"><option value="">(Todos)</option></select>
-              </div>
-            </div>
-
-            <div class="fldGroup2">
-              <div class="fld">
-                <label for="selFlag">Gestión</label>
-                <select id="selFlag">
-                  <option value="">General (todas)</option>
-                  <option value="1">Gestión anterior</option>
-                  <option value="2">Gestión actual</option>
-                </select>
-              </div>
-
-              <div class="fld" style="align-self:end;">
-                <div class="bubbleFooter">
-                  <button id="btnClear" class="btnMini" type="button">Limpiar</button>
-                </div>
-              </div>
-            </div>
-
-          </div>
-
-        </div><!-- bubbleBody -->
-      </div><!-- bubblePanel -->
-
-    </div><!-- bubbleWrap -->
   </div>
 
-  <!-- SIDEBAR -->
+  <!-- KPIs -->
   <aside class="sidebar">
     <div class="topPlaceholder">
       Aquí irán KPIs / tarjetas grandes / gráficos.
@@ -451,8 +379,83 @@ html,body{
       </div>
     </div>
   </aside>
-
 </div>
+
+<!-- BURBUJA GLOBAL (fuera del layout para que flote sobre todo) -->
+<div id="bubbleWrap" class="bubbleWrap">
+  <div id="bubbleBtn" class="bubbleBtn" title="Filtros (arrástrame)">
+    Filtros
+  </div>
+
+  <div id="bubblePanel" class="bubblePanel" role="dialog" aria-modal="false">
+    <div class="bubblePanelInner" id="bubblePanelInner">
+      <div class="bubbleHead">
+        <div class="ttl"><span>Filtros</span></div>
+      </div>
+
+      <div class="bubbleBody">
+
+        <!-- Ubigeo -->
+        <div class="formRowGroup">
+          <div class="subBlockTitle">Ubicación</div>
+          <div class="fldGroup3">
+            <div class="fld">
+              <label for="selDep">Departamento</label>
+              <select id="selDep"><option value="">(Todos)</option></select>
+            </div>
+            <div class="fld">
+              <label for="selProv">Provincia</label>
+              <select id="selProv" disabled><option value="">(Todas)</option></select>
+            </div>
+            <div class="fld">
+              <label for="selDist">Distrito</label>
+              <select id="selDist" disabled><option value="">(Todos)</option></select>
+            </div>
+          </div>
+        </div>
+
+        <!-- Atributos Vivienda -->
+        <div class="formRowGroup">
+          <div class="subBlockTitle">Atributos Vivienda</div>
+          <div class="fldGroup3">
+            <div class="fld">
+              <label for="selAnio">Año</label>
+              <select id="selAnio"><option value="">(Todos)</option></select>
+            </div>
+
+            <div class="fld">
+              <label for="selModalidad">Modalidad</label>
+              <select id="selModalidad"><option value="">(Todos)</option></select>
+            </div>
+
+            <div class="fld">
+              <label for="selModalidad1">Modalidad_1</label>
+              <select id="selModalidad1"><option value="">(Todos)</option></select>
+            </div>
+          </div>
+
+          <div class="fldGroup2">
+            <div class="fld">
+              <label for="selFlag">Gestión</label>
+              <select id="selFlag">
+                <option value="">General (todas)</option>
+                <option value="1">Gestión anterior</option>
+                <option value="2">Gestión actual</option>
+              </select>
+            </div>
+
+            <div class="fld" style="align-self:end;">
+              <div class="bubbleFooter">
+                <button id="btnClear" class="btnMini" type="button">Limpiar</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div><!-- bubbleBody -->
+    </div><!-- bubblePanelInner -->
+  </div><!-- bubblePanel -->
+</div><!-- bubbleWrap -->
 
 <script>
 /* =======================
@@ -546,108 +549,138 @@ const btnClear      = document.getElementById("btnClear");
 const bubbleWrap   = document.getElementById("bubbleWrap");
 const bubbleBtn    = document.getElementById("bubbleBtn");
 const bubblePanel  = document.getElementById("bubblePanel");
+const bubblePanelInner = document.getElementById("bubblePanelInner");
 
-/* ====== DRAG DE LA BURBUJA ======
-   - arrastras el botón grande (bubbleBtn)
-   - movemos todo el contenedor bubbleWrap
-   - guardamos posición en localStorage
-*/
-(function setupDraggable(){
-  let drag=false, offX=0, offY=0;
+/* =======================
+   BURBUJA: DRAG + TOGGLE
+   ======================= */
+(function setupDraggableAndToggle(){
+  let dragging=false, offX=0, offY=0, dragStartTime=0;
 
   function savePos(){
-    const rect = bubbleWrap.getBoundingClientRect();
-    localStorage.setItem("bubblePos", JSON.stringify({
-      left: rect.left,
-      top: rect.top
-    }));
+    const left = bubbleWrap.style.left || "16px";
+    const top  = bubbleWrap.style.top  || "16px";
+    localStorage.setItem("bubblePosFixed", JSON.stringify({left,top}));
   }
-
   function restorePos(){
-    const raw = localStorage.getItem("bubblePos");
+    const raw = localStorage.getItem("bubblePosFixed");
     if(!raw) return;
     try{
       const pos = JSON.parse(raw);
-      if(typeof pos.left==="number" && typeof pos.top==="number"){
-        bubbleWrap.style.left = pos.left+"px";
-        bubbleWrap.style.top  = pos.top+"px";
-      }
+      if(pos.left) bubbleWrap.style.left = pos.left;
+      if(pos.top)  bubbleWrap.style.top  = pos.top;
     }catch(_){}
   }
-
   restorePos();
 
-  bubbleBtn.addEventListener("mousedown", e=>{
-    drag=true;
+  function startDrag(x,y){
+    dragging=true;
+    dragStartTime=Date.now();
     const rect = bubbleWrap.getBoundingClientRect();
-    offX = e.clientX - rect.left;
-    offY = e.clientY - rect.top;
+    offX = x - rect.left;
+    offY = y - rect.top;
+  }
+  function moveDrag(x,y){
+    if(!dragging) return;
+    bubbleWrap.style.left = (x-offX)+"px";
+    bubbleWrap.style.top  = (y-offY)+"px";
+  }
+  function endDrag(){
+    if(!dragging) return false;
+    dragging=false;
+    savePos();
+    const dt = Date.now()-dragStartTime;
+    return dt < 200; // true => tap corto
+  }
+
+  // mouse
+  bubbleBtn.addEventListener("mousedown", e=>{
+    startDrag(e.clientX,e.clientY);
     e.preventDefault();
   });
-
   window.addEventListener("mousemove", e=>{
-    if(!drag) return;
-    const x = e.clientX - offX;
-    const y = e.clientY - offY;
-    bubbleWrap.style.left = x+"px";
-    bubbleWrap.style.top  = y+"px";
+    moveDrag(e.clientX,e.clientY);
   });
-
   window.addEventListener("mouseup", ()=>{
-    if(drag){
-      drag=false;
-      savePos();
-    }
-  });
-
-  // en pantallas touch
-  bubbleBtn.addEventListener("touchstart", e=>{
-    drag=true;
-    const t=e.touches[0];
-    const rect = bubbleWrap.getBoundingClientRect();
-    offX = t.clientX - rect.left;
-    offY = t.clientY - rect.top;
-  }, {passive:false});
-
-  window.addEventListener("touchmove", e=>{
-    if(!drag) return;
-    const t=e.touches[0];
-    const x = t.clientX - offX;
-    const y = t.clientY - offY;
-    bubbleWrap.style.left = x+"px";
-    bubbleWrap.style.top  = y+"px";
-  }, {passive:false});
-
-  window.addEventListener("touchend", ()=>{
-    if(drag){
-      drag=false;
-      savePos();
-    }
-  });
-})();
-
-/* ====== TOGGLE PANEL ======
-   - click corto en la burbuja abre/cierra el panel
-   - pero si estás arrastrando no lo tomamos como click
-*/
-(function setupTogglePanel(){
-  let dragStartedAt = 0;
-
-  bubbleBtn.addEventListener("mousedown", ()=>{ dragStartedAt = Date.now(); });
-  window.addEventListener("mouseup", ()=>{
-    const dt = Date.now()-dragStartedAt;
-    // si lo soltaste muy rápido (tap), toggle
-    if(dt < 200){
-      bubblePanel.style.display = bubblePanel.style.display==="block" ? "none" : "block";
+    const isTap = endDrag();
+    if(isTap){
+      togglePanel();
     }
   });
 
   // touch
-  bubbleBtn.addEventListener("touchstart", ()=>{ dragStartedAt = Date.now(); }, {passive:false});
+  bubbleBtn.addEventListener("touchstart", e=>{
+    const t=e.touches[0];
+    startDrag(t.clientX,t.clientY);
+  }, {passive:false});
+  window.addEventListener("touchmove", e=>{
+    const t=e.touches[0];
+    moveDrag(t.clientX,t.clientY);
+  }, {passive:false});
   window.addEventListener("touchend", ()=>{
-    const dt = Date.now()-dragStartedAt;
-    if(dt < 200){
-      bubblePanel.style.display = bubblePanel.style.display==="block" ? "none" : "block";
+    const isTap = endDrag();
+    if(isTap){
+      togglePanel();
+    }
+  });
+
+  function togglePanel(){
+    if(bubblePanel.style.display==="block"){
+      bubblePanel.style.display="none";
+      return;
+    }
+    // vamos a decidir si abrimos hacia abajo o hacia arriba
+    positionPanelAroundBubble();
+    bubblePanel.style.display="block";
+  }
+
+  function positionPanelAroundBubble(){
+    const vw = window.innerWidth;
+    const vh = window.innerHeight;
+    const r = bubbleWrap.getBoundingClientRect();
+    const openUp = (r.bottom + 260 > vh); // si abajo no hay espacio
+
+    // reseteamos estilos
+    bubblePanel.style.top = "";
+    bubblePanel.style.bottom = "";
+    bubblePanel.style.left = "";
+
+    // horizontal: que no se salga
+    let left = r.left;
+    const panelW = 300; // max-width
+    if(left + panelW > vw-8){
+      left = vw - panelW - 8;
+    }
+    if(left < 8){
+      left = 8;
+    }
+
+    bubblePanel.style.left = (left - r.left) + "px";
+
+    if(openUp){
+      // abre hacia arriba
+      bubblePanel.style.bottom = "56px"; // un poco arriba de la burbuja
+      bubblePanel.style.top = "auto";
+
+      bubblePanelInner.style.borderRadius = "14px 14px 14px 14px";
+    }else{
+      // abre hacia abajo
+      bubblePanel.style.top = "56px";
+      bubblePanel.style.bottom = "auto";
+
+      bubblePanelInner.style.borderRadius = "14px 14px 14px 14px";
+    }
+  }
+
+  // si haces scroll/resize y está abierto, reubicar
+  window.addEventListener("resize", ()=>{
+    if(bubblePanel.style.display==="block"){
+      positionPanelAroundBubble();
+    }
+  });
+  window.addEventListener("scroll", ()=>{
+    if(bubblePanel.style.display==="block"){
+      positionPanelAroundBubble();
     }
   });
 })();
@@ -655,6 +688,8 @@ const bubblePanel  = document.getElementById("bubblePanel");
 /* =======================
    MAP + LAYERS
    ======================= */
+let view, vivLayer, limProvDraw, limDistDraw, limDeptDraw, initialViewpointPromise;
+
 require([
   "esri/Map",
   "esri/views/MapView",
@@ -665,7 +700,7 @@ require([
 
   const map = new Map({ basemap:"satellite" });
 
-  const view = new MapView({
+  view = new MapView({
     container:"viewDiv",
     map,
     center:[-75.2,-9.3],
@@ -673,9 +708,8 @@ require([
     padding:{ left:16, right:6, top:6, bottom:6 }
   });
 
-  const initialViewpointPromise = view.when().then(()=>view.viewpoint.clone());
+  initialViewpointPromise = view.when().then(()=>view.viewpoint.clone());
 
-  // helper glow
   function glowCIM(rgb){
     return {
       type:"cim",
@@ -693,8 +727,7 @@ require([
     };
   }
 
-  // límites base y resaltados
-  const limDeptDraw = new FeatureLayer({
+  limDeptDraw = new FeatureLayer({
     url: URL_DEP,
     title:"Límite Departamental (base)",
     popupEnabled:false,
@@ -717,7 +750,7 @@ require([
     }
   });
 
-  const limProvDraw = new FeatureLayer({
+  limProvDraw = new FeatureLayer({
     url: URL_PROV,
     title:"Límite Provincial (resaltado)",
     popupEnabled:false,
@@ -726,7 +759,7 @@ require([
     renderer:{ type:"simple", symbol:glowCIM([255,215,0]) }
   });
 
-  const limDistDraw = new FeatureLayer({
+  limDistDraw = new FeatureLayer({
     url: URL_DIST,
     title:"Límite Distrital (resaltado)",
     popupEnabled:false,
@@ -739,8 +772,7 @@ require([
   map.add(limProvDraw);
   map.add(limDistDraw);
 
-  // capa Viviendas Promovidas
-  const vivLayer = new FeatureLayer({
+  vivLayer = new FeatureLayer({
     url: URL_VIV,
     title:"Viviendas Promovidas",
     outFields:["*"],
@@ -788,7 +820,6 @@ require([
   });
   map.add(vivLayer);
 
-  // widgets
   const toggle = new BasemapToggle({ view, nextBasemap:"osm" });
   view.ui.add(toggle, "bottom-right");
   view.ui.add(new ScaleBar({view,unit:"metric"}),"bottom-left");
@@ -899,8 +930,6 @@ require([
   /* =======================
      WHERE builders
      ======================= */
-
-  // SOLO para zoom y resaltado de límites (ubigeo)
   function buildWhereUbigeo(){
     const dep  = selDep.value.trim();
     const prov = selProv.value.trim();
@@ -911,18 +940,17 @@ require([
     }else if(prov){
       return { level:"prov", where:`id_prov='${esc(prov)}'` };
     }else if(dep){
-      return { level:"dep",  where:`id_dpto='${esc(dep)}'` };
+      return { level:"dep",  where:`id_dep='${esc(dep)}'` };
     }else{
       return { level:null, where:null };
     }
   }
 
-  // Puntos: mezcla ubigeo + atributos
-  // Esto permite filtrar por año/mod/gestión solos, sin ubigeo.
+  // mezcla ubigeo + atributos => filtra SOLO la capa de puntos
   function buildWherePuntos(){
     const parts = ["1=1"];
 
-    // ubigeo: id_dep / id_prov / id_dist en la capa de viviendas
+    // ubigeo
     if(selDep.value.trim()!==""){
       parts.push(`id_dep='${esc(selDep.value.trim())}'`);
     }
@@ -992,14 +1020,13 @@ require([
   }
 
   /* =======================
-     RESALTADO Y ZOOM
+     ZOOM / RESALTADO límites
      ======================= */
-  async function zoomToBoundary(){
+  async function applyBoundaryZoom(){
     const info = buildWhereUbigeo();
     const level = info.level;
     const where = info.where;
 
-    // reset resaltos si nada seleccionado
     if(!level){
       const vp = await initialViewpointPromise;
       try{ await view.goTo(vp, { duration:700 }); }catch(_){}
@@ -1010,30 +1037,29 @@ require([
       return;
     }
 
-    let src = null;
     if(level==="dist"){
-      src = limDistDraw;
       limDistDraw.definitionExpression = where;
       limDistDraw.visible=true;
       limProvDraw.visible=false;
       limProvDraw.definitionExpression=null;
     }else if(level==="prov"){
-      src = limProvDraw;
       limProvDraw.definitionExpression = where;
       limProvDraw.visible=true;
       limDistDraw.visible=false;
       limDistDraw.definitionExpression=null;
     }else{
-      // dep → usamos limDeptDraw (si queremos resaltarlo podríamos,
-      // pero por ahora solo zoom)
+      // dep: no resaltamos con glow distinto, dejamos solo base
       limProvDraw.visible=false;
       limProvDraw.definitionExpression=null;
       limDistDraw.visible=false;
       limDistDraw.definitionExpression=null;
-      src = limDeptDraw;
     }
 
     try{
+      const src = (level==="dist")? limDistDraw :
+                  (level==="prov")? limProvDraw :
+                  limDeptDraw;
+
       const q = src.createQuery();
       q.where = where;
       q.returnGeometry = true;
@@ -1042,51 +1068,63 @@ require([
       const r = await src.queryFeatures(q);
       const g = r.features?.[0]?.geometry;
       if(g){
-        await view.goTo({ target:g, padding:{ left:40,right:40,top:40,bottom:40 } }, { duration:700, easing:"ease-in-out" });
+        await view.goTo(
+          { target:g, padding:{ left:40,right:40,top:40,bottom:40 } },
+          { duration:700, easing:"ease-in-out" }
+        );
       }
     }catch(err){
-      console.warn("zoomToBoundary fail", err);
+      console.warn("applyBoundaryZoom fail", err);
     }
+  }
+
+  /* =======================
+     FILTRO DE PUNTOS
+     ======================= */
+  async function applyPointFilterOnly(){
+    vivLayer.definitionExpression = buildWherePuntos();
+    await updateKPIs();
   }
 
   /* =======================
      REFRESH GENERAL
      ======================= */
   async function refreshAll(){
-    // 1. aplica filtros completos a los puntos
-    vivLayer.definitionExpression = buildWherePuntos();
-
-    // 2. KPIs sobre esos puntos
-    await updateKPIs();
-
-    // 3. zoom / highlight SOLO por ubigeo
-    await zoomToBoundary();
+    await applyPointFilterOnly(); // siempre actualizar puntos/KPIs
+    await applyBoundaryZoom();    // y actualizar zoom si cambió ubigeo
   }
 
   /* =======================
      LISTENERS
      ======================= */
-  // cambios territoriales
+  // Territorio (estos sí mueven zoom):
   selDep.addEventListener("change", async ()=>{
     await loadProvs();
     await refreshAll();
   });
-
   selProv.addEventListener("change", async ()=>{
     await loadDists();
     await refreshAll();
   });
-
   selDist.addEventListener("change", async ()=>{
     await refreshAll();
   });
 
-  // cambios de atributos (anio / modalidad / modalidad_1 / gestion)
-  [selAnio, selModalidad, selModalidad1, selFlag].forEach(el=>{
-    el.addEventListener("change", refreshAll);
+  // Atributos (estos NO mueven zoom, solo puntos/KPIs):
+  selAnio.addEventListener("change", async ()=>{
+    await applyPointFilterOnly();
+  });
+  selModalidad.addEventListener("change", async ()=>{
+    await applyPointFilterOnly();
+  });
+  selModalidad1.addEventListener("change", async ()=>{
+    await applyPointFilterOnly();
+  });
+  selFlag.addEventListener("change", async ()=>{
+    await applyPointFilterOnly();
   });
 
-  // limpiar todo
+  // Limpiar
   btnClear.addEventListener("click", async ()=>{
     selDep.value="";
     selProv.innerHTML='<option value="">(Todas)</option>';
@@ -1104,17 +1142,20 @@ require([
     limDistDraw.visible=false;
     limDistDraw.definitionExpression=null;
 
-    await refreshAll();
+    // reset puntos/kpis
+    await applyPointFilterOnly();
+    // reset zoom
+    await applyBoundaryZoom();
   });
 
   /* =======================
      INIT
      ======================= */
   (async function init(){
-    // 1. combos ubigeo
+    // ubigeo combos
     await loadDeps();
 
-    // 2. combos atributos de la capa Viviendas Promovidas
+    // atributos combos desde capa viviendas
     const [anios,mods,mods1] = await Promise.all([
       loadDistinct(URL_VIV,"anio"),
       loadDistinct(URL_VIV,"modalidad"),
@@ -1123,13 +1164,13 @@ require([
     fillSelectStatic(selAnio, anios, "(Todos)");
     fillSelectStatic(selModalidad, mods, "(Todos)");
     fillSelectStatic(selModalidad1, mods1, "(Todos)");
-    // selFlag ya está fijo
+    // selFlag ya está definido fijo
 
-    // 3. primera carga
-    await refreshAll();
-
-    // arrancar con el panel de filtros cerrado
-    bubblePanel.style.display = "none";
+    // primera carga: puntos y KPIs
+    await applyPointFilterOnly();
+    // zoom inicial al país (no necesitamos boundary todavía)
+    const vp = await initialViewpointPromise;
+    try{ await view.goTo(vp, { duration:0 }); }catch(_){}
   })();
 
 });
