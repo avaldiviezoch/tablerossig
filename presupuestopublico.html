@@ -5,28 +5,33 @@
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
 <title>Presupuesto público 2025 – MVCS</title>
 
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+<!-- Fuente institucional -->
+<link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;600;700;800;900&display=swap" rel="stylesheet"/>
 
 <style>
 :root{
   --accent-red:#d00000;
   --txt-main:#ffffff;
   --azul-mvcs:#1e6eb6;
+  --celeste-pim:#5ebad6;
   --gris-fondo:#f8f9fa;
   --gris-borde:#d1d5db;
   --gris-texto:#1e293b;
   --gris-sec:#4b5563;
+  --bg-page:#e5e7eb;
+  --bg-white:#ffffff;
 }
 
+/* RESET */
 *{box-sizing:border-box;margin:0;padding:0;}
 body{
-  font-family:'Inter',system-ui,Segoe UI,Roboto,Helvetica,Arial,sans-serif;
-  background:#e5e7eb;
+  font-family:'Nunito Sans',system-ui,Segoe UI,Roboto,Helvetica,Arial,sans-serif;
+  background:var(--bg-page);
   color:#111;
-  line-height:1.4;
+  line-height:1.5;
 }
 
-/* === HERO === */
+/* ================= HERO ================= */
 .hero{
   position:relative;
   width:100%;
@@ -38,7 +43,6 @@ body{
   justify-content:space-between;
   background:#000;
 }
-
 .hero::before{
   content:"";
   position:absolute;
@@ -47,9 +51,7 @@ body{
   background-size:cover;
   background-position:center;
   z-index:0;
-  filter:brightness(1);
 }
-
 .hero::after{
   content:"";
   position:absolute;
@@ -74,7 +76,10 @@ body{
   padding:1.2rem 3rem 0;
   color:var(--txt-main);
 }
-.hero-header img{height:48px;object-fit:contain;}
+.hero-header img{
+  height:48px;
+  object-fit:contain;
+}
 nav.hero-nav{
   display:flex;
   flex-wrap:wrap;
@@ -84,7 +89,7 @@ nav.hero-nav{
 nav.hero-nav a{
   color:var(--txt-main);
   text-decoration:none;
-  font-weight:500;
+  font-weight:600;
   font-size:0.95rem;
   transition:.3s;
 }
@@ -98,7 +103,6 @@ nav.hero-nav a:hover{color:#ffdddd;}
   padding:0 3rem 6rem;
   color:var(--txt-main);
 }
-
 .hero-left{
   position:absolute;
   left:6rem;
@@ -107,11 +111,11 @@ nav.hero-nav a:hover{color:#ffdddd;}
 }
 .hero-title{
   font-size:4.8rem;
-  font-weight:700;
+  font-weight:800;
   line-height:1.05;
   position:relative;
-  display:inline-block;
   margin-bottom:0.75rem;
+  color:var(--txt-main);
 }
 .hero-underline{
   position:absolute;
@@ -123,41 +127,46 @@ nav.hero-nav a:hover{color:#ffdddd;}
   animation:underline 3.5s ease-out forwards;
 }
 @keyframes underline{
-  from{width:0;} to{width:100%;}
+  from{width:0;}
+  to{width:100%;}
 }
 .hero-sub{
   font-size:1rem;
   color:rgba(255,255,255,0.85);
-  font-weight:500;
+  font-weight:600;
   margin-top:.75rem;
 }
-
 .hero-right{
   position:absolute;
   right:8rem;
   top:64%;
   transform:translateY(-30%);
   max-width:480px;
-  font-size:1.15rem;
+  font-size:1.1rem;
   line-height:1.55;
+  font-weight:400;
   color:var(--txt-main);
+  text-align:left;
 }
 .hero-right b{font-weight:700;}
 
-/* === INDICADOR PIM === */
+/* ================= PIM (contador grande) ================= */
 .pim-block{
   background:var(--gris-fondo);
   border-top:1px solid var(--gris-borde);
-  border-bottom:1px solid var(--gris-borde);
+  /* sin border-bottom aquí */
   padding:3rem 1rem 3.5rem;
   text-align:center;
   color:var(--gris-texto);
 }
 
+/* título institucional pequeño */
 .pim-title{
   font-size:1rem;
-  font-weight:600;
+  font-weight:700;
   margin-bottom:1rem;
+  color:var(--gris-texto);
+  text-align:center;
 }
 
 .pim-center-wrap{
@@ -165,33 +174,24 @@ nav.hero-nav a:hover{color:#ffdddd;}
   place-items:center;
   margin-bottom:1.25rem;
 }
-
 .pim-row{
   display:inline-flex;
   align-items:flex-end;
   gap:.8rem;
   transform-origin:center bottom;
 }
-
-/* Prefijo */
 .pim-prefix{
-  font-weight:900;
+  font-weight:800;
   color:var(--azul-mvcs);
-  line-height:1;
   transform:translateY(-6%);
   font-size:clamp(32px,3vw,52px);
   opacity:0;
   transition:.35s ease;
 }
-
-/* Valor */
 .pim-amount{
   font-weight:900;
   color:var(--azul-mvcs);
-  line-height:1.05;
-  font-size:clamp(50px,5vw,88px); /* más grande */
-  letter-spacing:.02em;
-  white-space:nowrap;
+  font-size:clamp(50px,5vw,88px);
   opacity:0;
   transform:translateY(8px);
   transition:.35s ease;
@@ -199,40 +199,269 @@ nav.hero-nav a:hover{color:#ffdddd;}
 .pim-amount.ready{opacity:1;transform:translateY(0);}
 .pim-prefix.ready{opacity:1;transform:translateY(0);}
 
-/* Fuente */
-.pim-source{
+/* fuente / actualizado - ESTILO UNIFICADO */
+.data-source{
   font-size:.85rem;
-  color:var(--gris-sec);
   line-height:1.4;
+  color:var(--gris-sec);
+  text-align:center;
+  font-weight:400;
+  font-style:normal;
 }
-.pim-source b{color:#000;}
-.pim-source em{font-style:italic;color:#555;}
+.data-source b{
+  color:#000;
+  font-weight:700;
+  font-style:normal;
+}
+.data-source em{
+  font-style:italic;
+  color:#555;
+  font-weight:400;
+}
 
-/* === RESPONSIVE === */
-@media(max-width:1200px){
+/* ================= ÁREAS DE ACCIÓN ================= */
+.areas-wrapper{
+  background:var(--bg-white);
+  border-top:1px solid var(--gris-borde);
+  /* IMPORTANTE: quitamos border-bottom para que NO quede línea gris arriba del bloque de inversión */
+  /* border-bottom:1px solid var(--gris-borde);  <- eliminado */
+  padding:5rem 2rem 6rem;
+}
+.areas-header{text-align:center;margin-bottom:3rem;}
+.areas-title{
+  display:inline-block;
+  font-size:1.7rem;
+  font-weight:800;
+  color:var(--azul-mvcs);
+  position:relative;
+  padding-bottom:.6rem;
+}
+.areas-title::after{
+  content:"";
+  position:absolute;
+  left:0;
+  bottom:0;
+  height:4px;
+  width:100%;
+  background:var(--accent-red);
+}
+
+.areas-grid{
+  max-width:1200px;
+  margin:0 auto;
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:3rem 3rem;
+  align-items:center;
+}
+.col-left,.col-right{
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  gap:2.5rem;
+  opacity:0;
+  transition:all .7s ease;
+}
+.col-left{transform:translateX(-50px);}
+.col-right{transform:translateX(50px);}
+.col-left.visible,.col-right.visible{opacity:1;transform:translateX(0);}
+
+.area-block-text{
+  font-size:1rem;
+  line-height:1.6;
+  color:#1f2937;
+  text-align:justify;
+}
+.area-block-text b{font-weight:700;}
+.area-block-text ul{
+  margin-top:.6rem;
+  margin-bottom:1.2rem;
+  padding-left:1.25rem;
+}
+.area-block-text li{
+  list-style:disc;
+  margin-bottom:.3rem;
+}
+
+.area-img{
+  width:100%;
+  background:#fff;
+  overflow:hidden;
+  border-radius:8px;
+  box-shadow:0 6px 14px rgba(0,0,0,0.08);
+}
+.area-img img{
+  width:100%;
+  height:auto;
+  display:block;
+  object-fit:cover;
+}
+
+/* ================= INVERSIÓN (gráfico barras) ================= */
+/* Sección blanca SIN borde superior, sólo inferior muy suave MÁS ABAJO en caso venga otra sección */
+.inv-wrapper{
+  background:var(--bg-white);
+  /* sin border-top */
+  border-bottom:1px solid var(--gris-borde);
+  padding:3rem 1rem 3rem 1rem;
+  text-align:center;
+  color:var(--gris-texto);
+  font-family:'Nunito Sans',system-ui,Segoe UI,Roboto,Helvetica,Arial,sans-serif;
+}
+
+/* título EXACTAMENTE igual a pim-title */
+.inv-h2{
+  font-size:1rem;
+  font-weight:700;
+  margin-bottom:1.25rem;
+  color:var(--gris-texto);
+  text-align:center;
+}
+
+.inv-chart-zone{
+  max-width:900px;
+  margin:0 auto;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+}
+
+/* canvas */
+.inv-chart-wrap{
+  position:relative;
+  width:100%;
+  height:180px;
+  margin-bottom:1rem;
+}
+#chart{
+  width:100%;
+  height:100%;
+  display:block;
+}
+
+/* tooltip */
+.inv-tip{
+  position:absolute;
+  pointer-events:none;
+  background:#fff;
+  border:1px solid #d1d5db;
+  border-radius:8px;
+  box-shadow:0 10px 28px rgba(0,0,0,.15);
+  padding:.6rem .75rem;
+  font-size:12px;
+  line-height:1.4;
+  color:#1e293b;
+  font-weight:400;
+  min-width:180px;
+  max-width:260px;
+  opacity:0;
+  transform:translate(-50%,-110%);
+  transition:opacity .12s ease;
+  text-align:left;
+  font-family:'Nunito Sans',system-ui,Segoe UI,Roboto,Helvetica,Arial,sans-serif;
+}
+.inv-tip-row{
+  display:flex;
+  justify-content:space-between;
+  gap:.75rem;
+  white-space:nowrap;
+}
+.inv-tip-key{
+  color:#6b7280;
+  font-weight:400;
+}
+.inv-tip-val{
+  color:#1e293b;
+  font-weight:800;
+}
+
+/* leyenda */
+.inv-legend{
+  display:flex;
+  flex-wrap:wrap;
+  justify-content:center;
+  gap:1.25rem;
+  font-size:.8rem;
+  font-weight:600;
+  color:#1e1e1e;
+  font-family:'Nunito Sans',system-ui,Segoe UI,Roboto,Helvetica,Arial,sans-serif;
+  margin-bottom:1rem;
+}
+.inv-leg-item{
+  display:flex;
+  align-items:center;
+  gap:.5rem;
+  white-space:nowrap;
+}
+.inv-dot{
+  width:10px;
+  height:10px;
+  border-radius:50%;
+  flex-shrink:0;
+}
+.inv-dot-dev{ background:var(--azul-mvcs); }   /* devengado */
+.inv-dot-pim{ background:var(--celeste-pim); } /* PIM */
+
+/* FUENTE / ACTUALIZADO - UNIFICADO con .data-source */
+.inv-source{
+  font-size:.85rem;
+  line-height:1.4;
+  color:var(--gris-sec);
+  text-align:center;
+  font-weight:400;
+  font-style:normal;
+}
+.inv-source strong{
+  color:#000;
+  font-weight:700;
+  font-style:normal;
+}
+.inv-source span#lastUpdate{
+  font-style:italic;
+  color:#555;
+  font-weight:400;
+}
+
+/* RESPONSIVE */
+@media(max-width:1000px){
   .hero-left{left:3rem;bottom:5rem;}
-  .hero-title{font-size:4rem;}
-  .hero-right{right:3rem;top:62%;max-width:440px;font-size:1.05rem;}
-}
+  .hero-title{font-size:3.6rem;}
+  .hero-right{
+    right:3rem;
+    top:62%;
+    max-width:440px;
+    font-size:1.05rem;
+  }
 
-@media(max-width:900px){
-  .hero{height:auto;}
-  .hero-header{padding:1rem 1.25rem 0;flex-direction:column;}
-  nav.hero-nav{gap:1rem 1.5rem;justify-content:flex-start;}
-  .hero-content{padding:4rem 1.25rem 3rem;display:flex;flex-direction:column;}
-  .hero-left{position:static;margin-bottom:2rem;}
-  .hero-title{font-size:2.4rem;}
-  .hero-right{position:static;max-width:100%;font-size:1rem;}
-  .pim-prefix{font-size:clamp(28px,5vw,40px);}
-  .pim-amount{font-size:clamp(44px,9vw,60px);}
+  .areas-grid{
+    grid-template-columns:1fr;
+    gap:3rem;
+  }
+  .col-left,.col-right{
+    opacity:1;
+    transform:none;
+  }
+}
+@media(max-width:480px){
+  .inv-chart-wrap{
+    height:200px;
+  }
+  .inv-legend{
+    font-size:.8rem;
+  }
+  .data-source,
+  .inv-source{
+    font-size:.8rem;
+  }
 }
 </style>
 </head>
 <body>
 
+<!-- HERO -->
 <section class="hero">
   <header class="hero-header">
-    <img src="https://lh3.googleusercontent.com/d/13dVy7pl61N5pPczCq0jo7A1S2NGTCaLe=w1000" alt="MVCS Logo"/>
+    <img src="https://lh3.googleusercontent.com/d/1EjnXS6iO0TkdAzQyg3rstHw4XL7Mk59g=w1000" alt="MVCS Logo"/>
     <nav class="hero-nav">
       <a href="#areas">Áreas de acción</a>
       <a href="#avance">¿Cómo vamos?</a>
@@ -263,6 +492,7 @@ nav.hero-nav a:hover{color:#ffdddd;}
   </div>
 </section>
 
+<!-- BLOQUE PIM -->
 <section class="pim-block" id="pim">
   <h2 class="pim-title">Presupuesto Institucional Modificado 2025</h2>
 
@@ -273,85 +503,451 @@ nav.hero-nav a:hover{color:#ffdddd;}
     </div>
   </div>
 
-  <p class="pim-source">
+  <p class="data-source">
     <b>Fuente:</b> Ministerio de Economía y Finanzas – MEF<br/>
-    Portal de Datos Abiertos · <em id="pim-lastUpdate">Actualizado al —</em>
+    Portal de Datos Abiertos – <em id="pim-lastUpdate">Actualizado al —</em>
   </p>
 </section>
 
+<!-- ÁREAS DE ACCIÓN -->
+<section class="areas-wrapper" id="areas">
+  <div class="areas-header">
+    <h2 class="areas-title">Áreas de acción</h2>
+  </div>
+
+  <div class="areas-grid">
+    <div class="col-left" id="col-left">
+      <div class="area-block-text">
+        <p><b>Ejecución de obras de agua potable y saneamiento a nivel nacional,</b> a través del:</p>
+        <ul>
+          <li>Programa Nacional de Saneamiento Urbano (PNSU).</li>
+          <li>Programa Nacional de Saneamiento Rural (PNSR).</li>
+          <li>Programa Agua Segura para Lima y Callao (PASLC).</li>
+        </ul>
+        <p>
+          Reactivación de proyectos de agua y saneamiento urbano, en beneficio de la población; y el financiamiento de la elaboración de estudios de preinversión para ejecutarse a nivel nacional.
+        </p>
+      </div>
+
+      <div class="area-img">
+        <img src="https://lh3.googleusercontent.com/d/1XE4OUAOoZiEEKayGMRe9C0BSTCm0Do9u=w1000" alt="Proyecto rural de vivienda"/>
+      </div>
+    </div>
+
+    <div class="col-right" id="col-right">
+      <div class="area-img">
+        <img src="https://lh3.googleusercontent.com/d/1Rlix_IzbFNm1s9DyFFlHNW-7nnYcz-5e=w1000" alt="Obras de agua y saneamiento urbano"/>
+      </div>
+
+      <div class="area-block-text">
+        <p><b>Promoción de viviendas urbanas,</b> a través del:</p>
+        <ul>
+          <li>Bono Familiar Habitacional de Techo Propio.</li>
+          <li>Bono del Buen Pagador del Crédito Mivivienda.</li>
+          <li>Bono de Arrendamiento de Viviendas para Emergencias (BAE).</li>
+          <li>Viviendas Wasiymi para las zonas rurales, destinadas a atender a personas en situación de pobreza o pobreza extrema que viven en zonas de heladas y friaje.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- INVERSIÓN POR ACTIVIDAD / PROYECTO -->
+<section class="inv-wrapper" id="avance">
+  <div class="inv-chart-zone">
+    <h2 class="inv-h2 pim-title">Inversión pública por actividad / proyecto 2025</h2>
+
+    <div class="inv-chart-wrap" id="wrap">
+      <canvas id="chart"></canvas>
+      <div id="tip" class="inv-tip"></div>
+    </div>
+
+    <div class="inv-legend">
+      <span class="inv-leg-item">
+        <span class="inv-dot inv-dot-dev"></span>
+        <span>Monto devengado</span>
+      </span>
+      <span class="inv-leg-item">
+        <span class="inv-dot inv-dot-pim"></span>
+        <span>Monto PIM</span>
+      </span>
+    </div>
+
+    <p class="inv-source data-source">
+      <b>Fuente:</b> Ministerio de Economía y Finanzas – MEF<br/>
+      Portal de Datos Abiertos – <span id="lastUpdate"><em>Actualizado al —</em></span>
+    </p>
+  </div>
+</section>
+
 <script>
-const SERVICE = "https://pportalgis.vivienda.gob.pe/pfdserver/rest/services/OGEI/Mapa_Inversiones_MEF/FeatureServer/13/query";
-const WHERE = "sector_nombre = 'VIVIENDA CONSTRUCCION Y SANEAMIENTO' AND ano_eje = 2025";
+/* =======================
+   BLOQUE PIM (contador animado desde BD)
+   ======================= */
+const SERVICE_PIM="https://pportalgis.vivienda.gob.pe/pfdserver/rest/services/OGEI/Mapa_Inversiones_MEF/FeatureServer/13/query";
+const WHERE_PIM="sector_nombre = 'VIVIENDA CONSTRUCCION Y SANEAMIENTO' AND ano_eje = 2025";
 
 async function fetchPIMandMaxDate(){
-  const outStats = JSON.stringify([
-    { statisticType: "sum", onStatisticField: "monto_pim", outStatisticFieldName: "sum_pim" },
-    { statisticType: "max", onStatisticField: "fecha_proceso", outStatisticFieldName: "max_fp" }
+  const outStats=JSON.stringify([
+    {statisticType:"sum",onStatisticField:"monto_pim",outStatisticFieldName:"sum_pim"},
+    {statisticType:"max",onStatisticField:"fecha_proceso",outStatisticFieldName:"max_fp"}
   ]);
-  const qs = new URLSearchParams({
-    where: WHERE, outStatistics: outStats, returnGeometry: "false", f: "json"
+  const qs=new URLSearchParams({
+    where:WHERE_PIM,
+    outStatistics:outStats,
+    returnGeometry:"false",
+    f:"json"
   });
-  const url = SERVICE + "?" + qs.toString();
-  const res = await fetch(url, { cache: "no-store" });
-  const json = await res.json();
-  const attrs = json.features?.[0]?.attributes || {};
-  return { total: Number(attrs.sum_pim) || 0, lastTs: Number(attrs.max_fp) || null };
+  const res=await fetch(SERVICE_PIM+"?"+qs.toString(),{cache:"no-store"});
+  const json=await res.json();
+  const attrs=json.features?.[0]?.attributes||{};
+  return{
+    total:Number(attrs.sum_pim)||0,
+    lastTs:(attrs.max_fp!=null)?Number(attrs.max_fp):null
+  };
 }
-
-function animateNumber(el, target, ms=1700){
-  const fmt = new Intl.NumberFormat('es-PE');
-  const start = performance.now();
+function animateNumber(el,target,ms=1700){
+  const fmt=new Intl.NumberFormat('es-PE');
+  const start=performance.now();
   function tick(t){
-    const p = Math.min(1, (t - start) / ms);
-    const eased = 1 - Math.pow(1 - p, 3);
-    const cur = Math.round(target * eased);
-    el.textContent = fmt.format(cur);
-    if(p < 1) requestAnimationFrame(tick);
+    const p=Math.min(1,(t-start)/ms);
+    const eased=1-Math.pow(1-p,3);
+    const cur=Math.round(target*eased);
+    el.textContent=fmt.format(cur);
+    if(p<1)requestAnimationFrame(tick);
   }
   requestAnimationFrame(tick);
 }
+function formatEsDate(ts){
+  if(!Number.isFinite(ts))return"—";
+  const d=new Date(ts);
+  return new Intl.DateTimeFormat("es-PE",{day:"2-digit",month:"long",year:"numeric"}).format(d);
+}
+(async()=>{
+  const valEl=document.getElementById('pim-val');
+  const curEl=document.getElementById('pim-cur');
+  const lastEl=document.getElementById('pim-lastUpdate');
+  try{
+    const{total,lastTs}=await fetchPIMandMaxDate();
+    requestAnimationFrame(()=>{
+      valEl.classList.add('ready');
+      curEl.classList.add('ready');
+    });
+    animateNumber(valEl,total);
+    lastEl.textContent="Actualizado al "+formatEsDate(lastTs);
+  }catch(e){
+    valEl.textContent="—";
+    lastEl.textContent="Actualizado al —";
+  }
+})();
 
+/* =======================
+   ÁREAS DE ACCIÓN efecto llegada
+   ======================= */
+const leftEl=document.getElementById('col-left');
+const rightEl=document.getElementById('col-right');
+function revealOnScroll(){
+  const vh=window.innerHeight;
+  if(leftEl.getBoundingClientRect().top < vh*0.8) leftEl.classList.add('visible');
+  if(rightEl.getBoundingClientRect().top < vh*0.8) rightEl.classList.add('visible');
+}
+window.addEventListener('scroll',revealOnScroll,{passive:true});
+window.addEventListener('load',revealOnScroll,{passive:true});
+
+/* =======================
+   GRÁFICO INVERSIÓN (datos vivos desde BD)
+   ======================= */
+const URL13="https://pportalgis.vivienda.gob.pe/pfdserver/rest/services/OGEI/Mapa_Inversiones_MEF/FeatureServer/13/query";
+const YEAR=2025;
+
+function fmtM(v){
+  const n=Number(v)||0;
+  return (n/1e6).toFixed(3)
+    .replace(/\B(?=(\d{3})+(?!\d))/g,'.')
+    .replace(/(\.\d*?)0+$/,'$1')
+    .replace(/\.$/,'')+" M";
+}
+function fmtPct(p){
+  return `${Math.round((p||0))}%`;
+}
+function fmtAxisValRaw(v){
+  const n=Number(v)||0;
+  if(n>=1e9) return (n/1e9).toFixed(1).replace(/\.0$/,'')+" B";
+  if(n>=1e6){
+    let millions=n/1e6;
+    const txt=(millions<10?millions.toFixed(1):millions.toFixed(0)).replace(/\.0$/,'');
+    return txt+" M";
+  }
+  return n.toLocaleString('es-PE');
+}
+
+/* datos agrupados PROYECTO / ACTIVIDAD */
+async function fetchStats(){
+  const params=new URLSearchParams({
+    f:"json",
+    where:`ano_eje = ${YEAR}`,
+    returnGeometry:"false",
+    groupByFieldsForStatistics:"tipo_act_proy_nombre",
+    outFields:"tipo_act_proy_nombre",
+    orderByFields:"tipo_act_proy_nombre",
+    outStatistics:JSON.stringify([
+      {"statisticType":"sum","onStatisticField":"monto_pim","outStatisticFieldName":"sum_pim"},
+      {"statisticType":"sum","onStatisticField":"monto_devengado","outStatisticFieldName":"sum_dev"}
+    ])
+  });
+
+  const res=await fetch(URL13,{
+    method:"POST",
+    headers:{"Content-Type":"application/x-www-form-urlencoded;charset=UTF-8"},
+    body:params.toString(),
+    cache:"no-store"
+  });
+  if(!res.ok) throw new Error("HTTP "+res.status);
+  const j=await res.json();
+  if(j.error) throw new Error(j.error.message||"Error ArcGIS");
+
+  const rows=(j.features||[]).map(f=>f.attributes||{});
+  const order=["PROYECTO","ACTIVIDAD"];
+  rows.sort((a,b)=>{
+    const ai=order.indexOf(a.tipo_act_proy_nombre);
+    const bi=order.indexOf(b.tipo_act_proy_nombre);
+    return (ai<0?99:ai)-(bi<0?99:bi);
+  });
+
+  return rows.map(r=>{
+    const pim=Number(r.sum_pim)||0;
+    const dev=Number(r.sum_dev)||0;
+    return{
+      cat:r.tipo_act_proy_nombre || "—",
+      pim,
+      dev,
+      pct:pim>0?(dev/pim*100):0
+    };
+  });
+}
+
+/* fecha actualizada */
+async function fetchMaxDate(){
+  const params=new URLSearchParams({
+    f:"json",
+    where:`ano_eje = ${YEAR}`,
+    returnGeometry:"false",
+    outStatistics:JSON.stringify([
+      {"statisticType":"max","onStatisticField":"fecha_proceso","outStatisticFieldName":"max_fp"}
+    ])
+  });
+  const res=await fetch(URL13+"?"+params.toString(),{cache:"no-store"});
+  if(!res.ok) throw new Error("HTTP "+res.status);
+  const j=await res.json();
+  const at=j.features?.[0]?.attributes||{};
+  return Number(at.max_fp)||null;
+}
 function formatEsDate(ts){
   if(!Number.isFinite(ts)) return "—";
-  const d = new Date(ts);
+  const d=new Date(ts);
   return new Intl.DateTimeFormat("es-PE",{day:"2-digit",month:"long",year:"numeric"}).format(d);
 }
 
-function fitRow(){
-  const row = document.getElementById('pim-row');
-  row.style.transform='scale(1)';
-  const pad = Math.max(8,Math.min(window.innerWidth*0.02,24));
-  const available = window.innerWidth - pad*2;
-  const needed = row.scrollWidth;
-  if(needed>available){
-    const s=Math.max(0.85,available/needed);
-    row.style.transform=`scale(${s})`;
+/* render canvas */
+function renderChart(data){
+  const wrap=document.getElementById("wrap");
+  const canvas=document.getElementById("chart");
+  const tip=document.getElementById("tip");
+  const ctx=canvas.getContext("2d");
+
+  let dims={}, scale={}, bars=[];
+
+  function roundRect(ctx,x,y,w,h,r){
+    const rr=Math.min(r,h/2,w/2);
+    ctx.beginPath();
+    ctx.moveTo(x+rr,y);
+    ctx.arcTo(x+w,y,x+w,y+h,rr);
+    ctx.arcTo(x+w,y+h,x,y+h,rr);
+    ctx.arcTo(x,y+h,x,y,rr);
+    ctx.arcTo(x,y,x+w,y,rr);
+    ctx.closePath();
   }
+
+  function buildScale(){
+    const dpr=Math.max(1,window.devicePixelRatio||1);
+    const W=wrap.clientWidth;
+    const H=wrap.clientHeight;
+    canvas.width=W*dpr;
+    canvas.height=H*dpr;
+    canvas.style.width=W+"px";
+    canvas.style.height=H+"px";
+    ctx.setTransform(dpr,0,0,dpr,0,0);
+
+    dims={W,H};
+
+    // padding interno
+    const pad={t:20,r:20,b:40,l:90};
+
+    const maxVal=Math.max(1,...data.map(d=>d.pim));
+    const pow=Math.pow(10,Math.floor(Math.log10(maxVal)));
+    const XMAX=Math.ceil(maxVal/(pow/2))*(pow/2);
+
+    scale={
+      pad,max:XMAX,
+      x:(val)=>pad.l+(W-pad.l-pad.r)*(val/XMAX),
+      y:(i)=>{
+        const n=data.length;
+        const band=(H-pad.t-pad.b)/Math.max(1,n);
+        return pad.t+band*(i+0.5);
+      },
+      bandH:(H-pad.t-pad.b)/Math.max(1,data.length)
+    };
+
+    const barH=Math.min(32,scale.bandH*0.6);
+
+    bars=data.map((d,i)=>{
+      const cy=scale.y(i);
+      const yTop=cy-barH/2;
+      const pimW=scale.x(d.pim)-scale.x(0);
+      const devW=scale.x(d.dev)-scale.x(0);
+      return{
+        cat:d.cat,
+        pim:d.pim,
+        dev:d.dev,
+        pct:d.pct,
+        cy,
+        barH,
+        pimRect:{x:scale.x(0),y:yTop,w:pimW,h:barH},
+        devRect:{x:scale.x(0),y:yTop,w:devW,h:barH}
+      };
+    });
+  }
+
+  function draw(){
+    ctx.clearRect(0,0,dims.W,dims.H);
+
+    /* rejilla vertical punteada (referencia visual)
+       no mostramos texto de eje */
+    ctx.strokeStyle="#d1d5db";
+    ctx.lineWidth=1;
+    ctx.setLineDash([3,5]);
+    const ticks=6;
+    for(let t=0;t<=ticks;t++){
+      const v=scale.max*(t/ticks);
+      const x=scale.x(v);
+      ctx.beginPath();
+      ctx.moveTo(x,scale.pad.t);
+      ctx.lineTo(x,dims.H-scale.pad.b);
+      ctx.stroke();
+    }
+    ctx.setLineDash([]);
+
+    // etiquetas izquierda ("Proyecto", "Actividad")
+    ctx.font="700 13px 'Nunito Sans',system-ui";
+    ctx.fillStyle="#1f2937";
+    ctx.textAlign="right";
+    ctx.textBaseline="middle";
+    bars.forEach(b=>{
+      const label=b.cat.charAt(0)+b.cat.slice(1).toLowerCase();
+      ctx.fillText(label, scale.pad.l-10, b.cy);
+    });
+
+    // barras con PIM (celeste) + Devengado (azul)
+    bars.forEach(b=>{
+      ctx.fillStyle=getComputedStyle(document.documentElement).getPropertyValue('--celeste-pim').trim() || "#5ebad6";
+      roundRect(ctx,b.pimRect.x,b.pimRect.y,b.pimRect.w,b.pimRect.h,16);
+      ctx.fill();
+
+      ctx.fillStyle=getComputedStyle(document.documentElement).getPropertyValue('--azul-mvcs').trim() || "#1e6eb6";
+      roundRect(ctx,b.devRect.x,b.devRect.y,b.devRect.w,b.devRect.h,16);
+      ctx.fill();
+
+      // textos internos (montos)
+      ctx.fillStyle="#ffffff";
+      ctx.font="700 12px 'Nunito Sans',system-ui";
+      ctx.textAlign="center";
+      ctx.textBaseline="middle";
+
+      if(b.devRect.w>40){
+        const devTxt=fmtM(b.dev);
+        const devMidX=b.devRect.x+b.devRect.w/2;
+        ctx.fillText(devTxt,devMidX,b.cy);
+      }
+
+      const restW=b.pimRect.w-b.devRect.w;
+      if(restW>40){
+        const pimTxt=fmtM(b.pim);
+        const restMidX=b.devRect.x+b.devRect.w+restW/2;
+        ctx.fillText(pimTxt,restMidX,b.cy);
+      }
+
+      // porcentaje azul al final
+      ctx.font="700 12px 'Nunito Sans',system-ui";
+      ctx.textAlign="left";
+      ctx.textBaseline="middle";
+      ctx.fillStyle=getComputedStyle(document.documentElement).getPropertyValue('--azul-mvcs').trim() || "#1e6eb6";
+      const pctText=fmtPct(b.pct);
+      const pctX=b.pimRect.x+b.pimRect.w+8;
+      ctx.fillText(pctText,pctX,b.cy);
+    });
+  }
+
+  function hitTest(mx,my){
+    for(const b of bars){
+      const r=b.devRect;
+      if(mx>=r.x&&mx<=r.x+r.w&&my>=r.y&&my<=r.y+r.h)return{b,kind:"dev"};
+      const p=b.pimRect;
+      if(mx>=p.x&&mx<=p.x+p.w&&my>=p.y&&my<=p.y+p.h)return{b,kind:"pim"};
+    }
+    return null;
+  }
+
+  function attachTooltip(){
+    canvas.addEventListener("mousemove",e=>{
+      const rect=canvas.getBoundingClientRect();
+      const mx=e.clientX-rect.left;
+      const my=e.clientY-rect.top;
+      const h=hitTest(mx,my);
+      if(!h){
+        tip.style.opacity=0;
+        return;
+      }
+      const b=h.b;
+      tip.innerHTML=`
+        <div class="inv-tip-row"><span class="inv-tip-key">Categoría</span><span class="inv-tip-val">${b.cat}</span></div>
+        <div class="inv-tip-row"><span class="inv-tip-key">Monto PIM</span><span class="inv-tip-val">${fmtAxisValRaw(b.pim)}</span></div>
+        <div class="inv-tip-row"><span class="inv-tip-key">Monto devengado</span><span class="inv-tip-val">${fmtAxisValRaw(b.dev)}</span></div>
+        <div class="inv-tip-row"><span class="inv-tip-key">Avance</span><span class="inv-tip-val">${fmtPct(b.pct)}</span></div>
+      `;
+      tip.style.left=(mx+14)+"px";
+      tip.style.top =(my-14)+"px";
+      tip.style.opacity=1;
+    },{passive:true});
+
+    canvas.addEventListener("mouseleave",()=>{
+      tip.style.opacity=0;
+    },{passive:true});
+  }
+
+  function redrawAll(){
+    buildScale();
+    draw();
+  }
+
+  redrawAll();
+  attachTooltip();
+  window.addEventListener("resize",redrawAll,{passive:true});
 }
 
-(async function init(){
-  const val=document.getElementById('pim-val');
-  const cur=document.getElementById('pim-cur');
-  const last=document.getElementById('pim-lastUpdate');
+/* init gráfico con datos reales */
+(async function(){
   try{
-    const {total,lastTs}=await fetchPIMandMaxDate();
-    requestAnimationFrame(()=>{
-      val.classList.add('ready');
-      cur.classList.add('ready');
-      fitRow();
-    });
-    animateNumber(val,total);
-    last.textContent="Actualizado al "+formatEsDate(lastTs);
-  }catch(e){
-    console.error(e);
-    val.textContent="—";
-    last.textContent="Actualizado al —";
-    val.classList.add('ready');
-    cur.classList.add('ready');
-    fitRow();
+    const [rows,lastTs]=await Promise.all([fetchStats(),fetchMaxDate()]);
+    renderChart(rows);
+    const lu=document.getElementById("lastUpdate");
+    lu.innerHTML=`<em>Actualizado al ${formatEsDate(lastTs)}</em>`;
+  }catch(err){
+    console.error(err);
+    document.getElementById("wrap").innerHTML =
+      '<div style="display:grid;place-items:center;height:100%;color:#6b7280;font-size:14px;font-family:Nunito Sans,system-ui;">Error al cargar datos</div>';
   }
 })();
-window.addEventListener('resize',fitRow);
 </script>
+
 </body>
 </html>
