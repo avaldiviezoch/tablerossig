@@ -5,23 +5,28 @@
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
 <title>Presupuesto público 2025 – MVCS</title>
 
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"/>
 
 <style>
 :root{
   --accent-red:#d00000;
   --txt-main:#ffffff;
+  --azul-mvcs:#1e6eb6;
+  --gris-fondo:#f8f9fa;
+  --gris-borde:#d1d5db;
+  --gris-texto:#1e293b;
+  --gris-sec:#4b5563;
 }
 
-/* RESET */
 *{box-sizing:border-box;margin:0;padding:0;}
 body{
   font-family:'Inter',system-ui,Segoe UI,Roboto,Helvetica,Arial,sans-serif;
   background:#e5e7eb;
   color:#111;
+  line-height:1.4;
 }
 
-/* ===== HERO ===== */
+/* === HERO === */
 .hero{
   position:relative;
   width:100%;
@@ -31,9 +36,9 @@ body{
   display:flex;
   flex-direction:column;
   justify-content:space-between;
+  background:#000;
 }
 
-/* Fondo imagen */
 .hero::before{
   content:"";
   position:absolute;
@@ -45,7 +50,6 @@ body{
   filter:brightness(1);
 }
 
-/* Overlay: solo en la parte baja */
 .hero::after{
   content:"";
   position:absolute;
@@ -59,7 +63,6 @@ body{
   );
 }
 
-/* ===== HEADER ===== */
 .hero-header{
   position:relative;
   z-index:5;
@@ -71,30 +74,22 @@ body{
   padding:1.2rem 3rem 0;
   color:var(--txt-main);
 }
-.hero-header img{
-  height:48px;
-  object-fit:contain;
-}
+.hero-header img{height:48px;object-fit:contain;}
 nav.hero-nav{
   display:flex;
   flex-wrap:wrap;
   gap:2.2rem;
   justify-content:center;
-  max-width:100%;
 }
 nav.hero-nav a{
   color:var(--txt-main);
   text-decoration:none;
   font-weight:500;
   font-size:0.95rem;
-  white-space:nowrap;
   transition:.3s;
 }
-nav.hero-nav a:hover{
-  color:#ffdddd;
-}
+nav.hero-nav a:hover{color:#ffdddd;}
 
-/* ===== CONTENIDO ===== */
 .hero-content{
   position:relative;
   z-index:5;
@@ -102,19 +97,14 @@ nav.hero-nav a:hover{
   height:100%;
   padding:0 3rem 6rem;
   color:var(--txt-main);
-  display:block;
 }
 
-/* Texto izquierdo */
 .hero-left{
   position:absolute;
   left:6rem;
   bottom:6rem;
   max-width:600px;
-  color:var(--txt-main);
 }
-
-/* Título */
 .hero-title{
   font-size:4.8rem;
   font-weight:700;
@@ -122,7 +112,6 @@ nav.hero-nav a:hover{
   position:relative;
   display:inline-block;
   margin-bottom:0.75rem;
-  color:var(--txt-main);
 }
 .hero-underline{
   position:absolute;
@@ -134,8 +123,7 @@ nav.hero-nav a:hover{
   animation:underline 3.5s ease-out forwards;
 }
 @keyframes underline{
-  from{width:0;}
-  to{width:100%;}
+  from{width:0;} to{width:100%;}
 }
 .hero-sub{
   font-size:1rem;
@@ -144,7 +132,6 @@ nav.hero-nav a:hover{
   margin-top:.75rem;
 }
 
-/* Texto derecho */
 .hero-right{
   position:absolute;
   right:8rem;
@@ -153,108 +140,91 @@ nav.hero-nav a:hover{
   max-width:480px;
   font-size:1.15rem;
   line-height:1.55;
-  font-weight:400;
   color:var(--txt-main);
-  text-align:left;
 }
-.hero-right b{
-  font-weight:700;
+.hero-right b{font-weight:700;}
+
+/* === INDICADOR PIM === */
+.pim-block{
+  background:var(--gris-fondo);
+  border-top:1px solid var(--gris-borde);
+  border-bottom:1px solid var(--gris-borde);
+  padding:3rem 1rem 3.5rem;
+  text-align:center;
+  color:var(--gris-texto);
 }
 
-/* ===== BLOQUE BAJO HERO ===== */
-.after-hero{
-  background:#fff;
-  border-top:1px solid #d1d5db;
-  padding:2.5rem 1.5rem 3rem;
-  text-align:center;
-}
-.after-hero h2{
-  font-size:1.05rem;
+.pim-title{
+  font-size:1rem;
   font-weight:600;
-  color:#1e293b;
   margin-bottom:1rem;
 }
-.after-hero .big-number{
-  font-size:2.8rem;
-  font-weight:700;
-  color:#0a3a8c;
-  margin-bottom:.75rem;
-}
-.after-hero .source{
-  font-size:.8rem;
-  color:#475569;
+
+.pim-center-wrap{
+  display:grid;
+  place-items:center;
+  margin-bottom:1.25rem;
 }
 
-/* ===== RESPONSIVE ===== */
+.pim-row{
+  display:inline-flex;
+  align-items:flex-end;
+  gap:.8rem;
+  transform-origin:center bottom;
+}
 
-/* Tablet intermedia */
+/* Prefijo */
+.pim-prefix{
+  font-weight:900;
+  color:var(--azul-mvcs);
+  line-height:1;
+  transform:translateY(-6%);
+  font-size:clamp(32px,3vw,52px);
+  opacity:0;
+  transition:.35s ease;
+}
+
+/* Valor */
+.pim-amount{
+  font-weight:900;
+  color:var(--azul-mvcs);
+  line-height:1.05;
+  font-size:clamp(50px,5vw,88px); /* más grande */
+  letter-spacing:.02em;
+  white-space:nowrap;
+  opacity:0;
+  transform:translateY(8px);
+  transition:.35s ease;
+}
+.pim-amount.ready{opacity:1;transform:translateY(0);}
+.pim-prefix.ready{opacity:1;transform:translateY(0);}
+
+/* Fuente */
+.pim-source{
+  font-size:.85rem;
+  color:var(--gris-sec);
+  line-height:1.4;
+}
+.pim-source b{color:#000;}
+.pim-source em{font-style:italic;color:#555;}
+
+/* === RESPONSIVE === */
 @media(max-width:1200px){
-  .hero-left{
-    left:3rem;
-    bottom:5rem;
-    max-width:90%;
-  }
-  .hero-title{
-    font-size:4rem;
-  }
-  .hero-right{
-    right:3rem;
-    top:62%;
-    transform:translateY(-20%);
-    max-width:440px;
-    font-size:1.05rem;
-    line-height:1.5;
-  }
+  .hero-left{left:3rem;bottom:5rem;}
+  .hero-title{font-size:4rem;}
+  .hero-right{right:3rem;top:62%;max-width:440px;font-size:1.05rem;}
 }
 
-/* Móvil */
 @media(max-width:900px){
-  .hero-header{
-    padding:1rem 1.25rem 0;
-    flex-direction:column;
-    align-items:flex-start;
-  }
-  nav.hero-nav{
-    gap:1rem 1.5rem;
-    justify-content:flex-start;
-  }
-
-  .hero{
-    height:auto;
-    min-height:auto;
-  }
-
-  .hero-content{
-    position:relative;
-    padding:4rem 1.25rem 3rem;
-    display:flex;
-    flex-direction:column;
-    height:auto;
-  }
-
-  .hero-left{
-    position:static;
-    max-width:100%;
-    margin-bottom:2rem;
-  }
-  .hero-title{
-    font-size:2.4rem;
-    line-height:1.1;
-  }
-  .hero-underline{
-    height:4px;
-  }
-  .hero-sub{
-    font-size:.9rem;
-    line-height:1.4;
-  }
-
-  .hero-right{
-    position:static;
-    max-width:100%;
-    font-size:1rem;
-    line-height:1.5;
-  }
+  .hero{height:auto;}
+  .hero-header{padding:1rem 1.25rem 0;flex-direction:column;}
+  nav.hero-nav{gap:1rem 1.5rem;justify-content:flex-start;}
+  .hero-content{padding:4rem 1.25rem 3rem;display:flex;flex-direction:column;}
+  .hero-left{position:static;margin-bottom:2rem;}
+  .hero-title{font-size:2.4rem;}
+  .hero-right{position:static;max-width:100%;font-size:1rem;}
+  .pim-prefix{font-size:clamp(28px,5vw,40px);}
+  .pim-amount{font-size:clamp(44px,9vw,60px);}
 }
 </style>
 </head>
@@ -293,12 +263,95 @@ nav.hero-nav a:hover{
   </div>
 </section>
 
-<section class="after-hero">
-  <h2>Presupuesto Institucional Modificado 2025</h2>
-  <div class="big-number">S/ 4,669,987,875</div>
-  <div class="source">Fuente: Portal de Transparencia Económica – MEF / MVCS</div>
+<section class="pim-block" id="pim">
+  <h2 class="pim-title">Presupuesto Institucional Modificado 2025</h2>
+
+  <div class="pim-center-wrap">
+    <div class="pim-row" id="pim-row">
+      <div class="pim-prefix" id="pim-cur">S/</div>
+      <div class="pim-amount" id="pim-val">0</div>
+    </div>
+  </div>
+
+  <p class="pim-source">
+    <b>Fuente:</b> Ministerio de Economía y Finanzas – MEF<br/>
+    Portal de Datos Abiertos · <em id="pim-lastUpdate">Actualizado al —</em>
+  </p>
 </section>
 
+<script>
+const SERVICE = "https://pportalgis.vivienda.gob.pe/pfdserver/rest/services/OGEI/Mapa_Inversiones_MEF/FeatureServer/13/query";
+const WHERE = "sector_nombre = 'VIVIENDA CONSTRUCCION Y SANEAMIENTO' AND ano_eje = 2025";
+
+async function fetchPIMandMaxDate(){
+  const outStats = JSON.stringify([
+    { statisticType: "sum", onStatisticField: "monto_pim", outStatisticFieldName: "sum_pim" },
+    { statisticType: "max", onStatisticField: "fecha_proceso", outStatisticFieldName: "max_fp" }
+  ]);
+  const qs = new URLSearchParams({
+    where: WHERE, outStatistics: outStats, returnGeometry: "false", f: "json"
+  });
+  const url = SERVICE + "?" + qs.toString();
+  const res = await fetch(url, { cache: "no-store" });
+  const json = await res.json();
+  const attrs = json.features?.[0]?.attributes || {};
+  return { total: Number(attrs.sum_pim) || 0, lastTs: Number(attrs.max_fp) || null };
+}
+
+function animateNumber(el, target, ms=1700){
+  const fmt = new Intl.NumberFormat('es-PE');
+  const start = performance.now();
+  function tick(t){
+    const p = Math.min(1, (t - start) / ms);
+    const eased = 1 - Math.pow(1 - p, 3);
+    const cur = Math.round(target * eased);
+    el.textContent = fmt.format(cur);
+    if(p < 1) requestAnimationFrame(tick);
+  }
+  requestAnimationFrame(tick);
+}
+
+function formatEsDate(ts){
+  if(!Number.isFinite(ts)) return "—";
+  const d = new Date(ts);
+  return new Intl.DateTimeFormat("es-PE",{day:"2-digit",month:"long",year:"numeric"}).format(d);
+}
+
+function fitRow(){
+  const row = document.getElementById('pim-row');
+  row.style.transform='scale(1)';
+  const pad = Math.max(8,Math.min(window.innerWidth*0.02,24));
+  const available = window.innerWidth - pad*2;
+  const needed = row.scrollWidth;
+  if(needed>available){
+    const s=Math.max(0.85,available/needed);
+    row.style.transform=`scale(${s})`;
+  }
+}
+
+(async function init(){
+  const val=document.getElementById('pim-val');
+  const cur=document.getElementById('pim-cur');
+  const last=document.getElementById('pim-lastUpdate');
+  try{
+    const {total,lastTs}=await fetchPIMandMaxDate();
+    requestAnimationFrame(()=>{
+      val.classList.add('ready');
+      cur.classList.add('ready');
+      fitRow();
+    });
+    animateNumber(val,total);
+    last.textContent="Actualizado al "+formatEsDate(lastTs);
+  }catch(e){
+    console.error(e);
+    val.textContent="—";
+    last.textContent="Actualizado al —";
+    val.classList.add('ready');
+    cur.classList.add('ready');
+    fitRow();
+  }
+})();
+window.addEventListener('resize',fitRow);
+</script>
 </body>
 </html>
-
