@@ -1,1 +1,304 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Presupuesto público 2025 – MVCS</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+
+<style>
+:root{
+  --accent-red:#d00000;
+  --txt-main:#ffffff;
+}
+
+/* RESET */
+*{box-sizing:border-box;margin:0;padding:0;}
+body{
+  font-family:'Inter',system-ui,Segoe UI,Roboto,Helvetica,Arial,sans-serif;
+  background:#e5e7eb;
+  color:#111;
+}
+
+/* ===== HERO ===== */
+.hero{
+  position:relative;
+  width:100%;
+  height:100vh;
+  min-height:600px;
+  overflow:hidden;
+  display:flex;
+  flex-direction:column;
+  justify-content:space-between;
+}
+
+/* Fondo imagen */
+.hero::before{
+  content:"";
+  position:absolute;
+  inset:0;
+  background-image:url("https://lh3.googleusercontent.com/d/1Dm-riCsGjefQDoFktMgwsSRQNI_T8YaT=w1600");
+  background-size:cover;
+  background-position:center;
+  z-index:0;
+  filter:brightness(1);
+}
+
+/* Overlay: solo en la parte baja */
+.hero::after{
+  content:"";
+  position:absolute;
+  inset:0;
+  z-index:1;
+  background:linear-gradient(
+    to bottom,
+    rgba(0,0,0,0) 60%,
+    rgba(0,0,0,0.45) 85%,
+    rgba(0,0,0,0.7) 100%
+  );
+}
+
+/* ===== HEADER ===== */
+.hero-header{
+  position:relative;
+  z-index:5;
+  display:flex;
+  justify-content:space-between;
+  align-items:flex-start;
+  flex-wrap:wrap;
+  row-gap:1rem;
+  padding:1.2rem 3rem 0;
+  color:var(--txt-main);
+}
+.hero-header img{
+  height:48px;
+  object-fit:contain;
+}
+nav.hero-nav{
+  display:flex;
+  flex-wrap:wrap;
+  gap:2.2rem;
+  justify-content:center;
+  max-width:100%;
+}
+nav.hero-nav a{
+  color:var(--txt-main);
+  text-decoration:none;
+  font-weight:500;
+  font-size:0.95rem;
+  white-space:nowrap;
+  transition:.3s;
+}
+nav.hero-nav a:hover{
+  color:#ffdddd;
+}
+
+/* ===== CONTENIDO ===== */
+.hero-content{
+  position:relative;
+  z-index:5;
+  width:100%;
+  height:100%;
+  padding:0 3rem 6rem;
+  color:var(--txt-main);
+  display:block;
+}
+
+/* Texto izquierdo */
+.hero-left{
+  position:absolute;
+  left:6rem;
+  bottom:6rem;
+  max-width:600px;
+  color:var(--txt-main);
+}
+
+/* Título */
+.hero-title{
+  font-size:4.8rem;
+  font-weight:700;
+  line-height:1.05;
+  position:relative;
+  display:inline-block;
+  margin-bottom:0.75rem;
+  color:var(--txt-main);
+}
+.hero-underline{
+  position:absolute;
+  bottom:-8px;
+  left:0;
+  height:5px;
+  background:var(--accent-red);
+  width:0;
+  animation:underline 3.5s ease-out forwards;
+}
+@keyframes underline{
+  from{width:0;}
+  to{width:100%;}
+}
+.hero-sub{
+  font-size:1rem;
+  color:rgba(255,255,255,0.85);
+  font-weight:500;
+  margin-top:.75rem;
+}
+
+/* Texto derecho */
+.hero-right{
+  position:absolute;
+  right:8rem;
+  top:64%;
+  transform:translateY(-30%);
+  max-width:480px;
+  font-size:1.15rem;
+  line-height:1.55;
+  font-weight:400;
+  color:var(--txt-main);
+  text-align:left;
+}
+.hero-right b{
+  font-weight:700;
+}
+
+/* ===== BLOQUE BAJO HERO ===== */
+.after-hero{
+  background:#fff;
+  border-top:1px solid #d1d5db;
+  padding:2.5rem 1.5rem 3rem;
+  text-align:center;
+}
+.after-hero h2{
+  font-size:1.05rem;
+  font-weight:600;
+  color:#1e293b;
+  margin-bottom:1rem;
+}
+.after-hero .big-number{
+  font-size:2.8rem;
+  font-weight:700;
+  color:#0a3a8c;
+  margin-bottom:.75rem;
+}
+.after-hero .source{
+  font-size:.8rem;
+  color:#475569;
+}
+
+/* ===== RESPONSIVE ===== */
+
+/* Tablet intermedia */
+@media(max-width:1200px){
+  .hero-left{
+    left:3rem;
+    bottom:5rem;
+    max-width:90%;
+  }
+  .hero-title{
+    font-size:4rem;
+  }
+  .hero-right{
+    right:3rem;
+    top:62%;
+    transform:translateY(-20%);
+    max-width:440px;
+    font-size:1.05rem;
+    line-height:1.5;
+  }
+}
+
+/* Móvil */
+@media(max-width:900px){
+  .hero-header{
+    padding:1rem 1.25rem 0;
+    flex-direction:column;
+    align-items:flex-start;
+  }
+  nav.hero-nav{
+    gap:1rem 1.5rem;
+    justify-content:flex-start;
+  }
+
+  .hero{
+    height:auto;
+    min-height:auto;
+  }
+
+  .hero-content{
+    position:relative;
+    padding:4rem 1.25rem 3rem;
+    display:flex;
+    flex-direction:column;
+    height:auto;
+  }
+
+  .hero-left{
+    position:static;
+    max-width:100%;
+    margin-bottom:2rem;
+  }
+  .hero-title{
+    font-size:2.4rem;
+    line-height:1.1;
+  }
+  .hero-underline{
+    height:4px;
+  }
+  .hero-sub{
+    font-size:.9rem;
+    line-height:1.4;
+  }
+
+  .hero-right{
+    position:static;
+    max-width:100%;
+    font-size:1rem;
+    line-height:1.5;
+  }
+}
+</style>
+</head>
+<body>
+
+<section class="hero">
+  <header class="hero-header">
+    <img src="https://lh3.googleusercontent.com/d/13dVy7pl61N5pPczCq0jo7A1S2NGTCaLe=w1000" alt="MVCS Logo"/>
+    <nav class="hero-nav">
+      <a href="#areas">Áreas de acción</a>
+      <a href="#avance">¿Cómo vamos?</a>
+      <a href="#desempeno">Desempeño financiero</a>
+      <a href="#inversiones">Inversiones</a>
+      <a href="#proyectos">Grandes proyectos</a>
+      <a href="#multitemporal">Imágenes multitemporales</a>
+    </nav>
+  </header>
+
+  <div class="hero-content">
+    <div class="hero-left">
+      <h1 class="hero-title">
+        Presupuesto<br>público 2025
+        <span class="hero-underline"></span>
+      </h1>
+      <div class="hero-sub">Ministerio de Vivienda, Construcción y Saneamiento</div>
+    </div>
+
+    <div class="hero-right">
+      <p>
+        El presupuesto sectorial fomentará la economía local,
+        la generación de puestos de trabajo, y acelerará el
+        <b>cierre de brechas de agua potable, saneamiento, vivienda,
+        equipamiento urbano y formalización predial.</b>
+      </p>
+    </div>
+  </div>
+</section>
+
+<section class="after-hero">
+  <h2>Presupuesto Institucional Modificado 2025</h2>
+  <div class="big-number">S/ 4,669,987,875</div>
+  <div class="source">Fuente: Portal de Transparencia Económica – MEF / MVCS</div>
+</section>
+
+</body>
+</html>
 
