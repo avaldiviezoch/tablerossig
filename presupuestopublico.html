@@ -192,7 +192,7 @@ nav.hero-nav a:hover{color:#ffdddd;}
 /* ================= INVERSIÓN (gráfico barras) ================= */
 .inv-wrapper{
   background:var(--bg-white);
-  border-bottom:1px solid var(--gris-borde);
+  /* border-bottom:1px solid var(--gris-borde); ← ELIMINADO */
   padding:3rem 1rem 3rem 1rem;
   text-align:center;
   color:var(--gris-texto);
@@ -213,13 +213,15 @@ nav.hero-nav a:hover{color:#ffdddd;}
 .inv-source span#lastUpdate{font-style:italic;color:#555;font-weight:400;}
 
 /* ====== CÓMO VAMOS (banner azul con ciudadana) ====== */
-.status-spacer{height:40px;background:#fff;border-top:1px solid var(--gris-borde)}
+/* .status-spacer eliminado completamente */
+/* .status-spacer{height:40px;background:#fff;border-top:1px solid var(--gris-borde)} ← ELIMINADO */
+
 .status-hero{
   position:relative;width:100%;
   background-image:url("https://lh3.googleusercontent.com/d/1k1_vSVxnS7PYTiqV8M2Y5_Xli6qHmPzO=w1600");
   background-size:cover;background-position:center;
   color:#fff;overflow:visible;
-  border-bottom:1px solid var(--gris-borde);
+  /* border-bottom:1px solid var(--gris-borde); ← MANTENIDO solo si se desea al final */
   padding:4rem 1rem 4rem;
 }
 .status-hero::after{
@@ -397,7 +399,7 @@ nav.hero-nav a:hover{color:#ffdddd;}
 </section>
 
 <!-- ===== Banner azul con ciudadana (¿Cómo vamos?) ===== -->
-<div class="status-spacer"></div>
+<!-- <div class="status-spacer"></div> ← ELIMINADO -->
 <section class="status-hero" id="como-vamos">
   <div class="status-figure">
     <img src="https://lh3.googleusercontent.com/d/16r2oP5b4bTadCXGsHO3EiiZbll7yrCdY=w1000" alt="Ciudadana beneficiaria">
