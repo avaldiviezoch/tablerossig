@@ -1,1 +1,319 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Rankings — MVCS</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;600;700;800;900&display=swap" rel="stylesheet"/>
+
+<style>
+  :root{
+    --azul:#1e6eb6;
+    --azul-osc:#174f84;
+    --turquesa:#5ebad6;          /* cabecera tipo referencia */
+    --linea-gap:#f3f4f6;         /* separador entre headers */
+    --rojo:#d00000;
+    --ink:#0f172a;
+    --muted:#64748b;
+    --card:#ffffff;
+    --page:#f3f4f6;
+    --line:#e5e7eb;
+    --pill:#f8fafc;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;background:var(--page);font-family:'Nunito Sans',system-ui,Segoe UI,Roboto,Arial,sans-serif;color:var(--ink)}
+
+  .wrap{max-width:1180px;margin:28px auto;padding:0 16px}
+
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:22px}
+  @media(max-width:900px){ .grid{grid-template-columns:1fr;gap:16px} }
+
+  .card{
+    background:var(--card);
+    border:1px solid var(--line);
+    border-radius:18px;
+    padding:28px 24px 22px;
+    box-shadow:0 12px 28px rgba(2,6,23,.08);
+    display:flex; flex-direction:column; align-items:center; text-align:center;
+  }
+  .card p.lead{
+    margin:0 0 14px 0; color:#374151; font-size:15px; line-height:1.4; max-width:36ch;
+  }
+  .kpi{ display:flex; align-items:flex-start; gap:8px; margin:4px 0 10px; }
+  .kpi .num{
+    font-weight:900; font-size:72px; line-height:1; color:var(--azul);
+  }
+  /* ⇩ levantamos el “circulito” (°) un poco más */
+  .kpi .suf{
+    position:relative; top:-16px;   /* antes ~0; ahora más arriba */
+    font-weight:900; font-size:34px; line-height:1; color:var(--azul);
+    display:inline-block;
+  }
+  .labelPuesto{
+    margin-top:-6px; font-size:40px; font-weight:900; color:var(--azul);
+  }
+
+  .actions{display:flex; gap:12px; flex-wrap:wrap; justify-content:center; margin-top:10px}
+  .btn{
+    appearance:none; border:1px solid var(--azul);
+    background:var(--pill); color:var(--azul); font-weight:800;
+    padding:10px 14px; border-radius:999px; cursor:pointer;
+    transition:.18s ease; font-size:14px;
+  }
+  .btn:hover{filter:brightness(0.98)}
+  .btn.primary{background:var(--azul); color:#fff; border-color:var(--azul)}
+  .btn.primary:hover{background:var(--azul-osc); border-color:var(--azul-osc)}
+
+  /* Área de tabla (compartida) */
+  .tableSection{ max-width:1180px; margin:18px auto 8px; padding:0 16px; }
+  .tableShell{
+    background:#fff; border:1px solid var(--line); border-radius:14px;
+    box-shadow:0 14px 28px rgba(2,6,23,.08); overflow:hidden;
+    max-height:0; transition:max-height .28s ease;
+  }
+  .tableShell.open{ max-height:320px; } /* ~10 cm aprox */
+
+  .status{ padding:10px; font-weight:700; color:var(--muted) }
+  .status.error{ color:#b91c1c }
+
+  .scroller{ overflow:auto; max-height:320px; }
+  table{ width:100%; border-collapse:separate; border-spacing:0; table-layout:fixed; font-size:13px }
+
+  /* CABECERA estilo referencia */
+  thead th{
+    position:sticky; top:0; z-index:2;
+    background:var(--turquesa); color:#ffffff;
+    font-weight:800; letter-spacing:.2px;
+    padding:12px 10px; text-align:center; border-bottom:2px solid #ffffff00;
+    /* “grietas” blancas entre celdas como en la imagen */
+    border-right:6px solid var(--linea-gap);
+  }
+  thead th:first-child{ border-top-left-radius:14px; }
+  thead th:last-child{ border-right:none; border-top-right-radius:14px; }
+
+  tbody td{ padding:10px 8px; border-bottom:1px solid var(--line); text-align:center }
+  tbody tr:nth-child(odd){ background:#f9fcfb }
+  td.num{ font-variant-numeric:tabular-nums }
+
+  col.c-rk{width:8%} col.c-sec{width:36%} col.c-pia{width:14%} col.c-pim{width:14%} col.c-dev{width:18%} col.c-avz{width:10%}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <div class="grid" id="cards">
+
+    <!-- IZQUIERDA: Ranking general (MapServer/9) -->
+    <article class="card" data-key="left">
+      <p class="lead">El Ministerio de Vivienda, Construcción y Saneamiento se encuentra en el ranking entre sectores en el:</p>
+      <div class="kpi" aria-live="polite">
+        <span class="num" id="kpi-left">—</span><span class="suf">°</span>
+      </div>
+      <div class="labelPuesto">puesto</div>
+
+      <div class="actions">
+        <button class="btn primary" data-action="toggle" data-side="left">Ver tabla</button>
+        <button class="btn" data-action="excel" data-side="left">Exportar a Excel</button>
+      </div>
+    </article>
+
+    <!-- DERECHA: Ranking de inversiones (MapServer/10) -->
+    <article class="card" data-key="right">
+      <p class="lead">A nivel de inversiones, el ministerio se encuentra en el ranking entre sectores en el:</p>
+      <div class="kpi" aria-live="polite">
+        <span class="num" id="kpi-right">—</span><span class="suf">°</span>
+      </div>
+      <div class="labelPuesto">puesto</div>
+
+      <div class="actions">
+        <button class="btn primary" data-action="toggle" data-side="right">Ver tabla</button>
+        <button class="btn" data-action="excel" data-side="right">Exportar a Excel</button>
+      </div>
+    </article>
+
+  </div>
+</div>
+
+<!-- ÁREA DE TABLA COMPARTIDA -->
+<section class="tableSection">
+  <div id="tableShell" class="tableShell" aria-live="polite">
+    <div id="state" class="status" role="status">—</div>
+    <div class="scroller" id="scroller" style="display:none">
+      <table id="tbl">
+        <colgroup>
+          <col class="c-rk"><col class="c-sec"><col class="c-pia"><col class="c-pim"><col class="c-dev"><col class="c-avz">
+        </colgroup>
+        <thead>
+          <tr>
+            <th>CUADRO</th>
+            <th>Sector</th>
+            <th>PIA</th>
+            <th>PIM</th>
+            <th>Devengado</th>
+            <th>Avance(%)</th>
+          </tr>
+        </thead>
+        <tbody id="tbody"></tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<script>
+/* Endpoints */
+const ENDPOINT_LEFT  = "https://pportalgis.vivienda.gob.pe/pfdserver/rest/services/OGEI/Mapa_Inversiones_MEF/MapServer/9";
+const ENDPOINT_RIGHT = "https://pportalgis.vivienda.gob.pe/pfdserver/rest/services/OGEI/Mapa_Inversiones_MEF/MapServer/10";
+const KPI_SECTOR = "VIVIENDA CONSTRUCCION Y SANEAMIENTO";
+
+/* Estado */
+let currentSide = null;
+let cacheRows   = { left: null, right: null };
+
+/* Helpers ESRI */
+function cacheBust(){ return String(Date.now()); }
+function esriPOST(url, obj){
+  const body = new URLSearchParams({ f:"json", returnGeometry:"false", ...obj, __ts:cacheBust() });
+  return fetch(url+"/query", {
+    method:"POST",
+    headers:{ "Content-Type":"application/x-www-form-urlencoded;charset=UTF-8" },
+    body
+  }).then(r=>{ if(!r.ok) throw new Error("HTTP "+r.status); return r.json(); })
+    .then(j=>{ if(j.error) throw new Error(j.error.message||"ArcGIS"); return j; });
+}
+function fmtMoney(n){ const v=Number(n)||0; return new Intl.NumberFormat("es-PE",{minimumFractionDigits:2,maximumFractionDigits:2}).format(v); }
+function fmtPct(n){ const v=Number(n); if(!isFinite(v)) return "—"; return new Intl.NumberFormat("es-PE",{minimumFractionDigits:2,maximumFractionDigits:2}).format(v); }
+function escQuotes(v){ return String(v).replaceAll("'","''"); }
+function escapeHtml(s){ return String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]||c)); }
+
+/* KPIs */
+async function loadKPI(side){
+  const url = side==="left" ? ENDPOINT_LEFT : ENDPOINT_RIGHT;
+  try{
+    const outStatistics = JSON.stringify([{statisticType:"min",onStatisticField:"rankin",outStatisticFieldName:"min_rankin"}]);
+    const where = `sector_nombre='${escQuotes(KPI_SECTOR)}'`;
+    const j = await esriPOST(url, { where, outStatistics, groupByFieldsForStatistics:"" });
+    const num = j.features?.[0]?.attributes?.min_rankin ?? null;
+    document.getElementById("kpi-"+side).textContent = (num!=null) ? Number(num).toLocaleString('es-PE') : "—";
+  }catch(e){
+    document.getElementById("kpi-"+side).textContent = "—";
+    console.error("KPI "+side, e);
+  }
+}
+
+/* Tabla */
+const OUT_FIELDS = ["rankin","sector_nombre","sum_monto_pia","sum_monto_pim","sum_monto_devengado","avance"].join(",");
+async function fetchRows(side){
+  const url = side==="left" ? ENDPOINT_LEFT : ENDPOINT_RIGHT;
+  const page=2000; let offset=0; const rows=[];
+  while(true){
+    const j = await esriPOST(url, {
+      where:"1=1", outFields:OUT_FIELDS, orderByFields:"rankin ASC",
+      resultRecordCount:page, resultOffset:offset
+    });
+    (j.features||[]).forEach(f=>{
+      const a=f.attributes||{};
+      rows.push({
+        rk:a.rankin??null, sec:a.sector_nombre??"",
+        pia:+a.sum_monto_pia||0, pim:+a.sum_monto_pim||0, dev:+a.sum_monto_devengado||0,
+        avz:+a.avance
+      });
+    });
+    if(!j.exceededTransferLimit || (j.features||[]).length<page) break;
+    offset += page;
+  }
+  return rows;
+}
+function renderTable(rows){
+  const tb = document.getElementById("tbody");
+  tb.innerHTML = rows.map(r=>`
+    <tr>
+      <td class="num">${r.rk ?? "—"}</td>
+      <td>${escapeHtml(r.sec||"—")}</td>
+      <td class="num">${fmtMoney(r.pia)}</td>
+      <td class="num">${fmtMoney(r.pim)}</td>
+      <td class="num">${fmtMoney(r.dev)}</td>
+      <td class="num">${fmtPct(r.avz)}</td>
+    </tr>
+  `).join("");
+}
+
+/* Toggle tabla compartida */
+async function toggleTable(side){
+  const shell   = document.getElementById("tableShell");
+  const scroller= document.getElementById("scroller");
+  const stateEl = document.getElementById("state");
+  const btnSide = document.querySelector(`button[data-action="toggle"][data-side="${side}"]`);
+
+  if (shell.classList.contains("open") && currentSide===side){
+    shell.classList.remove("open");
+    stateEl.textContent = "—";
+    scroller.style.display = "none";
+    currentSide = null;
+    btnSide.textContent = "Ver tabla";
+    return;
+  }
+
+  document.querySelectorAll('button[data-action="toggle"]').forEach(b=>{
+    b.textContent = (b.dataset.side===side) ? "Ocultar tabla" : "Ver tabla";
+  });
+
+  shell.classList.add("open");
+  stateEl.classList.remove("error");
+  stateEl.textContent = "Cargando datos…";
+  scroller.style.display = "none";
+
+  try{
+    const rows = cacheRows[side] || await fetchRows(side);
+    cacheRows[side] = rows;
+    renderTable(rows);
+    stateEl.textContent = `Listo (${rows.length.toLocaleString('es-PE')} filas)`;
+    scroller.style.display = "block";
+    currentSide = side;
+  }catch(e){
+    console.error(e);
+    stateEl.classList.add("error");
+    stateEl.textContent = "No se pudo cargar la tabla.";
+    scroller.style.display = "none";
+  }
+}
+
+/* Exportar */
+function toCSV(rows){
+  const sep=";"; const header=["RANKING","Sector","PIA","PIM","Devengado","Avance(%)"];
+  const esc=v=>`"${String(v??"").replace(/"/g,'""')}"`;
+  const lines = rows.map(r=>[r.rk,r.sec,r.pia,r.pim,r.dev,r.avz].map(esc).join(sep));
+  return header.join(sep)+"\n"+lines.join("\n");
+}
+function downloadCSV(side){
+  const rows = cacheRows[side];
+  if(!rows || !rows.length) return;
+  const csv=toCSV(rows);
+  const bom=new Uint8Array([0xEF,0xBB,0xBF]);
+  const blob=new Blob([bom,csv],{type:"text/csv;charset=utf-8"});
+  const a=document.createElement("a");
+  a.href=URL.createObjectURL(blob);
+  a.download = side==="left" ? "ranking_general_sector.csv" : "ranking_inversiones_sector.csv";
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(()=>URL.revokeObjectURL(a.href),1200);
+}
+
+/* UI */
+document.querySelectorAll('button[data-action="toggle"]').forEach(btn=>{
+  btn.addEventListener('click', ()=> toggleTable(btn.dataset.side));
+});
+document.querySelectorAll('button[data-action="excel"]').forEach(btn=>{
+  btn.addEventListener('click', ()=> {
+    const side = btn.dataset.side;
+    if(!cacheRows[side]){ toggleTable(side).then(()=> downloadCSV(side)); }
+    else{ downloadCSV(side); }
+  });
+});
+
+/* Init */
+loadKPI("left");
+loadKPI("right");
+</script>
+</body>
+</html>
 
