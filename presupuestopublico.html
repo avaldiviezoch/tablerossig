@@ -192,7 +192,6 @@ nav.hero-nav a:hover{color:#ffdddd;}
 /* ================= INVERSIÓN (gráfico barras) ================= */
 .inv-wrapper{
   background:var(--bg-white);
-  /* border-bottom:1px solid var(--gris-borde); ← ELIMINADO */
   padding:3rem 1rem 3rem 1rem;
   text-align:center;
   color:var(--gris-texto);
@@ -213,15 +212,11 @@ nav.hero-nav a:hover{color:#ffdddd;}
 .inv-source span#lastUpdate{font-style:italic;color:#555;font-weight:400;}
 
 /* ====== CÓMO VAMOS (banner azul con ciudadana) ====== */
-/* .status-spacer eliminado completamente */
-/* .status-spacer{height:40px;background:#fff;border-top:1px solid var(--gris-borde)} ← ELIMINADO */
-
 .status-hero{
   position:relative;width:100%;
   background-image:url("https://lh3.googleusercontent.com/d/1k1_vSVxnS7PYTiqV8M2Y5_Xli6qHmPzO=w1600");
   background-size:cover;background-position:center;
   color:#fff;overflow:visible;
-  /* border-bottom:1px solid var(--gris-borde); ← MANTENIDO solo si se desea al final */
   padding:4rem 1rem 4rem;
 }
 .status-hero::after{
@@ -245,13 +240,21 @@ nav.hero-nav a:hover{color:#ffdddd;}
 .dev-source{margin-top:1rem;font-size:.85rem;line-height:1.35;color:#dbe2ea;text-shadow:0 2px 4px rgba(0,0,0,.7)}
 .dev-source b{color:#fff}.dev-source em{color:#fff;font-style:italic}
 .ready{opacity:1 !important;transform:none !important}
+
+/* IMAGEN: Animación controlada por JS (no por CSS) */
 .status-figure{
   position:absolute;right:0;bottom:-20px;z-index:2;
   width:min(40%,460px);max-width:480px;pointer-events:none;
-  opacity:0;transform:translate(15%,5%);animation:ladyIn .9s ease-out .2s forwards;
+  opacity:0;
+  transform:translate(15%,5%);
+  transition:opacity .9s ease-out .2s, transform .9s ease-out .2s;
 }
+.status-figure.animated{
+  opacity:1;
+  transform:translate(0,-4%);
+}
+
 .status-figure img{width:100%;height:auto;display:block;object-fit:contain;filter:drop-shadow(0 16px 26px rgba(0,0,0,.6))}
-@keyframes ladyIn{to{opacity:1;transform:translate(0,-4%)}}
 
 /* Responsive ajustes del banner */
 @media (max-width:1100px) and (min-width:521px){
@@ -399,7 +402,6 @@ nav.hero-nav a:hover{color:#ffdddd;}
 </section>
 
 <!-- ===== Banner azul con ciudadana (¿Cómo vamos?) ===== -->
-<!-- <div class="status-spacer"></div> ← ELIMINADO -->
 <section class="status-hero" id="como-vamos">
   <div class="status-figure">
     <img src="https://lh3.googleusercontent.com/d/16r2oP5b4bTadCXGsHO3EiiZbll7yrCdY=w1000" alt="Ciudadana beneficiaria">
@@ -586,7 +588,11 @@ function renderChart(data){
   }
 })();
 
-/* ===== Devengado (banner azul) desde BD ===== */
+/* ===== Devengado + Imagen (solo cuando se ve) ===== */
+const statusSection = document.querySelector('.status-hero');
+const figure = document.querySelector('.status-figure');
+let devData = null;
+
 async function fetchDevengadoData(){
   const outStats = JSON.stringify([
     { statisticType: "sum", onStatisticField: "monto_devengado", outStatisticFieldName: "sum_dev" },
@@ -605,6 +611,7 @@ async function fetchDevengadoData(){
   const a = json.features?.[0]?.attributes || {};
   return { dev: Number(a.sum_dev||0), pim: Number(a.sum_pim||0), lastTs: (a.max_fp != null) ? Number(a.max_fp) : null };
 }
+
 function animateNumberFmt(el, target, ms, fmt, suffix=""){
   const start = performance.now();
   function tick(t){
@@ -616,24 +623,48 @@ function animateNumberFmt(el, target, ms, fmt, suffix=""){
   }
   requestAnimationFrame(tick);
 }
-(async function initDev(){
-  const val = document.getElementById('val');
-  const cur = document.getElementById('cur');
-  const percentEl = document.getElementById('percent');
-  const last = document.getElementById('lastUpdateDev');
-  try{
-    const { dev, pim, lastTs } = await fetchDevengadoData();
-    const perc = pim > 0 ? (dev / pim * 100) : 0;
-    [val,cur,percentEl].forEach(el=>el.classList.add('ready'));
-    const fmtInt  = new Intl.NumberFormat('es-PE', { maximumFractionDigits: 0 });
-    const fmtPerc = new Intl.NumberFormat('es-PE', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
-    animateNumberFmt(val, dev, 1700, fmtInt);
-    animateNumberFmt(percentEl, perc, 1700, fmtPerc, "%");
-    last.textContent = "Actualizado al " + formatEsDate(lastTs);
-  }catch(e){
-    val.textContent="—"; percentEl.textContent="—"; last.textContent="Actualizado al —"; [val,cur,percentEl].forEach(el=>el.classList.add('ready'));
-  }
-})();
+
+// Observer: Activa contador + imagen
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting && !devData) {
+      (async () => {
+        try {
+          const { dev, pim, lastTs } = await fetchDevengadoData();
+          devData = { dev, pim, lastTs };
+
+          const val = document.getElementById('val');
+          const cur = document.getElementById('cur');
+          const percentEl = document.getElementById('percent');
+          const last = document.getElementById('lastUpdateDev');
+
+          const perc = pim > 0 ? (dev / pim * 100) : 0;
+          [val, cur, percentEl].forEach(el => el.classList.add('ready'));
+
+          const fmtInt = new Intl.NumberFormat('es-PE', { maximumFractionDigits: 0 });
+          const fmtPerc = new Intl.NumberFormat('es-PE', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+
+          animateNumberFmt(val, dev, 1700, fmtInt);
+          animateNumberFmt(percentEl, perc, 1700, fmtPerc, "%");
+          last.textContent = "Actualizado al " + formatEsDate(lastTs);
+
+          // Animación de la imagen (deslizamiento)
+          requestAnimationFrame(() => {
+            figure.classList.add('animated');
+          });
+
+        } catch (e) {
+          document.getElementById('val').textContent = "—";
+          document.getElementById('percent').textContent = "—";
+          document.getElementById('lastUpdateDev').textContent = "Actualizado al —";
+          [document.getElementById('val'), document.getElementById('cur'), document.getElementById('percent')].forEach(el => el.classList.add('ready'));
+        }
+      })();
+    }
+  });
+}, { threshold: 0.3 });
+
+observer.observe(statusSection);
 </script>
 </body>
 </html>
