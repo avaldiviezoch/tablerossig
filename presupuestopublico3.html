@@ -18,13 +18,19 @@
     --card:#ffffff;
     --plomo:#f3f4f6;
     --line:#e5e7eb;
-    --pill:#f8fafc;
 
     --chip-ok:#16a34a; --chip-mid:#f59e0b; --chip-bad:#ef4444;
+
+    --shadow-card: 0 10px 22px rgba(2,6,23,.06), 0 2px 6px rgba(2,6,23,.05); /* sutil */
   }
 
   *{box-sizing:border-box}
-  html,body{margin:0;background:var(--plomo);font-family:'Nunito Sans',system-ui,Segoe UI,Roboto,Arial,sans-serif;color:var(--ink)}
+  html,body{
+    margin:0;
+    background:#fff; /* Fondo principal completamente blanco */
+    font-family:'Nunito Sans',system-ui,Segoe UI,Roboto,Arial,sans-serif;
+    color:var(--ink)
+  }
 
   /* ======= TARJETAS RANKINGS (fondo blanco) ======= */
   .wrap{max-width:1180px;margin:28px auto;padding:0 16px}
@@ -36,7 +42,7 @@
     border:1px solid var(--line);
     border-radius:18px;
     padding:28px 24px 22px;
-    box-shadow:0 12px 28px rgba(2,6,23,.08);
+    box-shadow:var(--shadow-card); /* sombra pequeña/sutil */
     display:flex; flex-direction:column; align-items:center; text-align:center;
   }
   .card p.lead{
@@ -86,7 +92,7 @@
 
   col.c-rk{width:8%} col.c-sec{width:36%} col.c-pia{width:14%} col.c-pim{width:14%} col.c-dev{width:18%} col.c-avz{width:10%}
 
-  /* ======= BLOQUE DESEMPEÑO (plomo) ======= */
+  /* ======= BLOQUE DESEMPEÑO (solo esta franja en plomo) ======= */
   .perf{
     background:var(--plomo);
     border-top:1px solid var(--line);
@@ -102,7 +108,7 @@
   .perf p{max-width:78ch;margin:12px auto 16px;color:#374151}
   .perf .actions{margin-top:10px}
 
-  /* ======= TABLA POR EJECUTORA (FULL-BLEED) ======= */
+  /* ======= TABLA POR EJECUTORA (FULL-BLEED, fondo blanco) ======= */
   .exec-wrap{
     width:100vw;
     margin-left:calc(50% - 50vw);
@@ -130,8 +136,6 @@
     background:var(--turquesa);color:#fff;font-weight:800;padding:11px 8px;text-align:center;
     border-bottom:2px solid #ffffff00;border-right:6px solid var(--gap-header);
   }
-  .table-exec thead th:first-child{border-top-left-radius:0}
-  .table-exec thead th:last-child{border-right:none;border-top-right-radius:0}
   .table-exec thead th.sticky-left{left:0;z-index:50;text-align:left;background:var(--turquesa);box-shadow:6px 0 8px -6px rgba(0,0,0,.18)}
 
   .table-exec th+th,.table-exec td+td{border-left:1px solid var(--line)}
@@ -181,21 +185,7 @@
     overflow:hidden;transition:transform .2s ease;
   }
   .infoBtn:hover{transform:scale(1.08)}
-  .infoBtn::after{
-    content:"";position:absolute;inset:-5px;border-radius:12px;
-    background:radial-gradient(circle,#38bdf8 0%,rgba(56,189,248,0)70%);opacity:.5;filter:blur(8px);
-    animation:haloPulse 2s ease-in-out infinite;pointer-events:none;
-  }
-  @keyframes haloPulse{0%,100%{opacity:.4;filter:blur(6px)}50%{opacity:.8;filter:blur(12px)}}
   .infoBtn svg{width:20px;height:20px;stroke:#fff;stroke-width:2.2;fill:none}
-
-  /* ===== PUNTOS (leyenda) reutilizables en tablas ===== */
-  .dot{
-    width:.62rem;height:.62rem;border-radius:999px;display:inline-block;margin-right:.38rem;vertical-align:-.1rem
-  }
-  .ok{ background:var(--chip-ok) }
-  .mid{ background:var(--chip-mid) }
-  .bad{ background:var(--chip-bad) }
 </style>
 </head>
 <body>
@@ -254,7 +244,7 @@
   </div>
 </section>
 
-<!-- ====== BLOQUE DESEMPEÑO ====== -->
+<!-- ====== BLOQUE DESEMPEÑO (franja plomo) ====== -->
 <section class="perf" id="desempeno">
   <div class="box">
     <h2>Desempeño financiero por ejecutora</h2>
@@ -270,15 +260,15 @@
   </div>
 </section>
 
-<!-- ====== TABLA POR EJECUTORA (FULL-BLEED) ====== -->
+<!-- ====== TABLA POR EJECUTORA (FULL-BLEED, fondo blanco) ====== -->
 <div class="exec-wrap" id="execWrap" style="display:none">
   <div class="card-flat">
     <div class="header-flat">
       <h3 class="title-flat">Ejecución presupuestal — MVCS (2025) por Pliego y Unidad Ejecutora</h3>
       <div class="legend">
-        <span><span class="dot bad"></span><strong>Rojo</strong> &lt; 33%</span>
-        <span><span class="dot mid"></span><strong>Ámbar</strong> 33%–67%</span>
-        <span><span class="dot ok"></span><strong>Verde</strong> ≥ 67%</span>
+        <span><span class="dot" style="background:#ef4444"></span><strong>Rojo</strong> &lt; 33%</span>
+        <span><span class="dot" style="background:#f59e0b"></span><strong>Ámbar</strong> 33%–67%</span>
+        <span><span class="dot" style="background:#16a34a"></span><strong>Verde</strong> ≥ 67%</span>
       </div>
     </div>
     <div class="table-wrap">
@@ -380,14 +370,15 @@ async function toggleTable(side){
   const shell = document.getElementById("tableShell");
   const scroller = document.getElementById("scroller");
   const stateEl = document.getElementById("state");
-  const btnSide = document.querySelector(`button[data-action="toggle"][data-side="${side}"]`);
 
+  const buttons = document.querySelectorAll('button[data-action="toggle"]');
   if (shell.classList.contains("open") && currentSide===side){
     shell.classList.remove("open"); stateEl.textContent = "—"; scroller.style.display = "none"; currentSide = null;
-    btnSide.textContent = "Ver tabla"; return;
+    buttons.forEach(b=> b.textContent="Ver tabla");
+    return;
   }
 
-  document.querySelectorAll('button[data-action="toggle"]').forEach(b=> b.textContent = (b.dataset.side===side) ? "Ocultar tabla" : "Ver tabla");
+  buttons.forEach(b=> b.textContent = (b.dataset.side===side) ? "Ocultar tabla" : "Ver tabla");
   shell.classList.add("open"); stateEl.classList.remove("error"); stateEl.textContent = "Cargando datos…"; scroller.style.display = "none";
 
   try{
@@ -434,7 +425,6 @@ const INFO_LINKS={ "MINISTERIO DE VIVIENDA, CONSTRUCCION Y SANEAMIENTO": "https:
 
 const nf=new Intl.NumberFormat('es-PE');
 const pctStr=(r)=>isFinite(r)?(r*100).toFixed(2)+' %':'0.00 %';
-function chipClass(r){ const p=Number(r)*100; if(!isFinite(p))return'bad'; if(p<33)return'bad'; if(p<67)return'mid'; return'ok'; }
 
 function buildParams(extra){
   return new URLSearchParams({
@@ -470,14 +460,7 @@ function mergeStats(total,proy,act){
   for(const arr of byP.values()){ arr.sort((x,y)=>x.ejecutora.localeCompare(y.ejecutora,'es')); }
   return new Map([...byP.entries()].sort((a,b)=>a[0].localeCompare(b[0],'es')));
 }
-function addRow(tbody,cells,opts={}){
-  const tr=document.createElement('tr'); tr.className=opts.className||'';
-  for(const c of cells){
-    const el=document.createElement(c.header?'th':'td');
-    if(c.cls) el.className=c.cls; el.innerHTML=c.html; tr.appendChild(el);
-  }
-  tbody.appendChild(tr);
-}
+
 function renderExec(grouped){
   const tbody=document.getElementById('tbodyExec'); tbody.innerHTML='';
   let tot={pim:0,dev:0,pim_proy:0,dev_proy:0,pim_act:0,dev_act:0};
@@ -489,23 +472,17 @@ function renderExec(grouped){
       pim_act:a.pim_act+r.pim_act, dev_act:a.dev_act+r.dev_act
     }),{pim:0,dev:0,pim_proy:0,dev_proy:0,pim_act:0,dev_act:0});
 
-    tot.pim+=s.pim; tot.dev+=s.dev; tot.pim_proy+=s.pim_proy; tot.dev_proy+=s.dev_proy; tot.pim_act+=s.pim_act; tot.dev_act+=s.dev_act;
+    Object.keys(tot).forEach(k=>tot[k]+=s[k]);
 
-    const av  = s.pim>0       ? s.dev/s.pim         : 0;
-    const avp = s.pim_proy>0  ? s.dev_proy/s.pim_proy : 0;   // AVANCE PROYECTO
-    const ava = s.pim_act>0   ? s.dev_act/s.pim_act : 0;
+    const av = s.pim>0 ? s.dev/s.pim : 0;
+    const avp = s.pim_proy>0 ? s.dev_proy/s.pim_proy : 0;
+    const ava = s.pim_act>0 ? s.dev_act/s.pim_act : 0;
 
     const gid = 'g_' + Math.random().toString(36).slice(2,9);
-    let infoBtnHTML = '';
-    for(const key in INFO_LINKS){
-      if(pliego.toUpperCase().includes(key)){
-        const href = INFO_LINKS[key];
-        infoBtnHTML = `<a class="infoBtn" href="${href}" target="_blank" rel="noopener" title="Ver StoryMap">
-          <svg viewBox="0 0 24 24"><path d="M14 3h7v7"/><path d="M10 14 21 3"/><path d="M21 14v7h-7"/><path d="M3 10 14 21"/></svg>
-        </a>`;
-        break;
-      }
-    }
+    const story = (pliego.toUpperCase().includes("MINISTERIO DE VIVIENDA")) ?
+      `<a class="infoBtn" href="${INFO_LINKS['MINISTERIO DE VIVIENDA, CONSTRUCCION Y SANEAMIENTO']}" target="_blank" rel="noopener" title="Ver StoryMap">
+         <svg viewBox="0 0 24 24"><path d="M14 3h7v7"/><path d="M10 14 21 3"/><path d="M21 14v7h-7"/><path d="M3 10 14 21"/></svg>
+       </a>` : '';
 
     const groupHTML = `<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;">
       <button class="btn-expand" aria-expanded="false" aria-controls="${gid}">
@@ -516,62 +493,65 @@ function renderExec(grouped){
         </span>
         <span style="white-space:normal;word-break:break-word;">${pliego}</span>
       </button>
-      ${infoBtnHTML}
+      ${story}
     </div>`;
 
-    addRow(tbody,[
-      {header:true,cls:'sticky',html:groupHTML},
-      {html:nf.format(s.pim),cls:'num'},
-      {html:nf.format(s.dev),cls:'num'},
-      {html:`<span class="dot ${chipClass(av)}"></span>${pctStr(av)}`,cls:'pct'},
-      {html:nf.format(s.pim_proy),cls:'num'},
-      {html:nf.format(s.dev_proy),cls:'num'},
-      /* ===== AVANCE PROYECTO con punto de leyenda ===== */
-      {html:`<span class="dot ${chipClass(avp)}"></span>${pctStr(avp)}`,cls:'pct'},
-      {html:nf.format(s.pim_act),cls:'num'},
-      {html:nf.format(s.dev_act),cls:'num'},
-      {html:`<span class="dot ${chipClass(ava)}"></span>${pctStr(ava)}`,cls:'pct'}
-    ],{className:'group'});
+    const dot = v => `<span class="dot" style="background:${v<0.33?'#ef4444':v<0.67?'#f59e0b':'#16a34a'}"></span>`;
+    const addRow=(cells,isHead=false)=>{
+      const tr=document.createElement('tr');
+      tr.className=isHead?'group':'';
+      cells.forEach(c=>{
+        const el=document.createElement(isHead?'th':'td');
+        if(c.cls) el.className=c.cls;
+        el.innerHTML=c.html; tr.appendChild(el);
+      });
+      tbody.appendChild(tr);
+    };
+
+    addRow([
+      {html:groupHTML, cls:'sticky'},
+      {html:nf.format(s.pim),cls:'num'},{html:nf.format(s.dev),cls:'num'},
+      {html:`${dot(av)}${pctStr(av)}`,cls:'pct'},
+      {html:nf.format(s.pim_proy),cls:'num'},{html:nf.format(s.dev_proy),cls:'num'},
+      {html:`${dot(avp)}${pctStr(avp)}`,cls:'pct'},   /* AVANCE PROYECTO con punto */
+      {html:nf.format(s.pim_act),cls:'num'},{html:nf.format(s.dev_act),cls:'num'},
+      {html:`${dot(ava)}${pctStr(ava)}`,cls:'pct'}
+    ],true);
 
     for(const r of items){
-      const av2  = r.pim>0       ? r.dev/r.pim         : 0;
-      const avp2 = r.pim_proy>0  ? r.dev_proy/r.pim_proy : 0; // AVANCE PROYECTO (fila)
-      const ava2 = r.pim_act>0   ? r.dev_act/r.pim_act : 0;
-
+      const av2 = r.pim>0 ? r.dev/r.pim : 0;
+      const avp2 = r.pim_proy>0 ? r.dev_proy/r.pim_proy : 0;
+      const ava2 = r.pim_act>0 ? r.dev_act/r.pim_act : 0;
       const tr=document.createElement('tr');
       tr.className='item'; tr.setAttribute('data-parent',gid); tr.style.display='none';
       tr.innerHTML=`
         <td class="sticky" style="padding-left:24px;white-space:normal;word-break:break-word;">${r.ejecutora}</td>
-        <td class="num">${nf.format(r.pim)}</td>
-        <td class="num">${nf.format(r.dev)}</td>
-        <td class="pct"><span class="dot ${chipClass(av2)}"></span>${pctStr(av2)}</td>
-        <td class="num">${nf.format(r.pim_proy)}</td>
-        <td class="num">${nf.format(r.dev_proy)}</td>
-        <td class="pct"><span class="dot ${chipClass(avp2)}"></span>${pctStr(avp2)}</td>
-        <td class="num">${nf.format(r.pim_act)}</td>
-        <td class="num">${nf.format(r.dev_act)}</td>
-        <td class="pct"><span class="dot ${chipClass(ava2)}"></span>${pctStr(ava2)}</td>`;
+        <td class="num">${nf.format(r.pim)}</td><td class="num">${nf.format(r.dev)}</td>
+        <td class="pct">${dot(av2)}${pctStr(av2)}</td>
+        <td class="num">${nf.format(r.pim_proy)}</td><td class="num">${nf.format(r.dev_proy)}</td>
+        <td class="pct">${dot(avp2)}${pctStr(avp2)}</td>
+        <td class="num">${nf.format(r.pim_act)}</td><td class="num">${nf.format(r.dev_act)}</td>
+        <td class="pct">${dot(ava2)}${pctStr(ava2)}</td>`;
       tbody.appendChild(tr);
     }
   }
 
   const tfoot=document.getElementById('tfootExec');
-  const tav  = tot.pim>0       ? tot.dev/tot.pim         : 0;
-  const tavp = tot.pim_proy>0  ? tot.dev_proy/tot.pim_proy : 0; // AVANCE PROYECTO total
-  const tava = tot.pim_act>0   ? tot.dev_act/tot.pim_act : 0;
+  const tav = tot.pim>0 ? tot.dev/tot.pim : 0;
+  const tavp = tot.pim_proy>0 ? tot.dev_proy/tot.pim_proy : 0;
+  const tava = tot.pim_act>0 ? tot.dev_act/tot.pim_act : 0;
+  const dot = v => `<span class="dot" style="background:${v<0.33?'#ef4444':v<0.67?'#f59e0b':'#16a34a'}"></span>`;
   tfoot.innerHTML=`<tr>
     <td class="sticky" style="font-weight:900;text-align:left">Total</td>
-    <td class="num">${nf.format(tot.pim)}</td>
-    <td class="num">${nf.format(tot.dev)}</td>
-    <td class="pct"><span class="dot ${chipClass(tav)}"></span>${pctStr(tav)}</td>
-    <td class="num">${nf.format(tot.pim_proy)}</td>
-    <td class="num">${nf.format(tot.dev_proy)}</td>
-    <td class="pct"><span class="dot ${chipClass(tavp)}"></span>${pctStr(tavp)}</td>
-    <td class="num">${nf.format(tot.pim_act)}</td>
-    <td class="num">${nf.format(tot.dev_act)}</td>
-    <td class="pct"><span class="dot ${chipClass(tava)}"></span>${pctStr(tava)}</td>
+    <td class="num">${nf.format(tot.pim)}</td><td class="num">${nf.format(tot.dev)}</td>
+    <td class="pct">${dot(tav)}${pctStr(tav)}</td>
+    <td class="num">${nf.format(tot.pim_proy)}</td><td class="num">${nf.format(tot.dev_proy)}</td>
+    <td class="pct">${dot(tavp)}${pctStr(tavp)}</td>
+    <td class="num">${nf.format(tot.pim_act)}</td><td class="num">${nf.format(tot.dev_act)}</td>
+    <td class="pct">${dot(tava)}${pctStr(tava)}</td>
   </tr>`;
 
+  /* expandir/colapsar ejecutoras */
   tbody.querySelectorAll('.btn-expand').forEach(btn=>{
     btn.addEventListener('click',()=>{
       const id=btn.getAttribute('aria-controls');
@@ -611,11 +591,15 @@ function exportTableToExcel(){
   document.body.appendChild(a); a.click(); a.remove();
 }
 
-document.getElementById('btnShowExec').addEventListener('click',()=>{
+/* Toggle de desempeño con texto “Ver/Ocultar tabla” */
+const btnShowExec = document.getElementById('btnShowExec');
+btnShowExec.addEventListener('click',()=>{
   const wrap=document.getElementById('execWrap');
-  if(wrap.style.display==='none'){ wrap.style.display='block'; loadExecutors(); }
-  else{ wrap.style.display='none'; }
+  const isHidden = wrap.style.display==='none';
+  if(isHidden){ wrap.style.display='block'; loadExecutors(); btnShowExec.textContent='Ocultar tabla'; }
+  else{ wrap.style.display='none'; btnShowExec.textContent='Ver tabla'; }
 });
+
 document.getElementById('btnExcelExec').addEventListener('click',exportTableToExcel);
 </script>
 </body>
