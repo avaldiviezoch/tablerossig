@@ -2,605 +2,350 @@
 <html lang="es">
 <head>
 <meta charset="utf-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>MVCS — Rankings y Desempeño por Ejecutora (2025)</title>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>MVCS · Inversiones 2025</title>
+
 <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;600;700;800;900&display=swap" rel="stylesheet"/>
 
 <style>
   :root{
     --azul:#1e6eb6;
     --azul-osc:#174f84;
-    --turquesa:#5ebad6;
-    --gap-header:#f3f4f6;
+    --celeste:#5ebad6;
     --rojo:#d00000;
     --ink:#0f172a;
     --muted:#64748b;
     --card:#ffffff;
-    --plomo:#f3f4f6;
+    --page:#ffffff;
     --line:#e5e7eb;
-
-    --chip-ok:#16a34a; --chip-mid:#f59e0b; --chip-bad:#ef4444;
-
-    --shadow-card: 0 10px 22px rgba(2,6,23,.06), 0 2px 6px rgba(2,6,23,.05); /* sutil */
+    --shadow:0 12px 28px rgba(2,6,23,.06);
+    --radius:18px;
   }
-
   *{box-sizing:border-box}
-  html,body{
-    margin:0;
-    background:#fff; /* Fondo principal completamente blanco */
-    font-family:'Nunito Sans',system-ui,Segoe UI,Roboto,Arial,sans-serif;
-    color:var(--ink)
+  html,body{margin:0;background:var(--page);color:var(--ink);font-family:'Nunito Sans',system-ui,Segoe UI,Roboto,Arial}
+
+  .wrap{max-width:1100px;margin:26px auto 42px;padding:0 16px}
+
+  /* ====== Título con subrayado rojo animado ====== */
+  .titleRow{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+  .title{
+    position:relative;margin:0;color:var(--azul);font-weight:900;
+    font-size:28px;letter-spacing:.2px;
+  }
+  .title::after{
+    content:"";position:absolute;left:0;bottom:-6px;height:4px;width:0%;
+    border-radius:999px;background:linear-gradient(90deg,#ff4d4d, var(--rojo));
+    box-shadow:0 2px 8px rgba(208,0,0,.35);
+    transition:width .6s cubic-bezier(.22,1,.36,1);
+  }
+  .titleRow.on .title::after{ width:100%; }
+
+  /* ====== Layout superior ====== */
+  .top{
+    display:grid;grid-template-columns:1.08fr .92fr;gap:18px;align-items:start;
+  }
+  @media (max-width:960px){ .top{grid-template-columns:1fr;gap:14px} }
+
+  .blk{
+    background:var(--card);border:1px solid var(--line);border-radius:var(--radius);
+    padding:18px 18px 14px;box-shadow:var(--shadow);
+  }
+  .p{color:#334155;font-size:14px;line-height:1.5;margin:0 0 10px}
+  .src{font-size:12px;color:#6b7280}
+  .note{font-size:11.5px;color:#6b7280;font-style:italic;margin-top:6px}
+
+  /* KPIs derecha */
+  .kpis{display:grid;gap:12px}
+  .hero{
+    display:flex;align-items:center;gap:12px;background:var(--card);border:1px solid var(--line);
+    border-radius:var(--radius);padding:12px 14px;box-shadow:var(--shadow)
+  }
+  .ic32{flex:0 0 40px;width:40px;height:40px;border-radius:12px;background:#eef6ff;display:grid;place-items:center;overflow:hidden}
+  .ic32 img{max-width:100%;max-height:100%}
+  .hero .lbl{font-weight:800;color:#334155}
+  .hero .num{font-weight:900;color:var(--azul);font-size:34px;line-height:1}
+
+  .duo{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  @media (max-width:520px){ .duo{grid-template-columns:1fr} }
+  .mini{
+    background:var(--card);border:1px solid var(--line);border-radius:var(--radius);
+    padding:12px 14px;box-shadow:var(--shadow);display:grid;gap:6px
+  }
+  .mini .cap{font-size:12px;font-weight:900;color:#64748b;letter-spacing:.2px}
+  .mini .val{font-size:32px;font-weight:900;color:var(--azul);line-height:1}
+  .mini .sub{font-size:14px;font-weight:900;color:var(--azul-osc)}
+
+  /* Bandas celestes */
+  .bar{
+    margin:18px 0 12px;background:var(--celeste);color:#083a66;
+    border-radius:999px;padding:10px 12px;text-align:center;
+    font-weight:900;letter-spacing:.2px;text-shadow:0 1px 0 rgba(255,255,255,.25)
   }
 
-  /* ======= TARJETAS RANKINGS (fondo blanco) ======= */
-  .wrap{max-width:1180px;margin:28px auto;padding:0 16px}
-  .grid{display:grid;grid-template-columns:1fr 1fr;gap:22px}
-  @media(max-width:900px){ .grid{grid-template-columns:1fr;gap:16px} }
+  /* Grilla “Se espera generar” */
+  .kpiGrid{
+    display:grid;grid-template-columns:1fr 1fr;gap:12px
+  }
+  @media (max-width:720px){ .kpiGrid{grid-template-columns:1fr} }
+  .kCard{
+    background:var(--card);border:1px solid var(--line);border-radius:var(--radius);
+    padding:12px;box-shadow:var(--shadow);display:flex;align-items:center;gap:12px
+  }
+  .badge{
+    flex:0 0 56px;width:56px;height:56px;border-radius:14px;background:#eef6ff;
+    display:grid;place-items:center;overflow:hidden
+  }
+  .badge img{max-width:92%;max-height:92%}
+  .m{display:flex;flex-direction:column;gap:4px}
+  .m .v{font-size:32px;font-weight:900;color:var(--azul);line-height:1}
+  .m .l{font-size:13px;font-weight:800;color:#65748b}
 
-  .card{
-    background:#fff;
-    border:1px solid var(--line);
-    border-radius:18px;
-    padding:28px 24px 22px;
-    box-shadow:var(--shadow-card); /* sombra pequeña/sutil */
-    display:flex; flex-direction:column; align-items:center; text-align:center;
+  /* Estados (8) */
+  .grid8{
+    display:grid;grid-template-columns:repeat(4,1fr);gap:12px
   }
-  .card p.lead{
-    margin:0 0 14px 0; color:#374151; font-size:15px; line-height:1.4; max-width:36ch;
+  @media (max-width:900px){ .grid8{grid-template-columns:repeat(2,1fr)} }
+  .tile{
+    background:var(--card);border:1px solid var(--line);border-radius:var(--radius);
+    box-shadow:var(--shadow);padding:14px;display:grid;place-items:center;gap:6px;min-height:108px
   }
-  .kpi{ display:flex; align-items:flex-start; gap:8px; margin:4px 0 10px; }
-  .kpi .num{ font-weight:900; font-size:72px; line-height:1; color:var(--azul); }
-  .kpi .suf{ position:relative; top:-16px; font-weight:900; font-size:34px; line-height:1; color:var(--azul); }
-  .labelPuesto{ margin-top:-6px; font-size:40px; font-weight:900; color:var(--azul); }
+  .tile .v{font-size:32px;font-weight:900;color:var(--azul);line-height:1}
+  .tile .t{font-size:12px;color:#64748b;font-weight:800;text-align:center}
 
-  .actions{display:flex; gap:12px; flex-wrap:wrap; justify-content:center; margin-top:10px}
-  .btn{
-    appearance:none; border:2px solid var(--rojo);
-    background:transparent; color:var(--rojo); font-weight:800;
-    padding:10px 14px; border-radius:999px; cursor:pointer;
-    transition:.18s ease; font-size:14px;
-  }
-  .btn:hover{filter:brightness(.98)}
-
-  /* ======= Área de tabla compartida ======= */
-  .tableSection{ max-width:1180px; margin:18px auto 8px; padding:0 16px; }
-  .tableShell{
-    background:#fff; border:1px solid var(--line); border-radius:14px;
-    box-shadow:0 14px 28px rgba(2,6,23,.08); overflow:hidden;
-    max-height:0; transition:max-height .28s ease;
-  }
-  .tableShell.open{ max-height:320px; }
-
-  .status{ padding:10px; font-weight:700; color:var(--muted) }
-  .status.error{ color:#b91c1c }
-
-  .scroller{ overflow:auto; max-height:320px; }
-  table{ width:100%; border-collapse:separate; border-spacing:0; table-layout:fixed; font-size:13px }
-  thead th{
-    position:sticky; top:0; z-index:2;
-    background:var(--turquesa); color:#ffffff;
-    font-weight:800; letter-spacing:.2px;
-    padding:12px 10px; text-align:center; border-bottom:2px solid #ffffff00;
-    border-right:6px solid var(--gap-header);
-  }
-  thead th:first-child{ border-top-left-radius:14px; }
-  thead th:last-child{ border-right:none; border-top-right-radius:14px; }
-
-  tbody td{ padding:10px 8px; border-bottom:1px solid var(--line); text-align:center }
-  tbody tr:nth-child(odd){ background:#f9fcfb }
-  td.num{ font-variant-numeric:tabular-nums }
-
-  col.c-rk{width:8%} col.c-sec{width:36%} col.c-pia{width:14%} col.c-pim{width:14%} col.c-dev{width:18%} col.c-avz{width:10%}
-
-  /* ======= BLOQUE DESEMPEÑO (solo esta franja en plomo) ======= */
-  .perf{
-    background:var(--plomo);
-    border-top:1px solid var(--line);
-    padding:48px 16px 54px;
-    margin-top:24px;
-  }
-  .perf .box{max-width:980px;margin:0 auto;text-align:center}
-  .perf h2{
-    font-size:30px; color:var(--azul); font-weight:900; margin:0 0 12px 0;
-    display:inline-block; position:relative;
-  }
-  .perf h2::after{ content:""; position:absolute; left:0; right:0; bottom:-6px; height:4px; background:var(--rojo); }
-  .perf p{max-width:78ch;margin:12px auto 16px;color:#374151}
-  .perf .actions{margin-top:10px}
-
-  /* ======= TABLA POR EJECUTORA (FULL-BLEED, fondo blanco) ======= */
-  .exec-wrap{
-    width:100vw;
-    margin-left:calc(50% - 50vw);
-    margin-right:calc(50% - 50vw);
-    background:#fff;
-  }
-  .card-flat{
-    border-top:1px solid var(--line);
-    border-bottom:1px solid var(--line);
-    border-left:0;border-right:0;
-    border-radius:0;
-    box-shadow:0 14px 28px rgba(2,6,23,.08);
-    overflow:hidden;
-  }
-  .header-flat{padding:12px 16px 8px;text-align:center;background:#fff}
-  .title-flat{margin:0;font-weight:800;font-size:19px;color:var(--ink)}
-  .legend{margin:8px 0 12px 0;display:flex;justify-content:center;gap:14px;font-size:12.5px;color:#111827;font-weight:600}
-  .legend .dot{width:.62rem;height:.62rem;border-radius:999px;display:inline-block;margin-right:.38rem;vertical-align:-.1rem}
-
-  .table-wrap{max-height:70vh;overflow:auto}
-  .table-exec{width:100%;border-collapse:separate;border-spacing:0;table-layout:fixed;font-size:13.5px}
-
-  .table-exec thead th{
-    position:sticky;top:0;z-index:40;
-    background:var(--turquesa);color:#fff;font-weight:800;padding:11px 8px;text-align:center;
-    border-bottom:2px solid #ffffff00;border-right:6px solid var(--gap-header);
-  }
-  .table-exec thead th.sticky-left{left:0;z-index:50;text-align:left;background:var(--turquesa);box-shadow:6px 0 8px -6px rgba(0,0,0,.18)}
-
-  .table-exec th+th,.table-exec td+td{border-left:1px solid var(--line)}
-  .table-exec tbody td,.table-exec tbody th{padding:9px 7px;border-bottom:1px solid var(--line);background:#fff;vertical-align:middle}
-  .table-exec tbody tr:nth-child(odd){background:#f9fcfb}
-  .num{text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
-  .pct{text-align:center;white-space:nowrap;font-variant-numeric:tabular-nums}
-
-  .table-exec tbody td.sticky,
-  .table-exec tbody th.sticky{
-    position:sticky;left:0;z-index:45;background:#fff;box-shadow:6px 0 8px -6px rgba(0,0,0,.18);text-align:left
-  }
-
-  /* Botón expandir con SVG animado */
-  .btn-expand{
-    border:0;background:transparent;font-weight:800;cursor:pointer;
-    padding:4px 0;border-radius:8px;text-align:left;color:var(--ink);
-    display:inline-flex;align-items:flex-start;gap:6px;max-width:100%;
-  }
-  .chev{
-    --chev-color:#ea580c;--chev-glow:rgba(234,88,12,.45);
-    width:1.35rem;height:1.35rem;position:relative;display:grid;place-items:center;flex-shrink:0;
-  }
-  .chev .arrow{
-    position:absolute;width:16px;height:16px;opacity:0;
-    filter:drop-shadow(0 5px 10px var(--chev-glow));
-    animation:chevDrip 1.8s ease-in-out infinite
-  }
-  .chev .arrow:nth-child(2){animation-delay:.22s}
-  .chev .arrow:nth-child(3){animation-delay:.44s}
-  @keyframes chevDrip{
-    0%{transform:translateY(-8px) scale(.95);opacity:0}
-    20%{transform:translateY(-2px) scale(1);opacity:1}
-    60%{transform:translateY(6px) scale(1.04);opacity:.95}
-    100%{transform:translateY(12px) scale(1);opacity:0}
-  }
-  .btn-expand:hover .chev{--chev-color:#ff6b1a;--chev-glow:rgba(255,107,26,.5)}
-  .btn-expand[aria-expanded="true"] .chev{--chev-color:#0ea5e9;--chev-glow:rgba(14,165,233,.45)}
-
-  /* Botón StoryMap */
-  .infoBtn{
-    position:relative;display:inline-flex;align-items:center;justify-content:center;
-    width:34px;height:34px;border-radius:10px;cursor:pointer;text-decoration:none;
-    background:radial-gradient(circle at 30% 30%, #38bdf8 0%, #0284c7 60%, #01497a 100%);
-    border:1.5px solid rgba(255,255,255,0.4);
-    box-shadow:0 0 14px rgba(56,189,248,.7), 0 6px 16px rgba(2,132,199,.4);
-    overflow:hidden;transition:transform .2s ease;
-  }
-  .infoBtn:hover{transform:scale(1.08)}
-  .infoBtn svg{width:20px;height:20px;stroke:#fff;stroke-width:2.2;fill:none}
+  /* Aparición + efecto “tragamonedas” al entrar en vista */
+  .fade{opacity:0;transform:translateY(6px);transition:.35s ease}
+  .fade.on{opacity:1;transform:translateY(0)}
 </style>
 </head>
 <body>
 
-<!-- ====== TARJETAS DE RANKING ====== -->
-<div class="wrap">
-  <div class="grid" id="cards">
-    <article class="card" data-key="left">
-      <p class="lead">El Ministerio de Vivienda, Construcción y Saneamiento se encuentra en el ranking entre sectores en el:</p>
-      <div class="kpi" aria-live="polite">
-        <span class="num" id="kpi-left">—</span><span class="suf">°</span>
-      </div>
-      <div class="labelPuesto">puesto</div>
-      <div class="actions">
-        <button class="btn" data-action="toggle" data-side="left">Ver tabla</button>
-        <button class="btn" data-action="excel" data-side="left">Exportar a Excel</button>
-      </div>
+<div class="wrap" id="INV">
+
+  <div class="titleRow"><h2 class="title">Inversiones</h2></div>
+
+  <div class="top">
+    <!-- Texto -->
+    <article class="blk">
+      <p class="p">Las inversiones planificadas para el 2025 reflejan el compromiso del MVCS con el cierre de brechas en infraestructura y saneamiento. Estas inversiones forman parte de la planificación estratégica del ministerio y responden a necesidades priorizadas en el territorio, especialmente en sectores vulnerables. La planificación contempla obras en saneamiento y vivienda y urbanismo, en coordinación con los gobiernos regionales y locales.</p>
+      <div class="src"><b>Fuente:</b> Ministerio de Economía y Finanzas – MEF · Portal de datos Abiertos · <span id="lastUpdate">Actualizado al —</span></div>
+      <div class="note">Incluye inversiones cuyo PIM sea mayor a 0</div>
     </article>
 
-    <article class="card" data-key="right">
-      <p class="lead">A nivel de inversiones, el ministerio se encuentra en el ranking entre sectores en el:</p>
-      <div class="kpi" aria-live="polite">
-        <span class="num" id="kpi-right">—</span><span class="suf">°</span>
+    <!-- KPIs -->
+    <section class="kpis">
+      <div class="hero fade" data-animate="count">
+        <div class="ic32"><img src="https://lh3.googleusercontent.com/d/18tWhc-SzR8dEqrZZs8trBnqa6o9-Y-9P=w1000" alt="Inversiones"/></div>
+        <div>
+          <div class="lbl">A través de <span id="kpiCount" class="num">—</span> inversiones</div>
+        </div>
       </div>
-      <div class="labelPuesto">puesto</div>
-      <div class="actions">
-        <button class="btn" data-action="toggle" data-side="right">Ver tabla</button>
-        <button class="btn" data-action="excel" data-side="right">Exportar a Excel</button>
+
+      <div class="duo">
+        <div class="mini fade" data-animate="pim">
+          <div class="cap">PIM</div>
+          <div id="kpiPIM" class="val">—</div>
+        </div>
+        <div class="mini fade" data-animate="dev">
+          <div class="cap">Devengado</div>
+          <div id="kpiDev" class="val">—</div>
+          <div id="kpiPct" class="sub">—</div>
+        </div>
       </div>
-    </article>
+    </section>
   </div>
-</div>
 
-<!-- ====== ÁREA DE TABLA COMPARTIDA ====== -->
-<section class="tableSection">
-  <div id="tableShell" class="tableShell" aria-live="polite">
-    <div id="state" class="status" role="status">—</div>
-    <div class="scroller" id="scroller" style="display:none">
-      <table id="tbl">
-        <colgroup>
-          <col class="c-rk"><col class="c-sec"><col class="c-pia"><col class="c-pim"><col class="c-dev"><col class="c-avz">
-        </colgroup>
-        <thead>
-          <tr>
-            <th>RANKING</th>
-            <th>Sector</th>
-            <th>PIA</th>
-            <th>PIM</th>
-            <th>Devengado</th>
-            <th>Avance(%)</th>
-          </tr>
-        </thead>
-        <tbody id="tbody"></tbody>
-      </table>
-    </div>
-  </div>
-</section>
+  <div class="bar">Se espera generar</div>
 
-<!-- ====== BLOQUE DESEMPEÑO (franja plomo) ====== -->
-<section class="perf" id="desempeno">
-  <div class="box">
-    <h2>Desempeño financiero por ejecutora</h2>
-    <p>
-      El presupuesto asignado, comprometido y ejecutado, permite identificar avances y
-      desafíos en la gestión de recursos, promoviendo así una gestión eficiente y transparente
-      de los recursos públicos asignados para viviendas, infraestructura urbana y saneamiento.
-    </p>
-    <div class="actions">
-      <button id="btnShowExec" class="btn">Ver tabla</button>
-      <button id="btnExcelExec" class="btn">Exportar a Excel</button>
-    </div>
-  </div>
-</section>
-
-<!-- ====== TABLA POR EJECUTORA (FULL-BLEED, fondo blanco) ====== -->
-<div class="exec-wrap" id="execWrap" style="display:none">
-  <div class="card-flat">
-    <div class="header-flat">
-      <h3 class="title-flat">Ejecución presupuestal — MVCS (2025) por Pliego y Unidad Ejecutora</h3>
-      <div class="legend">
-        <span><span class="dot" style="background:#ef4444"></span><strong>Rojo</strong> &lt; 33%</span>
-        <span><span class="dot" style="background:#f59e0b"></span><strong>Ámbar</strong> 33%–67%</span>
-        <span><span class="dot" style="background:#16a34a"></span><strong>Verde</strong> ≥ 67%</span>
+  <section class="kpiGrid">
+    <div class="kCard fade" data-animate="agua">
+      <div class="badge"><img src="https://lh3.googleusercontent.com/d/1U1bT6XOwlWARi7SMsuyox3dSkHRB6CbO=w1000" alt="Agua"/></div>
+      <div class="m">
+        <div id="kAgua" class="v">—</div>
+        <div class="l">Conexiones nuevas de agua</div>
       </div>
     </div>
-    <div class="table-wrap">
-      <table class="table-exec" id="tblExec">
-        <colgroup>
-          <col style="width:320px">
-          <col style="width:130px"><col style="width:130px"><col style="width:110px">
-          <col style="width:130px"><col style="width:130px"><col style="width:110px">
-          <col style="width:130px"><col style="width:130px"><col style="width:110px">
-        </colgroup>
-        <thead>
-          <tr>
-            <th class="sticky-left">PLIEGO/EJECUTORAS</th>
-            <th>PIM ACTIVIDADES<br/>Y PROYECTOS</th>
-            <th>DEVENGADO</th>
-            <th>AVANCE %</th>
-            <th>PIM PROYECTO</th>
-            <th>DEVENGADO<br/>PROYECTO</th>
-            <th>AVANCE<br/>PROYECTO</th>
-            <th>PIM ACTIVIDAD</th>
-            <th>DEVENGADO<br/>ACTIVIDAD</th>
-            <th>AVANCE<br/>ACTIVIDAD</th>
-          </tr>
-        </thead>
-        <tbody id="tbodyExec"></tbody>
-        <tfoot id="tfootExec"></tfoot>
-      </table>
+
+    <div class="kCard fade" data-animate="alc">
+      <div class="badge"><img src="https://lh3.googleusercontent.com/d/1FJzFJZKmLqvnDKHUjMWCKAic6RrP2K6j=w1000" alt="Alcantarillado"/></div>
+      <div class="m">
+        <div id="kAlc" class="v">—</div>
+        <div class="l">Conexiones nuevas de alcantarillado</div>
+      </div>
     </div>
-  </div>
+
+    <div class="kCard fade" data-animate="pav">
+      <div class="badge"><img src="https://lh3.googleusercontent.com/d/1Nov2kbITwZGC3DUR4kwj-yo9vjQZqVqB=w1000" alt="Pavimento"/></div>
+      <div class="m">
+        <div id="kPav" class="v">—</div>
+        <div class="l">M2 de pavimento</div>
+      </div>
+    </div>
+
+    <div class="kCard fade" data-animate="ver">
+      <div class="badge"><img src="https://lh3.googleusercontent.com/d/1SKZkQW_boA1HSTxnQHwI17DSFM0wPmp5=w1000" alt="Vereda"/></div>
+      <div class="m">
+        <div id="kVer" class="v">—</div>
+        <div class="l">M2 de vereda</div>
+      </div>
+    </div>
+  </section>
+
+  <div class="bar" style="margin-top:18px">Estados</div>
+
+  <section class="grid8">
+    <div class="tile fade" data-animate="e1"><div id="tObrasCon"  class="v">—</div><div class="t">Obras concluidas</div></div>
+    <div class="tile fade" data-animate="e2"><div id="tObrasEjec" class="v">—</div><div class="t">Obras en ejecución</div></div>
+    <div class="tile fade" data-animate="e3"><div id="tObrasIni"  class="v">—</div><div class="t">Obras por iniciar</div></div>
+    <div class="tile fade" data-animate="e4"><div id="tObrasSel"  class="v">—</div><div class="t">Obras en proceso de selección</div></div>
+
+    <div class="tile fade" data-animate="e5"><div id="tExpCon"   class="v">—</div><div class="t">Expedientes concluidos</div></div>
+    <div class="tile fade" data-animate="e6"><div id="tExpElab"  class="v">—</div><div class="t">Expedientes en elaboración</div></div>
+    <div class="tile fade" data-animate="e7"><div id="tExpSel"   class="v">—</div><div class="t">Expedientes en proceso de selección</div></div>
+    <div class="tile fade" data-animate="e8"><div id="tExpConv"  class="v">—</div><div class="t">Expedientes por convocar</div></div>
+  </section>
 </div>
 
 <script>
-/* ========= KPIs y tabla compartida ========= */
-const ENDPOINT_LEFT  = "https://pportalgis.vivienda.gob.pe/pfdserver/rest/services/OGEI/Mapa_Inversiones_MEF/MapServer/9";
-const ENDPOINT_RIGHT = "https://pportalgis.vivienda.gob.pe/pfdserver/rest/services/OGEI/Mapa_Inversiones_MEF/MapServer/10";
-const KPI_SECTOR = "VIVIENDA CONSTRUCCION Y SANEAMIENTO";
+/* ==== Endpoints y formatos ==== */
+const FS10="https://pportalgis.vivienda.gob.pe/pfdserver/rest/services/OGEI/Mapa_Inversiones_MEF/FeatureServer/10/query";
+const FS13="https://pportalgis.vivienda.gob.pe/pfdserver/rest/services/OGEI/Mapa_Inversiones_MEF/FeatureServer/13/query";
+const FS_PT="https://pportalgis.vivienda.gob.pe/pfdserver/rest/services/OGEI/Mapa_Inversiones_Coord_MEF/FeatureServer/0/query";
 
-let currentSide = null;
-let cacheRows   = { left: null, right: null };
+const WHERE_SECTOR="sector_nombre = 'VIVIENDA CONSTRUCCION Y SANEAMIENTO'";
+const WHERE_COUNT ="ano_eje = 2025 AND monto_pim > 0 AND tipo_act_proy_nombre = 'PROYECTO'";
 
-function cacheBust(){ return String(Date.now()); }
-function esriPOST(url, obj){
-  const body = new URLSearchParams({ f:"json", returnGeometry:"false", ...obj, __ts:cacheBust() });
-  return fetch(url+"/query", { method:"POST", headers:{ "Content-Type":"application/x-www-form-urlencoded;charset=UTF-8" }, body })
-    .then(r=>{ if(!r.ok) throw new Error("HTTP "+r.status); return r.json(); })
-    .then(j=>{ if(j.error) throw new Error(j.error.message||"ArcGIS"); return j; });
+const fmtInt=new Intl.NumberFormat("es-PE",{maximumFractionDigits:0});
+const fmtCur=new Intl.NumberFormat("es-PE",{maximumFractionDigits:0});
+const fmtPct=new Intl.NumberFormat("es-PE",{maximumFractionDigits:1});
+
+/* ==== helpers ==== */
+function animateNumber(el,target,ms=1400,fmt=fmtInt,suffix=""){
+  if(!Number.isFinite(target)){ el.textContent="—"; return; }
+  const start=performance.now();
+  function frame(t){
+    const p=Math.min(1,(t-start)/ms);
+    const e=1-Math.pow(1-p,3);          // easeOutCubic = “tragamonedas” suave
+    el.textContent=fmt.format(target*e)+suffix;
+    if(p<1) requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
 }
-function fmtMoney(n){ return new Intl.NumberFormat("es-PE",{minimumFractionDigits:2,maximumFractionDigits:2}).format(Number(n)||0); }
-function fmtPct(n){ const v=Number(n); return isFinite(v) ? new Intl.NumberFormat("es-PE",{minimumFractionDigits:2,maximumFractionDigits:2}).format(v) : "—"; }
-function escQuotes(v){ return String(v).replaceAll("'","''"); }
-function escapeHtml(s){ return String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]||c)); }
+function esri(url,params){
+  const p=new URLSearchParams({f:"json",returnGeometry:"false",...params});
+  return fetch(url+"?"+p,{cache:"no-store"}).then(r=>r.json());
+}
+async function stat(url,where,stats){
+  const j=await esri(url,{where,outStatistics:JSON.stringify(stats)});
+  if(j.error) throw new Error(j.error.message||"ArcGIS"); 
+  return (j.features?.[0]?.attributes)||{};
+}
+async function countDistinct(url,where,field){
+  const j=await esri(url,{where,outFields:field,returnDistinctValues:"true",returnCountOnly:"true"});
+  return Number(j.count||0);
+}
 
-async function loadKPI(side){
-  const url = side==="left" ? ENDPOINT_LEFT : ENDPOINT_RIGHT;
+/* ==== datos ==== */
+async function getInversiones(){
+  return await countDistinct(FS13,WHERE_COUNT,"producto_proyecto");
+}
+async function getPIM(){
+  try{ const a=await stat(FS10,WHERE_SECTOR,[{statisticType:"sum",onStatisticField:"sum_monto_pim",outStatisticFieldName:"v"}]); return +a.v||0; }
+  catch{ const a=await stat(FS13,WHERE_SECTOR,[{statisticType:"sum",onStatisticField:"monto_pim",outStatisticFieldName:"v"}]); return +a.v||0; }
+}
+async function getDEV(){
+  try{ const a=await stat(FS10,WHERE_SECTOR,[{statisticType:"sum",onStatisticField:"sum_monto_devengado",outStatisticFieldName:"v"}]); return +a.v||0; }
+  catch{ const a=await stat(FS13,WHERE_SECTOR,[{statisticType:"sum",onStatisticField:"monto_devengado",outStatisticFieldName:"v"}]); return +a.v||0; }
+}
+async function getMaxDate(){
+  const a=await stat(FS13,WHERE_SECTOR,[{statisticType:"max",onStatisticField:"fecha_proceso",outStatisticFieldName:"d"}]);
+  const ts=+a.d||0; if(!ts) return "—";
+  return new Intl.DateTimeFormat("es-PE",{day:"2-digit",month:"long",year:"numeric"}).format(new Date(ts));
+}
+async function getGenerar(){
+  const a=await stat(FS_PT,"1=1",[
+    {statisticType:"sum",onStatisticField:"cnx_nuevas_agua",outStatisticFieldName:"agua"},
+    {statisticType:"sum",onStatisticField:"cnx_nuevas_alcantarillado_dse",outStatisticFieldName:"alc"},
+    {statisticType:"sum",onStatisticField:"final_pavimento_m2_monitoreo",outStatisticFieldName:"pav"},
+    {statisticType:"sum",onStatisticField:"final_vereda_m2_monitoreo",outStatisticFieldName:"ver"},
+  ]);
+  return {agua:+a.agua||0, alc:+a.alc||0, pav:+a.pav||0, ver:+a.ver||0};
+}
+function IN(list){return list.map(v=>`'${String(v).replaceAll("'","''")}'`).join(",");}
+async function getEstados(){
+  const OBRA=["OBRA (SALDO)","OBRA"];
+  const EXP =["EXPEDIENTE TECNICO (SALDO)","OBRA (Expediente Saldo)","EXPEDIENTE TECNICO"];
+  const W=(...x)=>x.filter(Boolean).join(" AND ");
+
+  const q={
+    e1:W(`etapa IN (${IN(OBRA)})`,`estado IN ('Transferencia','Post Ejecución','Concluido')`),
+    e2:W(`etapa IN (${IN(OBRA)})`,`estado IN ('En Ejecución')`),
+    e3:W(`etapa IN (${IN(OBRA)})`,`estado IN ('Actos Previos')`,`subestado = 'Por Iniciar'`),
+    e4:W(`etapa IN (${IN(OBRA)})`,`estado IN ('Actos Previos')`,`subestado = 'Proceso de Selección'`),
+    e5:W(`etapa IN (${IN(EXP)})`, `estado IN ('Concluido')`),
+    e6:W(`etapa IN (${IN(EXP)})`, `estado IN ('En elaboración')`),
+    e7:W(`etapa IN (${IN(EXP)})`, `estado IN ('Actos Previos')`,`subestado = 'Proceso de Selección'`),
+    e8:W(`etapa IN (${IN(EXP)})`, `estado IN ('Actos Previos')`,`subestado = 'Por Convocar'`),
+  };
+  const r=await Promise.all([
+    countDistinct(FS_PT,q.e1,"producto_proyecto"),
+    countDistinct(FS_PT,q.e2,"producto_proyecto"),
+    countDistinct(FS_PT,q.e3,"producto_proyecto"),
+    countDistinct(FS_PT,q.e4,"producto_proyecto"),
+    countDistinct(FS_PT,q.e5,"producto_proyecto"),
+    countDistinct(FS_PT,q.e6,"producto_proyecto"),
+    countDistinct(FS_PT,q.e7,"producto_proyecto"),
+    countDistinct(FS_PT,q.e8,"producto_proyecto"),
+  ]);
+  return {e1:r[0],e2:r[1],e3:r[2],e4:r[3],e5:r[4],e6:r[5],e7:r[6],e8:r[7]};
+}
+
+/* ==== Carga de datos (una sola vez) ==== */
+let snapshot=null;
+(async function bootstrap(){
   try{
-    const outStatistics = JSON.stringify([{statisticType:"min",onStatisticField:"rankin",outStatisticFieldName:"min_rankin"}]);
-    const where = `sector_nombre='${escQuotes(KPI_SECTOR)}'`;
-    const j = await esriPOST(url, { where, outStatistics, groupByFieldsForStatistics:"" });
-    const num = j.features?.[0]?.attributes?.min_rankin ?? null;
-    document.getElementById("kpi-"+side).textContent = (num!=null) ? Number(num).toLocaleString('es-PE') : "—";
-  }catch(e){
-    document.getElementById("kpi-"+side).textContent = "—";
-    console.error("KPI "+side, e);
-  }
-}
-
-const OUT_FIELDS = ["rankin","sector_nombre","sum_monto_pia","sum_monto_pim","sum_monto_devengado","avance"].join(",");
-async function fetchRows(side){
-  const url = side==="left" ? ENDPOINT_LEFT : ENDPOINT_RIGHT;
-  const page=2000; let offset=0; const rows=[];
-  while(true){
-    const j = await esriPOST(url, {
-      where:"1=1", outFields:OUT_FIELDS, orderByFields:"rankin ASC",
-      resultRecordCount:page, resultOffset:offset
-    });
-    (j.features||[]).forEach(f=>{
-      const a=f.attributes||{};
-      rows.push({rk:a.rankin??null, sec:a.sector_nombre??"", pia:+a.sum_monto_pia||0, pim:+a.sum_monto_pim||0, dev:+a.sum_monto_devengado||0, avz:+a.avance});
-    });
-    if(!j.exceededTransferLimit || (j.features||[]).length<page) break;
-    offset += page;
-  }
-  return rows;
-}
-function renderTable(rows){
-  const tb = document.getElementById("tbody");
-  tb.innerHTML = rows.map(r=>`
-    <tr>
-      <td class="num">${r.rk ?? "—"}</td>
-      <td>${escapeHtml(r.sec||"—")}</td>
-      <td class="num">${fmtMoney(r.pia)}</td>
-      <td class="num">${fmtMoney(r.pim)}</td>
-      <td class="num">${fmtMoney(r.dev)}</td>
-      <td class="num">${fmtPct(r.avz)}</td>
-    </tr>
-  `).join("");
-}
-async function toggleTable(side){
-  const shell = document.getElementById("tableShell");
-  const scroller = document.getElementById("scroller");
-  const stateEl = document.getElementById("state");
-
-  const buttons = document.querySelectorAll('button[data-action="toggle"]');
-  if (shell.classList.contains("open") && currentSide===side){
-    shell.classList.remove("open"); stateEl.textContent = "—"; scroller.style.display = "none"; currentSide = null;
-    buttons.forEach(b=> b.textContent="Ver tabla");
-    return;
-  }
-
-  buttons.forEach(b=> b.textContent = (b.dataset.side===side) ? "Ocultar tabla" : "Ver tabla");
-  shell.classList.add("open"); stateEl.classList.remove("error"); stateEl.textContent = "Cargando datos…"; scroller.style.display = "none";
-
-  try{
-    const rows = cacheRows[side] || await fetchRows(side);
-    cacheRows[side] = rows; renderTable(rows);
-    stateEl.textContent = `Listo (${rows.length.toLocaleString('es-PE')} filas)`;
-    scroller.style.display = "block"; currentSide = side;
-  }catch(e){
-    console.error(e); stateEl.classList.add("error"); stateEl.textContent = "No se pudo cargar la tabla."; scroller.style.display = "none";
-  }
-}
-function toCSV(rows){
-  const sep=";"; const header=["RANKING","Sector","PIA","PIM","Devengado","Avance(%)"];
-  const esc=v=>`"${String(v??"").replace(/"/g,'""')}"`;
-  const lines = rows.map(r=>[r.rk,r.sec,r.pia,r.pim,r.dev,r.avz].map(esc).join(sep));
-  return header.join(sep)+"\n"+lines.join("\n");
-}
-function downloadCSV(side){
-  const rows = cacheRows[side];
-  if(!rows || !rows.length) return;
-  const csv=toCSV(rows);
-  const bom=new Uint8Array([0xEF,0xBB,0xBF]);
-  const blob=new Blob([bom,csv],{type:"text/csv;charset=utf-8"});
-  const a=document.createElement("a");
-  a.href=URL.createObjectURL(blob);
-  a.download = side==="left" ? "ranking_general_sector.csv" : "ranking_inversiones_sector.csv";
-  document.body.appendChild(a); a.click(); a.remove();
-  setTimeout(()=>URL.revokeObjectURL(a.href),1200);
-}
-
-document.querySelectorAll('button[data-action="toggle"]').forEach(btn=> btn.addEventListener('click', ()=> toggleTable(btn.dataset.side)));
-document.querySelectorAll('button[data-action="excel"]').forEach(btn=> btn.addEventListener('click', ()=> {
-  const side = btn.dataset.side;
-  if(!cacheRows[side]){ toggleTable(side).then(()=> downloadCSV(side)); } else{ downloadCSV(side); }
-}));
-
-loadKPI("left"); loadKPI("right");
-
-
-/* ========= EJECUTORAS ========= */
-const SERVICE="https://pportalgis.vivienda.gob.pe/pfdserver/rest/services/OGEI/Mapa_Inversiones_MEF/FeatureServer/13/query";
-const BASE_WHERE="sector_nombre = 'VIVIENDA CONSTRUCCION Y SANEAMIENTO' AND ano_eje = 2025";
-const INFO_LINKS={ "MINISTERIO DE VIVIENDA, CONSTRUCCION Y SANEAMIENTO": "https://pportalgis.vivienda.gob.pe/pportal/apps/storymaps/stories/750c7c6b13bf477287b8db07c865f1b1" };
-
-const nf=new Intl.NumberFormat('es-PE');
-const pctStr=(r)=>isFinite(r)?(r*100).toFixed(2)+' %':'0.00 %';
-
-function buildParams(extra){
-  return new URLSearchParams({
-    where:`${BASE_WHERE}${extra? ' AND '+extra:''}`,
-    groupByFieldsForStatistics:"pliego_nombre,ejecutora_nombre",
-    outStatistics:JSON.stringify([
-      {statisticType:"sum",onStatisticField:"monto_pim",outStatisticFieldName:"sum_pim"},
-      {statisticType:"sum",onStatisticField:"monto_devengado",outStatisticFieldName:"sum_dev"}
-    ]),
-    returnGeometry:"false", f:"json"
-  }).toString();
-}
-async function queryStats(extra){
-  const res=await fetch(`${SERVICE}?${buildParams(extra)}`,{cache:'no-store'});
-  if(!res.ok) throw new Error('HTTP '+res.status);
-  const json=await res.json();
-  if(json.error) throw new Error(json.error.message||'Error servicio');
-  return (json.features||[]).map(f=>{
-    const a=f.attributes||{};
-    return { pliego:String(a.pliego_nombre||'').trim()||'(Sin pliego)', ejecutora:String(a.ejecutora_nombre||'').trim()||'(Sin ejecutora)', pim:Number(a.sum_pim||0), dev:Number(a.sum_dev||0) };
-  });
-}
-function mergeStats(total,proy,act){
-  const key=r=>`${r.pliego}|||${r.ejecutora}`;
-  const it=new Map(), ip=new Map(), ia=new Map();
-  total.forEach(r=>it.set(key(r),r)); proy.forEach(r=>ip.set(key(r),r)); act.forEach(r=>ia.set(key(r),r));
-  const rows=[...new Set([...it.keys(),...ip.keys(),...ia.keys()])].map(k=>{
-    const t=it.get(k)||{}, p=ip.get(k)||{}, a=ia.get(k)||{};
-    return { pliego:t.pliego||p.pliego||a.pliego||'', ejecutora:t.ejecutora||p.ejecutora||a.ejecutora||'', pim:t.pim||0, dev:t.dev||0, pim_proy:p.pim||0, dev_proy:p.dev||0, pim_act:a.pim||0, dev_act:a.dev||0 };
-  });
-  const byP=new Map();
-  for(const r of rows){ if(!byP.has(r.pliego)) byP.set(r.pliego,[]); byP.get(r.pliego).push(r); }
-  for(const arr of byP.values()){ arr.sort((x,y)=>x.ejecutora.localeCompare(y.ejecutora,'es')); }
-  return new Map([...byP.entries()].sort((a,b)=>a[0].localeCompare(b[0],'es')));
-}
-
-function renderExec(grouped){
-  const tbody=document.getElementById('tbodyExec'); tbody.innerHTML='';
-  let tot={pim:0,dev:0,pim_proy:0,dev_proy:0,pim_act:0,dev_act:0};
-
-  for(const [pliego,items] of grouped.entries()){
-    const s=items.reduce((a,r)=>({
-      pim:a.pim+r.pim, dev:a.dev+r.dev,
-      pim_proy:a.pim_proy+r.pim_proy, dev_proy:a.dev_proy+r.dev_proy,
-      pim_act:a.pim_act+r.pim_act, dev_act:a.dev_act+r.dev_act
-    }),{pim:0,dev:0,pim_proy:0,dev_proy:0,pim_act:0,dev_act:0});
-
-    Object.keys(tot).forEach(k=>tot[k]+=s[k]);
-
-    const av = s.pim>0 ? s.dev/s.pim : 0;
-    const avp = s.pim_proy>0 ? s.dev_proy/s.pim_proy : 0;
-    const ava = s.pim_act>0 ? s.dev_act/s.pim_act : 0;
-
-    const gid = 'g_' + Math.random().toString(36).slice(2,9);
-    const story = (pliego.toUpperCase().includes("MINISTERIO DE VIVIENDA")) ?
-      `<a class="infoBtn" href="${INFO_LINKS['MINISTERIO DE VIVIENDA, CONSTRUCCION Y SANEAMIENTO']}" target="_blank" rel="noopener" title="Ver StoryMap">
-         <svg viewBox="0 0 24 24"><path d="M14 3h7v7"/><path d="M10 14 21 3"/><path d="M21 14v7h-7"/><path d="M3 10 14 21"/></svg>
-       </a>` : '';
-
-    const groupHTML = `<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;">
-      <button class="btn-expand" aria-expanded="false" aria-controls="${gid}">
-        <span class="chev">
-          <svg class="arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 4v12"></path><path d="M8 12l4 4 4-4"></path></svg>
-          <svg class="arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 4v12"></path><path d="M8 12l4 4 4-4"></path></svg>
-          <svg class="arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 4v12"></path><path d="M8 12l4 4 4-4"></path></svg>
-        </span>
-        <span style="white-space:normal;word-break:break-word;">${pliego}</span>
-      </button>
-      ${story}
-    </div>`;
-
-    const dot = v => `<span class="dot" style="background:${v<0.33?'#ef4444':v<0.67?'#f59e0b':'#16a34a'}"></span>`;
-    const addRow=(cells,isHead=false)=>{
-      const tr=document.createElement('tr');
-      tr.className=isHead?'group':'';
-      cells.forEach(c=>{
-        const el=document.createElement(isHead?'th':'td');
-        if(c.cls) el.className=c.cls;
-        el.innerHTML=c.html; tr.appendChild(el);
-      });
-      tbody.appendChild(tr);
-    };
-
-    addRow([
-      {html:groupHTML, cls:'sticky'},
-      {html:nf.format(s.pim),cls:'num'},{html:nf.format(s.dev),cls:'num'},
-      {html:`${dot(av)}${pctStr(av)}`,cls:'pct'},
-      {html:nf.format(s.pim_proy),cls:'num'},{html:nf.format(s.dev_proy),cls:'num'},
-      {html:`${dot(avp)}${pctStr(avp)}`,cls:'pct'},   /* AVANCE PROYECTO con punto */
-      {html:nf.format(s.pim_act),cls:'num'},{html:nf.format(s.dev_act),cls:'num'},
-      {html:`${dot(ava)}${pctStr(ava)}`,cls:'pct'}
-    ],true);
-
-    for(const r of items){
-      const av2 = r.pim>0 ? r.dev/r.pim : 0;
-      const avp2 = r.pim_proy>0 ? r.dev_proy/r.pim_proy : 0;
-      const ava2 = r.pim_act>0 ? r.dev_act/r.pim_act : 0;
-      const tr=document.createElement('tr');
-      tr.className='item'; tr.setAttribute('data-parent',gid); tr.style.display='none';
-      tr.innerHTML=`
-        <td class="sticky" style="padding-left:24px;white-space:normal;word-break:break-word;">${r.ejecutora}</td>
-        <td class="num">${nf.format(r.pim)}</td><td class="num">${nf.format(r.dev)}</td>
-        <td class="pct">${dot(av2)}${pctStr(av2)}</td>
-        <td class="num">${nf.format(r.pim_proy)}</td><td class="num">${nf.format(r.dev_proy)}</td>
-        <td class="pct">${dot(avp2)}${pctStr(avp2)}</td>
-        <td class="num">${nf.format(r.pim_act)}</td><td class="num">${nf.format(r.dev_act)}</td>
-        <td class="pct">${dot(ava2)}${pctStr(ava2)}</td>`;
-      tbody.appendChild(tr);
-    }
-  }
-
-  const tfoot=document.getElementById('tfootExec');
-  const tav = tot.pim>0 ? tot.dev/tot.pim : 0;
-  const tavp = tot.pim_proy>0 ? tot.dev_proy/tot.pim_proy : 0;
-  const tava = tot.pim_act>0 ? tot.dev_act/tot.pim_act : 0;
-  const dot = v => `<span class="dot" style="background:${v<0.33?'#ef4444':v<0.67?'#f59e0b':'#16a34a'}"></span>`;
-  tfoot.innerHTML=`<tr>
-    <td class="sticky" style="font-weight:900;text-align:left">Total</td>
-    <td class="num">${nf.format(tot.pim)}</td><td class="num">${nf.format(tot.dev)}</td>
-    <td class="pct">${dot(tav)}${pctStr(tav)}</td>
-    <td class="num">${nf.format(tot.pim_proy)}</td><td class="num">${nf.format(tot.dev_proy)}</td>
-    <td class="pct">${dot(tavp)}${pctStr(tavp)}</td>
-    <td class="num">${nf.format(tot.pim_act)}</td><td class="num">${nf.format(tot.dev_act)}</td>
-    <td class="pct">${dot(tava)}${pctStr(tava)}</td>
-  </tr>`;
-
-  /* expandir/colapsar ejecutoras */
-  tbody.querySelectorAll('.btn-expand').forEach(btn=>{
-    btn.addEventListener('click',()=>{
-      const id=btn.getAttribute('aria-controls');
-      const open=btn.getAttribute('aria-expanded')==='true';
-      btn.setAttribute('aria-expanded',String(!open));
-      tbody.querySelectorAll(`tr.item[data-parent="${id}"]`).forEach(tr=> tr.style.display=open?'none':'');
-    });
-  });
-}
-
-async function loadExecutors(){
-  try{
-    const [all,proy,act]=await Promise.all([
-      queryStats("1=1"),
-      queryStats("tipo_act_proy_nombre = 'PROYECTO'"),
-      queryStats("tipo_act_proy_nombre = 'ACTIVIDAD'")
+    const [inv,pim,dev,fecha,gen,est] = await Promise.all([
+      getInversiones(), getPIM(), getDEV(), getMaxDate(), getGenerar(), getEstados()
     ]);
-    renderExec(mergeStats(all,proy,act));
-  }catch(err){
-    console.error(err);
-    document.getElementById('tbodyExec').innerHTML=`<tr><td colspan="10" style="text-align:center;color:#b91c1c;padding:18px">Error al cargar datos</td></tr>`;
-  }
-}
+    snapshot={inv,pim,dev,fecha,gen,est};
+    document.getElementById("lastUpdate").textContent="Actualizado al "+fecha;
+  }catch(e){ console.error(e); }
+})();
 
-function exportTableToExcel(){
-  const table=document.getElementById('tblExec'); if(!table) return;
-  const clone=table.cloneNode(true);
-  clone.querySelectorAll('td.num, th.num').forEach(td=> td.setAttribute('style',(td.getAttribute('style')||'')+'; mso-number-format:"\\#\\,\\#\\#0";'));
-  const html=`<!DOCTYPE html><html><head><meta charset="utf-8">
-  <style>table{border-collapse:collapse}th,td{border:1px solid #d1d5db;padding:6px 8px;white-space:nowrap}
-  th{background:#5ebad6;color:#fff;font-weight:800}</style>
-  </head><body>${clone.outerHTML}</body></html>`;
-  const blob=new Blob([html],{type:'application/vnd.ms-excel;charset=utf-8;'});
-  const a=document.createElement('a');
-  a.href=URL.createObjectURL(blob);
-  a.download='ejecutoras_mvcs_2025.xls';
-  document.body.appendChild(a); a.click(); a.remove();
-}
+/* ==== Observer para activar animaciones al ver ==== */
+const observer=new IntersectionObserver((entries)=>{
+  entries.forEach(en=>{
+    if(!en.isIntersecting) return;
+    const el=en.target;
+    el.classList.add('on');             // fade in
+    // Si es el título, dispara el subrayado rojo
+    if(el.classList.contains('titleRow')){ el.classList.add('on'); }
 
-/* Toggle de desempeño con texto “Ver/Ocultar tabla” */
-const btnShowExec = document.getElementById('btnShowExec');
-btnShowExec.addEventListener('click',()=>{
-  const wrap=document.getElementById('execWrap');
-  const isHidden = wrap.style.display==='none';
-  if(isHidden){ wrap.style.display='block'; loadExecutors(); btnShowExec.textContent='Ocultar tabla'; }
-  else{ wrap.style.display='none'; btnShowExec.textContent='Ver tabla'; }
-});
+    if(!snapshot) return;
 
-document.getElementById('btnExcelExec').addEventListener('click',exportTableToExcel);
+    // KPIs con efecto tragamonedas
+    const a=el.getAttribute('data-animate');
+    if(a==="count"){ animateNumber(document.getElementById('kpiCount'), snapshot.inv, 1400, fmtInt); }
+    if(a==="pim"){   const t=document.getElementById('kpiPIM'); animateNumber(t, snapshot.pim, 1600, fmtCur); t.textContent="S/ "+t.textContent; }
+    if(a==="dev"){   const t=document.getElementById('kpiDev'); animateNumber(t, snapshot.dev, 1600, fmtCur); t.textContent="S/ "+t.textContent;
+                     const pct=(snapshot.pim>0)?(snapshot.dev/snapshot.pim*100):0; animateNumber(document.getElementById('kpiPct'), pct, 1600, fmtPct, "%"); }
+    if(a==="agua"){  animateNumber(document.getElementById('kAgua'), snapshot.gen.agua, 1300, fmtInt); }
+    if(a==="alc"){   animateNumber(document.getElementById('kAlc'),  snapshot.gen.alc,  1300, fmtInt); }
+    if(a==="pav"){   animateNumber(document.getElementById('kPav'),  snapshot.gen.pav,  1300, fmtInt); }
+    if(a==="ver"){   animateNumber(document.getElementById('kVer'),  snapshot.gen.ver,  1300, fmtInt); }
+    if(a==="e1"){    animateNumber(document.getElementById('tObrasCon'),  snapshot.est.e1, 1200, fmtInt); }
+    if(a==="e2"){    animateNumber(document.getElementById('tObrasEjec'), snapshot.est.e2, 1200, fmtInt); }
+    if(a==="e3"){    animateNumber(document.getElementById('tObrasIni'),  snapshot.est.e3, 1200, fmtInt); }
+    if(a==="e4"){    animateNumber(document.getElementById('tObrasSel'),  snapshot.est.e4, 1200, fmtInt); }
+    if(a==="e5"){    animateNumber(document.getElementById('tExpCon'),    snapshot.est.e5, 1200, fmtInt); }
+    if(a==="e6"){    animateNumber(document.getElementById('tExpElab'),   snapshot.est.e6, 1200, fmtInt); }
+    if(a==="e7"){    animateNumber(document.getElementById('tExpSel'),    snapshot.est.e7, 1200, fmtInt); }
+    if(a==="e8"){    animateNumber(document.getElementById('tExpConv'),   snapshot.est.e8, 1200, fmtInt); }
+
+    observer.unobserve(el); // una sola vez por bloque
+  });
+},{threshold:.25});
+
+document.querySelectorAll('.fade,[data-animate],.titleRow').forEach(n=>observer.observe(n));
 </script>
 </body>
 </html>
