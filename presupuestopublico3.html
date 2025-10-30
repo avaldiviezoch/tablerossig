@@ -3,34 +3,36 @@
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>Rankings — MVCS</title>
-
+<title>MVCS — Rankings y Desempeño por Ejecutora (2025)</title>
 <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;600;700;800;900&display=swap" rel="stylesheet"/>
 
 <style>
   :root{
     --azul:#1e6eb6;
     --azul-osc:#174f84;
-    --turquesa:#5ebad6;          /* cabecera tipo referencia */
-    --linea-gap:#f3f4f6;         /* separador entre headers */
+    --turquesa:#5ebad6;
+    --gap-header:#f3f4f6;
     --rojo:#d00000;
     --ink:#0f172a;
     --muted:#64748b;
     --card:#ffffff;
-    --page:#f3f4f6;
+    --plomo:#f3f4f6;
     --line:#e5e7eb;
     --pill:#f8fafc;
+
+    --chip-ok:#16a34a; --chip-mid:#f59e0b; --chip-bad:#ef4444;
   }
+
   *{box-sizing:border-box}
-  html,body{margin:0;background:var(--page);font-family:'Nunito Sans',system-ui,Segoe UI,Roboto,Arial,sans-serif;color:var(--ink)}
+  html,body{margin:0;background:var(--plomo);font-family:'Nunito Sans',system-ui,Segoe UI,Roboto,Arial,sans-serif;color:var(--ink)}
 
+  /* ======= TARJETAS RANKINGS (fondo blanco) ======= */
   .wrap{max-width:1180px;margin:28px auto;padding:0 16px}
-
   .grid{display:grid;grid-template-columns:1fr 1fr;gap:22px}
   @media(max-width:900px){ .grid{grid-template-columns:1fr;gap:16px} }
 
   .card{
-    background:var(--card);
+    background:#fff;
     border:1px solid var(--line);
     border-radius:18px;
     padding:28px 24px 22px;
@@ -41,53 +43,39 @@
     margin:0 0 14px 0; color:#374151; font-size:15px; line-height:1.4; max-width:36ch;
   }
   .kpi{ display:flex; align-items:flex-start; gap:8px; margin:4px 0 10px; }
-  .kpi .num{
-    font-weight:900; font-size:72px; line-height:1; color:var(--azul);
-  }
-  /* ⇩ levantamos el “circulito” (°) un poco más */
-  .kpi .suf{
-    position:relative; top:-16px;   /* antes ~0; ahora más arriba */
-    font-weight:900; font-size:34px; line-height:1; color:var(--azul);
-    display:inline-block;
-  }
-  .labelPuesto{
-    margin-top:-6px; font-size:40px; font-weight:900; color:var(--azul);
-  }
+  .kpi .num{ font-weight:900; font-size:72px; line-height:1; color:var(--azul); }
+  .kpi .suf{ position:relative; top:-16px; font-weight:900; font-size:34px; line-height:1; color:var(--azul); }
+  .labelPuesto{ margin-top:-6px; font-size:40px; font-weight:900; color:var(--azul); }
 
   .actions{display:flex; gap:12px; flex-wrap:wrap; justify-content:center; margin-top:10px}
   .btn{
-    appearance:none; border:1px solid var(--azul);
-    background:var(--pill); color:var(--azul); font-weight:800;
+    appearance:none; border:2px solid var(--rojo);
+    background:transparent; color:var(--rojo); font-weight:800;
     padding:10px 14px; border-radius:999px; cursor:pointer;
     transition:.18s ease; font-size:14px;
   }
-  .btn:hover{filter:brightness(0.98)}
-  .btn.primary{background:var(--azul); color:#fff; border-color:var(--azul)}
-  .btn.primary:hover{background:var(--azul-osc); border-color:var(--azul-osc)}
+  .btn:hover{filter:brightness(.98)}
 
-  /* Área de tabla (compartida) */
+  /* ======= Área de tabla compartida ======= */
   .tableSection{ max-width:1180px; margin:18px auto 8px; padding:0 16px; }
   .tableShell{
     background:#fff; border:1px solid var(--line); border-radius:14px;
     box-shadow:0 14px 28px rgba(2,6,23,.08); overflow:hidden;
     max-height:0; transition:max-height .28s ease;
   }
-  .tableShell.open{ max-height:320px; } /* ~10 cm aprox */
+  .tableShell.open{ max-height:320px; }
 
   .status{ padding:10px; font-weight:700; color:var(--muted) }
   .status.error{ color:#b91c1c }
 
   .scroller{ overflow:auto; max-height:320px; }
   table{ width:100%; border-collapse:separate; border-spacing:0; table-layout:fixed; font-size:13px }
-
-  /* CABECERA estilo referencia */
   thead th{
     position:sticky; top:0; z-index:2;
     background:var(--turquesa); color:#ffffff;
     font-weight:800; letter-spacing:.2px;
     padding:12px 10px; text-align:center; border-bottom:2px solid #ffffff00;
-    /* “grietas” blancas entre celdas como en la imagen */
-    border-right:6px solid var(--linea-gap);
+    border-right:6px solid var(--gap-header);
   }
   thead th:first-child{ border-top-left-radius:14px; }
   thead th:last-child{ border-right:none; border-top-right-radius:14px; }
@@ -97,45 +85,151 @@
   td.num{ font-variant-numeric:tabular-nums }
 
   col.c-rk{width:8%} col.c-sec{width:36%} col.c-pia{width:14%} col.c-pim{width:14%} col.c-dev{width:18%} col.c-avz{width:10%}
+
+  /* ======= BLOQUE DESEMPEÑO (plomo) ======= */
+  .perf{
+    background:var(--plomo);
+    border-top:1px solid var(--line);
+    padding:48px 16px 54px;
+    margin-top:24px;
+  }
+  .perf .box{max-width:980px;margin:0 auto;text-align:center}
+  .perf h2{
+    font-size:30px; color:var(--azul); font-weight:900; margin:0 0 12px 0;
+    display:inline-block; position:relative;
+  }
+  .perf h2::after{ content:""; position:absolute; left:0; right:0; bottom:-6px; height:4px; background:var(--rojo); }
+  .perf p{max-width:78ch;margin:12px auto 16px;color:#374151}
+  .perf .actions{margin-top:10px}
+
+  /* ======= TABLA POR EJECUTORA (FULL-BLEED) ======= */
+  .exec-wrap{
+    width:100vw;
+    margin-left:calc(50% - 50vw);
+    margin-right:calc(50% - 50vw);
+    background:#fff;
+  }
+  .card-flat{
+    border-top:1px solid var(--line);
+    border-bottom:1px solid var(--line);
+    border-left:0;border-right:0;
+    border-radius:0;
+    box-shadow:0 14px 28px rgba(2,6,23,.08);
+    overflow:hidden;
+  }
+  .header-flat{padding:12px 16px 8px;text-align:center;background:#fff}
+  .title-flat{margin:0;font-weight:800;font-size:19px;color:var(--ink)}
+  .legend{margin:8px 0 12px 0;display:flex;justify-content:center;gap:14px;font-size:12.5px;color:#111827;font-weight:600}
+  .legend .dot{width:.62rem;height:.62rem;border-radius:999px;display:inline-block;margin-right:.38rem;vertical-align:-.1rem}
+
+  .table-wrap{max-height:70vh;overflow:auto}
+  .table-exec{width:100%;border-collapse:separate;border-spacing:0;table-layout:fixed;font-size:13.5px}
+
+  .table-exec thead th{
+    position:sticky;top:0;z-index:40;
+    background:var(--turquesa);color:#fff;font-weight:800;padding:11px 8px;text-align:center;
+    border-bottom:2px solid #ffffff00;border-right:6px solid var(--gap-header);
+  }
+  .table-exec thead th:first-child{border-top-left-radius:0}
+  .table-exec thead th:last-child{border-right:none;border-top-right-radius:0}
+  .table-exec thead th.sticky-left{left:0;z-index:50;text-align:left;background:var(--turquesa);box-shadow:6px 0 8px -6px rgba(0,0,0,.18)}
+
+  .table-exec th+th,.table-exec td+td{border-left:1px solid var(--line)}
+  .table-exec tbody td,.table-exec tbody th{padding:9px 7px;border-bottom:1px solid var(--line);background:#fff;vertical-align:middle}
+  .table-exec tbody tr:nth-child(odd){background:#f9fcfb}
+  .num{text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
+  .pct{text-align:center;white-space:nowrap;font-variant-numeric:tabular-nums}
+
+  .table-exec tbody td.sticky,
+  .table-exec tbody th.sticky{
+    position:sticky;left:0;z-index:45;background:#fff;box-shadow:6px 0 8px -6px rgba(0,0,0,.18);text-align:left
+  }
+
+  /* Botón expandir con SVG animado */
+  .btn-expand{
+    border:0;background:transparent;font-weight:800;cursor:pointer;
+    padding:4px 0;border-radius:8px;text-align:left;color:var(--ink);
+    display:inline-flex;align-items:flex-start;gap:6px;max-width:100%;
+  }
+  .chev{
+    --chev-color:#ea580c;--chev-glow:rgba(234,88,12,.45);
+    width:1.35rem;height:1.35rem;position:relative;display:grid;place-items:center;flex-shrink:0;
+  }
+  .chev .arrow{
+    position:absolute;width:16px;height:16px;opacity:0;
+    filter:drop-shadow(0 5px 10px var(--chev-glow));
+    animation:chevDrip 1.8s ease-in-out infinite
+  }
+  .chev .arrow:nth-child(2){animation-delay:.22s}
+  .chev .arrow:nth-child(3){animation-delay:.44s}
+  @keyframes chevDrip{
+    0%{transform:translateY(-8px) scale(.95);opacity:0}
+    20%{transform:translateY(-2px) scale(1);opacity:1}
+    60%{transform:translateY(6px) scale(1.04);opacity:.95}
+    100%{transform:translateY(12px) scale(1);opacity:0}
+  }
+  .btn-expand:hover .chev{--chev-color:#ff6b1a;--chev-glow:rgba(255,107,26,.5)}
+  .btn-expand[aria-expanded="true"] .chev{--chev-color:#0ea5e9;--chev-glow:rgba(14,165,233,.45)}
+
+  /* Botón StoryMap */
+  .infoBtn{
+    position:relative;display:inline-flex;align-items:center;justify-content:center;
+    width:34px;height:34px;border-radius:10px;cursor:pointer;text-decoration:none;
+    background:radial-gradient(circle at 30% 30%, #38bdf8 0%, #0284c7 60%, #01497a 100%);
+    border:1.5px solid rgba(255,255,255,0.4);
+    box-shadow:0 0 14px rgba(56,189,248,.7), 0 6px 16px rgba(2,132,199,.4);
+    overflow:hidden;transition:transform .2s ease;
+  }
+  .infoBtn:hover{transform:scale(1.08)}
+  .infoBtn::after{
+    content:"";position:absolute;inset:-5px;border-radius:12px;
+    background:radial-gradient(circle,#38bdf8 0%,rgba(56,189,248,0)70%);opacity:.5;filter:blur(8px);
+    animation:haloPulse 2s ease-in-out infinite;pointer-events:none;
+  }
+  @keyframes haloPulse{0%,100%{opacity:.4;filter:blur(6px)}50%{opacity:.8;filter:blur(12px)}}
+  .infoBtn svg{width:20px;height:20px;stroke:#fff;stroke-width:2.2;fill:none}
+
+  /* ===== PUNTOS (leyenda) reutilizables en tablas ===== */
+  .dot{
+    width:.62rem;height:.62rem;border-radius:999px;display:inline-block;margin-right:.38rem;vertical-align:-.1rem
+  }
+  .ok{ background:var(--chip-ok) }
+  .mid{ background:var(--chip-mid) }
+  .bad{ background:var(--chip-bad) }
 </style>
 </head>
 <body>
 
+<!-- ====== TARJETAS DE RANKING ====== -->
 <div class="wrap">
   <div class="grid" id="cards">
-
-    <!-- IZQUIERDA: Ranking general (MapServer/9) -->
     <article class="card" data-key="left">
       <p class="lead">El Ministerio de Vivienda, Construcción y Saneamiento se encuentra en el ranking entre sectores en el:</p>
       <div class="kpi" aria-live="polite">
         <span class="num" id="kpi-left">—</span><span class="suf">°</span>
       </div>
       <div class="labelPuesto">puesto</div>
-
       <div class="actions">
-        <button class="btn primary" data-action="toggle" data-side="left">Ver tabla</button>
+        <button class="btn" data-action="toggle" data-side="left">Ver tabla</button>
         <button class="btn" data-action="excel" data-side="left">Exportar a Excel</button>
       </div>
     </article>
 
-    <!-- DERECHA: Ranking de inversiones (MapServer/10) -->
     <article class="card" data-key="right">
       <p class="lead">A nivel de inversiones, el ministerio se encuentra en el ranking entre sectores en el:</p>
       <div class="kpi" aria-live="polite">
         <span class="num" id="kpi-right">—</span><span class="suf">°</span>
       </div>
       <div class="labelPuesto">puesto</div>
-
       <div class="actions">
-        <button class="btn primary" data-action="toggle" data-side="right">Ver tabla</button>
+        <button class="btn" data-action="toggle" data-side="right">Ver tabla</button>
         <button class="btn" data-action="excel" data-side="right">Exportar a Excel</button>
       </div>
     </article>
-
   </div>
 </div>
 
-<!-- ÁREA DE TABLA COMPARTIDA -->
+<!-- ====== ÁREA DE TABLA COMPARTIDA ====== -->
 <section class="tableSection">
   <div id="tableShell" class="tableShell" aria-live="polite">
     <div id="state" class="status" role="status">—</div>
@@ -146,7 +240,7 @@
         </colgroup>
         <thead>
           <tr>
-            <th>CUADRO</th>
+            <th>RANKING</th>
             <th>Sector</th>
             <th>PIA</th>
             <th>PIM</th>
@@ -160,33 +254,83 @@
   </div>
 </section>
 
+<!-- ====== BLOQUE DESEMPEÑO ====== -->
+<section class="perf" id="desempeno">
+  <div class="box">
+    <h2>Desempeño financiero por ejecutora</h2>
+    <p>
+      El presupuesto asignado, comprometido y ejecutado, permite identificar avances y
+      desafíos en la gestión de recursos, promoviendo así una gestión eficiente y transparente
+      de los recursos públicos asignados para viviendas, infraestructura urbana y saneamiento.
+    </p>
+    <div class="actions">
+      <button id="btnShowExec" class="btn">Ver tabla</button>
+      <button id="btnExcelExec" class="btn">Exportar a Excel</button>
+    </div>
+  </div>
+</section>
+
+<!-- ====== TABLA POR EJECUTORA (FULL-BLEED) ====== -->
+<div class="exec-wrap" id="execWrap" style="display:none">
+  <div class="card-flat">
+    <div class="header-flat">
+      <h3 class="title-flat">Ejecución presupuestal — MVCS (2025) por Pliego y Unidad Ejecutora</h3>
+      <div class="legend">
+        <span><span class="dot bad"></span><strong>Rojo</strong> &lt; 33%</span>
+        <span><span class="dot mid"></span><strong>Ámbar</strong> 33%–67%</span>
+        <span><span class="dot ok"></span><strong>Verde</strong> ≥ 67%</span>
+      </div>
+    </div>
+    <div class="table-wrap">
+      <table class="table-exec" id="tblExec">
+        <colgroup>
+          <col style="width:320px">
+          <col style="width:130px"><col style="width:130px"><col style="width:110px">
+          <col style="width:130px"><col style="width:130px"><col style="width:110px">
+          <col style="width:130px"><col style="width:130px"><col style="width:110px">
+        </colgroup>
+        <thead>
+          <tr>
+            <th class="sticky-left">PLIEGO/EJECUTORAS</th>
+            <th>PIM ACTIVIDADES<br/>Y PROYECTOS</th>
+            <th>DEVENGADO</th>
+            <th>AVANCE %</th>
+            <th>PIM PROYECTO</th>
+            <th>DEVENGADO<br/>PROYECTO</th>
+            <th>AVANCE<br/>PROYECTO</th>
+            <th>PIM ACTIVIDAD</th>
+            <th>DEVENGADO<br/>ACTIVIDAD</th>
+            <th>AVANCE<br/>ACTIVIDAD</th>
+          </tr>
+        </thead>
+        <tbody id="tbodyExec"></tbody>
+        <tfoot id="tfootExec"></tfoot>
+      </table>
+    </div>
+  </div>
+</div>
+
 <script>
-/* Endpoints */
+/* ========= KPIs y tabla compartida ========= */
 const ENDPOINT_LEFT  = "https://pportalgis.vivienda.gob.pe/pfdserver/rest/services/OGEI/Mapa_Inversiones_MEF/MapServer/9";
 const ENDPOINT_RIGHT = "https://pportalgis.vivienda.gob.pe/pfdserver/rest/services/OGEI/Mapa_Inversiones_MEF/MapServer/10";
 const KPI_SECTOR = "VIVIENDA CONSTRUCCION Y SANEAMIENTO";
 
-/* Estado */
 let currentSide = null;
 let cacheRows   = { left: null, right: null };
 
-/* Helpers ESRI */
 function cacheBust(){ return String(Date.now()); }
 function esriPOST(url, obj){
   const body = new URLSearchParams({ f:"json", returnGeometry:"false", ...obj, __ts:cacheBust() });
-  return fetch(url+"/query", {
-    method:"POST",
-    headers:{ "Content-Type":"application/x-www-form-urlencoded;charset=UTF-8" },
-    body
-  }).then(r=>{ if(!r.ok) throw new Error("HTTP "+r.status); return r.json(); })
+  return fetch(url+"/query", { method:"POST", headers:{ "Content-Type":"application/x-www-form-urlencoded;charset=UTF-8" }, body })
+    .then(r=>{ if(!r.ok) throw new Error("HTTP "+r.status); return r.json(); })
     .then(j=>{ if(j.error) throw new Error(j.error.message||"ArcGIS"); return j; });
 }
-function fmtMoney(n){ const v=Number(n)||0; return new Intl.NumberFormat("es-PE",{minimumFractionDigits:2,maximumFractionDigits:2}).format(v); }
-function fmtPct(n){ const v=Number(n); if(!isFinite(v)) return "—"; return new Intl.NumberFormat("es-PE",{minimumFractionDigits:2,maximumFractionDigits:2}).format(v); }
+function fmtMoney(n){ return new Intl.NumberFormat("es-PE",{minimumFractionDigits:2,maximumFractionDigits:2}).format(Number(n)||0); }
+function fmtPct(n){ const v=Number(n); return isFinite(v) ? new Intl.NumberFormat("es-PE",{minimumFractionDigits:2,maximumFractionDigits:2}).format(v) : "—"; }
 function escQuotes(v){ return String(v).replaceAll("'","''"); }
 function escapeHtml(s){ return String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]||c)); }
 
-/* KPIs */
 async function loadKPI(side){
   const url = side==="left" ? ENDPOINT_LEFT : ENDPOINT_RIGHT;
   try{
@@ -201,7 +345,6 @@ async function loadKPI(side){
   }
 }
 
-/* Tabla */
 const OUT_FIELDS = ["rankin","sector_nombre","sum_monto_pia","sum_monto_pim","sum_monto_devengado","avance"].join(",");
 async function fetchRows(side){
   const url = side==="left" ? ENDPOINT_LEFT : ENDPOINT_RIGHT;
@@ -213,11 +356,7 @@ async function fetchRows(side){
     });
     (j.features||[]).forEach(f=>{
       const a=f.attributes||{};
-      rows.push({
-        rk:a.rankin??null, sec:a.sector_nombre??"",
-        pia:+a.sum_monto_pia||0, pim:+a.sum_monto_pim||0, dev:+a.sum_monto_devengado||0,
-        avz:+a.avance
-      });
+      rows.push({rk:a.rankin??null, sec:a.sector_nombre??"", pia:+a.sum_monto_pia||0, pim:+a.sum_monto_pim||0, dev:+a.sum_monto_devengado||0, avz:+a.avance});
     });
     if(!j.exceededTransferLimit || (j.features||[]).length<page) break;
     offset += page;
@@ -237,48 +376,29 @@ function renderTable(rows){
     </tr>
   `).join("");
 }
-
-/* Toggle tabla compartida */
 async function toggleTable(side){
-  const shell   = document.getElementById("tableShell");
-  const scroller= document.getElementById("scroller");
+  const shell = document.getElementById("tableShell");
+  const scroller = document.getElementById("scroller");
   const stateEl = document.getElementById("state");
   const btnSide = document.querySelector(`button[data-action="toggle"][data-side="${side}"]`);
 
   if (shell.classList.contains("open") && currentSide===side){
-    shell.classList.remove("open");
-    stateEl.textContent = "—";
-    scroller.style.display = "none";
-    currentSide = null;
-    btnSide.textContent = "Ver tabla";
-    return;
+    shell.classList.remove("open"); stateEl.textContent = "—"; scroller.style.display = "none"; currentSide = null;
+    btnSide.textContent = "Ver tabla"; return;
   }
 
-  document.querySelectorAll('button[data-action="toggle"]').forEach(b=>{
-    b.textContent = (b.dataset.side===side) ? "Ocultar tabla" : "Ver tabla";
-  });
-
-  shell.classList.add("open");
-  stateEl.classList.remove("error");
-  stateEl.textContent = "Cargando datos…";
-  scroller.style.display = "none";
+  document.querySelectorAll('button[data-action="toggle"]').forEach(b=> b.textContent = (b.dataset.side===side) ? "Ocultar tabla" : "Ver tabla");
+  shell.classList.add("open"); stateEl.classList.remove("error"); stateEl.textContent = "Cargando datos…"; scroller.style.display = "none";
 
   try{
     const rows = cacheRows[side] || await fetchRows(side);
-    cacheRows[side] = rows;
-    renderTable(rows);
+    cacheRows[side] = rows; renderTable(rows);
     stateEl.textContent = `Listo (${rows.length.toLocaleString('es-PE')} filas)`;
-    scroller.style.display = "block";
-    currentSide = side;
+    scroller.style.display = "block"; currentSide = side;
   }catch(e){
-    console.error(e);
-    stateEl.classList.add("error");
-    stateEl.textContent = "No se pudo cargar la tabla.";
-    scroller.style.display = "none";
+    console.error(e); stateEl.classList.add("error"); stateEl.textContent = "No se pudo cargar la tabla."; scroller.style.display = "none";
   }
 }
-
-/* Exportar */
 function toCSV(rows){
   const sep=";"; const header=["RANKING","Sector","PIA","PIM","Devengado","Avance(%)"];
   const esc=v=>`"${String(v??"").replace(/"/g,'""')}"`;
@@ -298,22 +418,205 @@ function downloadCSV(side){
   setTimeout(()=>URL.revokeObjectURL(a.href),1200);
 }
 
-/* UI */
-document.querySelectorAll('button[data-action="toggle"]').forEach(btn=>{
-  btn.addEventListener('click', ()=> toggleTable(btn.dataset.side));
-});
-document.querySelectorAll('button[data-action="excel"]').forEach(btn=>{
-  btn.addEventListener('click', ()=> {
-    const side = btn.dataset.side;
-    if(!cacheRows[side]){ toggleTable(side).then(()=> downloadCSV(side)); }
-    else{ downloadCSV(side); }
-  });
-});
+document.querySelectorAll('button[data-action="toggle"]').forEach(btn=> btn.addEventListener('click', ()=> toggleTable(btn.dataset.side)));
+document.querySelectorAll('button[data-action="excel"]').forEach(btn=> btn.addEventListener('click', ()=> {
+  const side = btn.dataset.side;
+  if(!cacheRows[side]){ toggleTable(side).then(()=> downloadCSV(side)); } else{ downloadCSV(side); }
+}));
 
-/* Init */
-loadKPI("left");
-loadKPI("right");
+loadKPI("left"); loadKPI("right");
+
+
+/* ========= EJECUTORAS ========= */
+const SERVICE="https://pportalgis.vivienda.gob.pe/pfdserver/rest/services/OGEI/Mapa_Inversiones_MEF/FeatureServer/13/query";
+const BASE_WHERE="sector_nombre = 'VIVIENDA CONSTRUCCION Y SANEAMIENTO' AND ano_eje = 2025";
+const INFO_LINKS={ "MINISTERIO DE VIVIENDA, CONSTRUCCION Y SANEAMIENTO": "https://pportalgis.vivienda.gob.pe/pportal/apps/storymaps/stories/750c7c6b13bf477287b8db07c865f1b1" };
+
+const nf=new Intl.NumberFormat('es-PE');
+const pctStr=(r)=>isFinite(r)?(r*100).toFixed(2)+' %':'0.00 %';
+function chipClass(r){ const p=Number(r)*100; if(!isFinite(p))return'bad'; if(p<33)return'bad'; if(p<67)return'mid'; return'ok'; }
+
+function buildParams(extra){
+  return new URLSearchParams({
+    where:`${BASE_WHERE}${extra? ' AND '+extra:''}`,
+    groupByFieldsForStatistics:"pliego_nombre,ejecutora_nombre",
+    outStatistics:JSON.stringify([
+      {statisticType:"sum",onStatisticField:"monto_pim",outStatisticFieldName:"sum_pim"},
+      {statisticType:"sum",onStatisticField:"monto_devengado",outStatisticFieldName:"sum_dev"}
+    ]),
+    returnGeometry:"false", f:"json"
+  }).toString();
+}
+async function queryStats(extra){
+  const res=await fetch(`${SERVICE}?${buildParams(extra)}`,{cache:'no-store'});
+  if(!res.ok) throw new Error('HTTP '+res.status);
+  const json=await res.json();
+  if(json.error) throw new Error(json.error.message||'Error servicio');
+  return (json.features||[]).map(f=>{
+    const a=f.attributes||{};
+    return { pliego:String(a.pliego_nombre||'').trim()||'(Sin pliego)', ejecutora:String(a.ejecutora_nombre||'').trim()||'(Sin ejecutora)', pim:Number(a.sum_pim||0), dev:Number(a.sum_dev||0) };
+  });
+}
+function mergeStats(total,proy,act){
+  const key=r=>`${r.pliego}|||${r.ejecutora}`;
+  const it=new Map(), ip=new Map(), ia=new Map();
+  total.forEach(r=>it.set(key(r),r)); proy.forEach(r=>ip.set(key(r),r)); act.forEach(r=>ia.set(key(r),r));
+  const rows=[...new Set([...it.keys(),...ip.keys(),...ia.keys()])].map(k=>{
+    const t=it.get(k)||{}, p=ip.get(k)||{}, a=ia.get(k)||{};
+    return { pliego:t.pliego||p.pliego||a.pliego||'', ejecutora:t.ejecutora||p.ejecutora||a.ejecutora||'', pim:t.pim||0, dev:t.dev||0, pim_proy:p.pim||0, dev_proy:p.dev||0, pim_act:a.pim||0, dev_act:a.dev||0 };
+  });
+  const byP=new Map();
+  for(const r of rows){ if(!byP.has(r.pliego)) byP.set(r.pliego,[]); byP.get(r.pliego).push(r); }
+  for(const arr of byP.values()){ arr.sort((x,y)=>x.ejecutora.localeCompare(y.ejecutora,'es')); }
+  return new Map([...byP.entries()].sort((a,b)=>a[0].localeCompare(b[0],'es')));
+}
+function addRow(tbody,cells,opts={}){
+  const tr=document.createElement('tr'); tr.className=opts.className||'';
+  for(const c of cells){
+    const el=document.createElement(c.header?'th':'td');
+    if(c.cls) el.className=c.cls; el.innerHTML=c.html; tr.appendChild(el);
+  }
+  tbody.appendChild(tr);
+}
+function renderExec(grouped){
+  const tbody=document.getElementById('tbodyExec'); tbody.innerHTML='';
+  let tot={pim:0,dev:0,pim_proy:0,dev_proy:0,pim_act:0,dev_act:0};
+
+  for(const [pliego,items] of grouped.entries()){
+    const s=items.reduce((a,r)=>({
+      pim:a.pim+r.pim, dev:a.dev+r.dev,
+      pim_proy:a.pim_proy+r.pim_proy, dev_proy:a.dev_proy+r.dev_proy,
+      pim_act:a.pim_act+r.pim_act, dev_act:a.dev_act+r.dev_act
+    }),{pim:0,dev:0,pim_proy:0,dev_proy:0,pim_act:0,dev_act:0});
+
+    tot.pim+=s.pim; tot.dev+=s.dev; tot.pim_proy+=s.pim_proy; tot.dev_proy+=s.dev_proy; tot.pim_act+=s.pim_act; tot.dev_act+=s.dev_act;
+
+    const av  = s.pim>0       ? s.dev/s.pim         : 0;
+    const avp = s.pim_proy>0  ? s.dev_proy/s.pim_proy : 0;   // AVANCE PROYECTO
+    const ava = s.pim_act>0   ? s.dev_act/s.pim_act : 0;
+
+    const gid = 'g_' + Math.random().toString(36).slice(2,9);
+    let infoBtnHTML = '';
+    for(const key in INFO_LINKS){
+      if(pliego.toUpperCase().includes(key)){
+        const href = INFO_LINKS[key];
+        infoBtnHTML = `<a class="infoBtn" href="${href}" target="_blank" rel="noopener" title="Ver StoryMap">
+          <svg viewBox="0 0 24 24"><path d="M14 3h7v7"/><path d="M10 14 21 3"/><path d="M21 14v7h-7"/><path d="M3 10 14 21"/></svg>
+        </a>`;
+        break;
+      }
+    }
+
+    const groupHTML = `<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;">
+      <button class="btn-expand" aria-expanded="false" aria-controls="${gid}">
+        <span class="chev">
+          <svg class="arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 4v12"></path><path d="M8 12l4 4 4-4"></path></svg>
+          <svg class="arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 4v12"></path><path d="M8 12l4 4 4-4"></path></svg>
+          <svg class="arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 4v12"></path><path d="M8 12l4 4 4-4"></path></svg>
+        </span>
+        <span style="white-space:normal;word-break:break-word;">${pliego}</span>
+      </button>
+      ${infoBtnHTML}
+    </div>`;
+
+    addRow(tbody,[
+      {header:true,cls:'sticky',html:groupHTML},
+      {html:nf.format(s.pim),cls:'num'},
+      {html:nf.format(s.dev),cls:'num'},
+      {html:`<span class="dot ${chipClass(av)}"></span>${pctStr(av)}`,cls:'pct'},
+      {html:nf.format(s.pim_proy),cls:'num'},
+      {html:nf.format(s.dev_proy),cls:'num'},
+      /* ===== AVANCE PROYECTO con punto de leyenda ===== */
+      {html:`<span class="dot ${chipClass(avp)}"></span>${pctStr(avp)}`,cls:'pct'},
+      {html:nf.format(s.pim_act),cls:'num'},
+      {html:nf.format(s.dev_act),cls:'num'},
+      {html:`<span class="dot ${chipClass(ava)}"></span>${pctStr(ava)}`,cls:'pct'}
+    ],{className:'group'});
+
+    for(const r of items){
+      const av2  = r.pim>0       ? r.dev/r.pim         : 0;
+      const avp2 = r.pim_proy>0  ? r.dev_proy/r.pim_proy : 0; // AVANCE PROYECTO (fila)
+      const ava2 = r.pim_act>0   ? r.dev_act/r.pim_act : 0;
+
+      const tr=document.createElement('tr');
+      tr.className='item'; tr.setAttribute('data-parent',gid); tr.style.display='none';
+      tr.innerHTML=`
+        <td class="sticky" style="padding-left:24px;white-space:normal;word-break:break-word;">${r.ejecutora}</td>
+        <td class="num">${nf.format(r.pim)}</td>
+        <td class="num">${nf.format(r.dev)}</td>
+        <td class="pct"><span class="dot ${chipClass(av2)}"></span>${pctStr(av2)}</td>
+        <td class="num">${nf.format(r.pim_proy)}</td>
+        <td class="num">${nf.format(r.dev_proy)}</td>
+        <td class="pct"><span class="dot ${chipClass(avp2)}"></span>${pctStr(avp2)}</td>
+        <td class="num">${nf.format(r.pim_act)}</td>
+        <td class="num">${nf.format(r.dev_act)}</td>
+        <td class="pct"><span class="dot ${chipClass(ava2)}"></span>${pctStr(ava2)}</td>`;
+      tbody.appendChild(tr);
+    }
+  }
+
+  const tfoot=document.getElementById('tfootExec');
+  const tav  = tot.pim>0       ? tot.dev/tot.pim         : 0;
+  const tavp = tot.pim_proy>0  ? tot.dev_proy/tot.pim_proy : 0; // AVANCE PROYECTO total
+  const tava = tot.pim_act>0   ? tot.dev_act/tot.pim_act : 0;
+  tfoot.innerHTML=`<tr>
+    <td class="sticky" style="font-weight:900;text-align:left">Total</td>
+    <td class="num">${nf.format(tot.pim)}</td>
+    <td class="num">${nf.format(tot.dev)}</td>
+    <td class="pct"><span class="dot ${chipClass(tav)}"></span>${pctStr(tav)}</td>
+    <td class="num">${nf.format(tot.pim_proy)}</td>
+    <td class="num">${nf.format(tot.dev_proy)}</td>
+    <td class="pct"><span class="dot ${chipClass(tavp)}"></span>${pctStr(tavp)}</td>
+    <td class="num">${nf.format(tot.pim_act)}</td>
+    <td class="num">${nf.format(tot.dev_act)}</td>
+    <td class="pct"><span class="dot ${chipClass(tava)}"></span>${pctStr(tava)}</td>
+  </tr>`;
+
+  tbody.querySelectorAll('.btn-expand').forEach(btn=>{
+    btn.addEventListener('click',()=>{
+      const id=btn.getAttribute('aria-controls');
+      const open=btn.getAttribute('aria-expanded')==='true';
+      btn.setAttribute('aria-expanded',String(!open));
+      tbody.querySelectorAll(`tr.item[data-parent="${id}"]`).forEach(tr=> tr.style.display=open?'none':'');
+    });
+  });
+}
+
+async function loadExecutors(){
+  try{
+    const [all,proy,act]=await Promise.all([
+      queryStats("1=1"),
+      queryStats("tipo_act_proy_nombre = 'PROYECTO'"),
+      queryStats("tipo_act_proy_nombre = 'ACTIVIDAD'")
+    ]);
+    renderExec(mergeStats(all,proy,act));
+  }catch(err){
+    console.error(err);
+    document.getElementById('tbodyExec').innerHTML=`<tr><td colspan="10" style="text-align:center;color:#b91c1c;padding:18px">Error al cargar datos</td></tr>`;
+  }
+}
+
+function exportTableToExcel(){
+  const table=document.getElementById('tblExec'); if(!table) return;
+  const clone=table.cloneNode(true);
+  clone.querySelectorAll('td.num, th.num').forEach(td=> td.setAttribute('style',(td.getAttribute('style')||'')+'; mso-number-format:"\\#\\,\\#\\#0";'));
+  const html=`<!DOCTYPE html><html><head><meta charset="utf-8">
+  <style>table{border-collapse:collapse}th,td{border:1px solid #d1d5db;padding:6px 8px;white-space:nowrap}
+  th{background:#5ebad6;color:#fff;font-weight:800}</style>
+  </head><body>${clone.outerHTML}</body></html>`;
+  const blob=new Blob([html],{type:'application/vnd.ms-excel;charset=utf-8;'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download='ejecutoras_mvcs_2025.xls';
+  document.body.appendChild(a); a.click(); a.remove();
+}
+
+document.getElementById('btnShowExec').addEventListener('click',()=>{
+  const wrap=document.getElementById('execWrap');
+  if(wrap.style.display==='none'){ wrap.style.display='block'; loadExecutors(); }
+  else{ wrap.style.display='none'; }
+});
+document.getElementById('btnExcelExec').addEventListener('click',exportTableToExcel);
 </script>
 </body>
 </html>
-
