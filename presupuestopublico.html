@@ -1,670 +1,1155 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="utf-8"/>
-<meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>Presupuesto público 2025 – MVCS</title>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>MVCS – Presupuesto y Rankings 2025</title>
+  <!-- Cargamos la misma fuente de ambos documentos una sola vez -->
+  <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;600;700;800;900&display=swap" rel="stylesheet"/>
 
-<!-- Fuente institucional -->
-<link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;600;700;800;900&display=swap" rel="stylesheet"/>
+  <!--
+    Unificamos los estilos de ambas páginas dentro de un único bloque.  Se conservan
+    las variables CSS de cada documento para evitar conflictos.  El orden de
+    definición mantiene la semántica original de cada sección.  Si aparecen
+    variables con nombres distintos no habrá colisión.
+  -->
+  <style>
+    /* ============ Estilos de la página de Presupuesto público ============ */
+    :root{
+      --accent-red:#d00000;
+      --txt-main:#ffffff;
+      --azul-mvcs:#1e6eb6;
+      --celeste-pim:#5ebad6;
+      --gris-fondo:#f8f9fa;
+      --gris-borde:#d1d5db;
+      --gris-texto:#1e293b;
+      --gris-sec:#4b5563;
+      --bg-page:#e5e7eb;
+      --bg-white:#ffffff;
+    }
 
-<style>
-:root{
-  --accent-red:#d00000;
-  --txt-main:#ffffff;
-  --azul-mvcs:#1e6eb6;
-  --celeste-pim:#5ebad6;
-  --gris-fondo:#f8f9fa;
-  --gris-borde:#d1d5db;
-  --gris-texto:#1e293b;
-  --gris-sec:#4b5563;
-  --bg-page:#e5e7eb;
-  --bg-white:#ffffff;
-}
+    /* RESET */
+    *{box-sizing:border-box;margin:0;padding:0;}
+    body{
+      font-family:'Nunito Sans',system-ui,Segoe UI,Roboto,Helvetica,Arial,sans-serif;
+      background:var(--bg-page);
+      color:#111;
+      line-height:1.5;
+    }
 
-/* RESET */
-*{box-sizing:border-box;margin:0;padding:0;}
-body{
-  font-family:'Nunito Sans',system-ui,Segoe UI,Roboto,Helvetica,Arial,sans-serif;
-  background:var(--bg-page);
-  color:#111;
-  line-height:1.5;
-}
+    /* ================= HERO ================= */
+    .hero{
+      position:relative;
+      width:100%;
+      height:100vh;
+      min-height:640px;
+      overflow:hidden;
+      display:flex;
+      flex-direction:column;
+      justify-content:space-between;
+      background:#000;
+    }
+    .hero::before{
+      content:"";
+      position:absolute;
+      inset:0;
+      background-image:url("https://lh3.googleusercontent.com/d/1Dm-riCsGjefQDoFktMgwsSRQNI_T8YaT=w1600");
+      background-size:cover;
+      background-position:center;
+      z-index:0;
+    }
+    .hero::after{
+      content:"";
+      position:absolute;
+      inset:0;
+      z-index:1;
+      background:linear-gradient(to bottom,rgba(0,0,0,0) 60%,rgba(0,0,0,0.45) 85%,rgba(0,0,0,0.7) 100%);
+    }
 
-/* ================= HERO (NUEVA VERSIÓN MEJORADA) ================= */
-.hero{
-  position:relative;
-  width:100%;
-  height:100vh;
-  min-height:640px;
-  overflow:hidden;
-  display:flex;
-  flex-direction:column;
-  justify-content:space-between;
-  background:#000;
-}
-.hero::before{
-  content:"";
-  position:absolute;
-  inset:0;
-  background-image:url("https://lh3.googleusercontent.com/d/1Dm-riCsGjefQDoFktMgwsSRQNI_T8YaT=w1600");
-  background-size:cover;
-  background-position:center;
-  z-index:0;
-}
-.hero::after{
-  content:"";
-  position:absolute;
-  inset:0;
-  z-index:1;
-  background:linear-gradient(to bottom,rgba(0,0,0,0) 60%,rgba(0,0,0,0.45) 85%,rgba(0,0,0,0.7) 100%);
-}
+    .hero-header{
+      position:relative;
+      z-index:5;
+      display:flex;
+      justify-content:space-between;
+      align-items:flex-start;
+      flex-wrap:wrap;
+      row-gap:1rem;
+      padding:1.2rem 3rem 0;
+      color:var(--txt-main);
+    }
+    .hero-header img{height:48px;object-fit:contain;}
+    nav.hero-nav{display:flex;flex-wrap:wrap;gap:2.2rem;justify-content:center;}
+    nav.hero-nav a{color:var(--txt-main);text-decoration:none;font-weight:600;font-size:0.95rem;transition:.3s;}
+    nav.hero-nav a:hover{color:#ffdddd;}
 
-.hero-header{
-  position:relative;
-  z-index:5;
-  display:flex;
-  justify-content:space-between;
-  align-items:flex-start;
-  flex-wrap:wrap;
-  row-gap:1rem;
-  padding:1.2rem 3rem 0;
-  color:var(--txt-main);
-}
-.hero-header img{height:48px;object-fit:contain;}
-nav.hero-nav{display:flex;flex-wrap:wrap;gap:2.2rem;justify-content:center;}
-nav.hero-nav a{color:var(--txt-main);text-decoration:none;font-weight:600;font-size:0.95rem;transition:.3s;}
-nav.hero-nav a:hover{color:#ffdddd;}
+    .hero-content{
+      position:relative;
+      z-index:5;
+      width:100%;
+      height:100%;
+      padding:0 4rem 5rem;
+      color:var(--txt-main);
+      display:grid;
+      grid-template-columns:minmax(0,1fr) minmax(420px,36%);
+      column-gap:5rem;
+      align-items:center;
+      justify-items:center;
+      transform:translateY(4cm);
+    }
+    .hero-left{
+      max-width:min(880px,90%);
+      align-self:center;
+      justify-self:start;
+      margin-left:1.5rem;
+      text-shadow:0 2px 12px rgba(0,0,0,.35);
+    }
+    .hero-title{
+      font-family:'Nunito Sans',sans-serif;
+      font-size:clamp(52px,8vw,88px);
+      font-weight:900;
+      line-height:1.02;
+      position:relative;
+      margin-bottom:1rem;
+      color:var(--txt-main);
+    }
+    .hero-underline{
+      position:absolute;
+      bottom:-10px;
+      left:0;
+      height:6px;
+      background:var(--accent-red);
+      width:0;
+      animation:underline 3.5s ease-out forwards;
+    }
+    @keyframes underline{from{width:0;}to{width:100%;}}
+    .hero-sub{
+      font-size:1.05rem;
+      color:rgba(255,255,255,0.9);
+      font-weight:700;
+      margin-top:.9rem;
+      text-shadow:0 2px 10px rgba(0,0,0,.35);
+    }
+    .hero-right{
+      max-width:540px;
+      justify-self:start;
+      font-size:1.22rem;
+      line-height:1.65;
+      font-weight:400;
+      color:var(--txt-main);
+      text-align:left;
+      text-shadow:0 2px 10px rgba(0,0,0,.35);
+    }
+    .hero-right b{font-weight:800;}
 
-.hero-content{
-  position:relative;
-  z-index:5;
-  width:100%;
-  height:100%;
-  padding:0 4rem 5rem;
-  color:var(--txt-main);
-  display:grid;
-  grid-template-columns:minmax(0,1fr) minmax(420px,36%);
-  column-gap:5rem;
-  align-items:center;
-  justify-items:center;
-  transform:translateY(4cm);
-}
-.hero-left{
-  max-width:min(880px,90%);
-  align-self:center;
-  justify-self:start;
-  margin-left:1.5rem;
-  text-shadow:0 2px 12px rgba(0,0,0,.35);
-}
-.hero-title{
-  font-family:'Nunito Sans',sans-serif;
-  font-size:clamp(52px,8vw,88px);
-  font-weight:900;
-  line-height:1.02;
-  position:relative;
-  margin-bottom:1rem;
-  color:var(--txt-main);
-}
-.hero-underline{
-  position:absolute;
-  bottom:-10px;
-  left:0;
-  height:6px;
-  background:var(--accent-red);
-  width:0;
-  animation:underline 3.5s ease-out forwards;
-}
-@keyframes underline{from{width:0;}to{width:100%;}}
-.hero-sub{
-  font-size:1.05rem;
-  color:rgba(255,255,255,0.9);
-  font-weight:700;
-  margin-top:.9rem;
-  text-shadow:0 2px 10px rgba(0,0,0,.35);
-}
-.hero-right{
-  max-width:540px;
-  justify-self:start;
-  font-size:1.22rem;
-  line-height:1.65;
-  font-weight:400;
-  color:var(--txt-main);
-  text-align:left;
-  text-shadow:0 2px 10px rgba(0,0,0,.35);
-}
-.hero-right b{font-weight:800;}
+    /* RESPONSIVE HERO */
+    @media(max-width:1000px){
+      .hero-content{
+        grid-template-columns:1fr;
+        row-gap:2rem;
+        padding:0 2rem 4rem;
+        transform:translateY(2cm);
+      }
+      .hero-left{justify-self:start;margin-left:0;}
+      .hero-right{justify-self:start;max-width:680px;font-size:1.1rem;}
+    }
 
-/* RESPONSIVE HERO */
-@media(max-width:1000px){
-  .hero-content{
-    grid-template-columns:1fr;
-    row-gap:2rem;
-    padding:0 2rem 4rem;
-    transform:translateY(2cm);
-  }
-  .hero-left{justify-self:start;margin-left:0;}
-  .hero-right{justify-self:start;max-width:680px;font-size:1.1rem;}
-}
+    /* ============= BLOQUE PIM ============= */
+    .pim-block{
+      background:var(--gris-fondo);
+      border-top:1px solid var(--gris-borde);
+      padding:3rem 1rem 3.5rem;
+      text-align:center;
+      color:var(--gris-texto);
+    }
+    .pim-title{
+      font-size:1rem;
+      font-weight:700;
+      margin-bottom:1rem;
+      color:var(--gris-texto);
+      text-align:center;
+    }
+    .pim-center-wrap{display:grid;place-items:center;margin-bottom:1.25rem;}
+    .pim-row{display:inline-flex;align-items:flex-end;gap:.8rem;transform-origin:center bottom;}
+    .pim-prefix{font-weight:800;color:var(--azul-mvcs);transform:translateY(-6%);font-size:clamp(32px,3vw,52px);opacity:0;transition:.35s ease;}
+    .pim-amount{font-weight:900;color:var(--azul-mvcs);font-size:clamp(50px,5vw,88px);opacity:0;transform:translateY(8px);transition:.35s ease;}
+    .pim-amount.ready{opacity:1;transform:translateY(0);} .pim-prefix.ready{opacity:1;transform:translateY(0);}
+    .data-source{font-size:.85rem;line-height:1.4;color:var(--gris-sec);text-align:center;font-weight:400;font-style:normal;}
+    .data-source b{color:#000;font-weight:700;font-style:normal;}
+    .data-source em{font-style:italic;color:#555;font-weight:400;}
 
-/* ================= PIM (contador grande) ================= */
-.pim-block{
-  background:var(--gris-fondo);
-  border-top:1px solid var(--gris-borde);
-  padding:3rem 1rem 3.5rem;
-  text-align:center;
-  color:var(--gris-texto);
-}
-.pim-title{
-  font-size:1rem;
-  font-weight:700;
-  margin-bottom:1rem;
-  color:var(--gris-texto);
-  text-align:center;
-}
-.pim-center-wrap{display:grid;place-items:center;margin-bottom:1.25rem;}
-.pim-row{display:inline-flex;align-items:flex-end;gap:.8rem;transform-origin:center bottom;}
-.pim-prefix{font-weight:800;color:var(--azul-mvcs);transform:translateY(-6%);font-size:clamp(32px,3vw,52px);opacity:0;transition:.35s ease;}
-.pim-amount{font-weight:900;color:var(--azul-mvcs);font-size:clamp(50px,5vw,88px);opacity:0;transform:translateY(8px);transition:.35s ease;}
-.pim-amount.ready{opacity:1;transform:translateY(0);} .pim-prefix.ready{opacity:1;transform:translateY(0);}
-.data-source{font-size:.85rem;line-height:1.4;color:var(--gris-sec);text-align:center;font-weight:400;font-style:normal;}
-.data-source b{color:#000;font-weight:700;font-style:normal;}
-.data-source em{font-style:italic;color:#555;font-weight:400;}
+    /* ============ ÁREAS DE ACCIÓN ============ */
+    .areas-wrapper{
+      background:var(--bg-white);
+      border-top:1px solid var(--gris-borde);
+      padding:5rem 2rem 6rem;
+    }
+    .areas-header{text-align:center;margin-bottom:3rem;}
+    .areas-title{display:inline-block;font-size:1.7rem;font-weight:800;color:var(--azul-mvcs);position:relative;padding-bottom:.6rem;}
+    .areas-title::after{content:"";position:absolute;left:0;bottom:0;height:4px;width:100%;background:var(--accent-red);}
+    .areas-grid{max-width:1200px;margin:0 auto;display:grid;grid-template-columns:1fr 1fr;gap:3rem 3rem;align-items:center;}
+    .col-left,.col-right{display:flex;flex-direction:column;justify-content:center;gap:2.5rem;opacity:0;transition:all .7s ease;}
+    .col-left{transform:translateX(-50px);} .col-right{transform:translateX(50px);} .col-left.visible,.col-right.visible{opacity:1;transform:translateX(0);}
+    .area-block-text{font-size:1rem;line-height:1.6;color:#1f2937;text-align:justify;}
+    .area-block-text b{font-weight:700;} .area-block-text ul{margin-top:.6rem;margin-bottom:1.2rem;padding-left:1.25rem;}
+    .area-block-text li{list-style:disc;margin-bottom:.3rem;}
+    .area-img{width:100%;background:#fff;overflow:hidden;border-radius:8px;box-shadow:0 6px 14px rgba(0,0,0,0.08);}
+    .area-img img{width:100%;height:auto;display:block;object-fit:cover;}
 
-/* ================= ÁREAS DE ACCIÓN ================= */
-.areas-wrapper{
-  background:var(--bg-white);
-  border-top:1px solid var(--gris-borde);
-  padding:5rem 2rem 6rem;
-}
-.areas-header{text-align:center;margin-bottom:3rem;}
-.areas-title{display:inline-block;font-size:1.7rem;font-weight:800;color:var(--azul-mvcs);position:relative;padding-bottom:.6rem;}
-.areas-title::after{content:"";position:absolute;left:0;bottom:0;height:4px;width:100%;background:var(--accent-red);}
-.areas-grid{max-width:1200px;margin:0 auto;display:grid;grid-template-columns:1fr 1fr;gap:3rem 3rem;align-items:center;}
-.col-left,.col-right{display:flex;flex-direction:column;justify-content:center;gap:2.5rem;opacity:0;transition:all .7s ease;}
-.col-left{transform:translateX(-50px);} .col-right{transform:translateX(50px);} .col-left.visible,.col-right.visible{opacity:1;transform:translateX(0);}
-.area-block-text{font-size:1rem;line-height:1.6;color:#1f2937;text-align:justify;}
-.area-block-text b{font-weight:700;} .area-block-text ul{margin-top:.6rem;margin-bottom:1.2rem;padding-left:1.25rem;}
-.area-block-text li{list-style:disc;margin-bottom:.3rem;}
-.area-img{width:100%;background:#fff;overflow:hidden;border-radius:8px;box-shadow:0 6px 14px rgba(0,0,0,0.08);}
-.area-img img{width:100%;height:auto;display:block;object-fit:cover;}
+    /* ============ INVERSIÓN POR ACTIVIDAD / PROYECTO ============ */
+    .inv-wrapper{
+      background:var(--bg-white);
+      padding:3rem 1rem 3rem 1rem;
+      text-align:center;
+      color:var(--gris-texto);
+    }
+    .inv-h2{font-size:1rem;font-weight:700;margin-bottom:1.25rem;color:var(--gris-texto);text-align:center;}
+    .inv-chart-zone{max-width:900px;margin:0 auto;display:flex;flex-direction:column;align-items:center;}
+    .inv-chart-wrap{position:relative;width:100%;height:180px;margin-bottom:1rem;}
+    #chart{width:100%;height:100%;display:block;}
+    .inv-tip{position:absolute;pointer-events:none;background:#fff;border:1px solid #d1d5db;border-radius:8px;box-shadow:0 10px 28px rgba(0,0,0,.15);padding:.6rem .75rem;font-size:12px;line-height:1.4;color:#1e293b;font-weight:400;min-width:180px;max-width:260px;opacity:0;transform:translate(-50%,-110%);transition:opacity .12s ease;text-align:left;}
+    .inv-tip-row{display:flex;justify-content:space-between;gap:.75rem;white-space:nowrap;}
+    .inv-tip-key{color:#6b7280;font-weight:400;} .inv-tip-val{color:#1e293b;font-weight:800;}
+    .inv-legend{display:flex;flex-wrap:wrap;justify-content:center;gap:1.25rem;font-size:.8rem;font-weight:600;color:#1e1e1e;margin-bottom:1rem;}
+    .inv-leg-item{display:flex;align-items:center;gap:.5rem;white-space:nowrap;}
+    .inv-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;}
+    .inv-dot-dev{background:var(--azul-mvcs);} .inv-dot-pim{background:var(--celeste-pim);}
+    .inv-source{font-size:.85rem;line-height:1.4;color:var(--gris-sec);text-align:center;font-weight:400;font-style:normal;}
+    .inv-source strong{color:#000;font-weight:700;font-style:normal;}
+    .inv-source span#lastUpdate{font-style:italic;color:#555;font-weight:400;}
 
-/* ================= INVERSIÓN (gráfico barras) ================= */
-.inv-wrapper{
-  background:var(--bg-white);
-  padding:3rem 1rem 3rem 1rem;
-  text-align:center;
-  color:var(--gris-texto);
-}
-.inv-h2{font-size:1rem;font-weight:700;margin-bottom:1.25rem;color:var(--gris-texto);text-align:center;}
-.inv-chart-zone{max-width:900px;margin:0 auto;display:flex;flex-direction:column;align-items:center;}
-.inv-chart-wrap{position:relative;width:100%;height:180px;margin-bottom:1rem;}
-#chart{width:100%;height:100%;display:block;}
-.inv-tip{position:absolute;pointer-events:none;background:#fff;border:1px solid #d1d5db;border-radius:8px;box-shadow:0 10px 28px rgba(0,0,0,.15);padding:.6rem .75rem;font-size:12px;line-height:1.4;color:#1e293b;font-weight:400;min-width:180px;max-width:260px;opacity:0;transform:translate(-50%,-110%);transition:opacity .12s ease;text-align:left;}
-.inv-tip-row{display:flex;justify-content:space-between;gap:.75rem;white-space:nowrap;}
-.inv-tip-key{color:#6b7280;font-weight:400;} .inv-tip-val{color:#1e293b;font-weight:800;}
-.inv-legend{display:flex;flex-wrap:wrap;justify-content:center;gap:1.25rem;font-size:.8rem;font-weight:600;color:#1e1e1e;margin-bottom:1rem;}
-.inv-leg-item{display:flex;align-items:center;gap:.5rem;white-space:nowrap;}
-.inv-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;}
-.inv-dot-dev{background:var(--azul-mvcs);} .inv-dot-pim{background:var(--celeste-pim);}
-.inv-source{font-size:.85rem;line-height:1.4;color:var(--gris-sec);text-align:center;font-weight:400;font-style:normal;}
-.inv-source strong{color:#000;font-weight:700;font-style:normal;}
-.inv-source span#lastUpdate{font-style:italic;color:#555;font-weight:400;}
+    /* ====== CÓMO VAMOS (banner azul con ciudadana) ====== */
+    .status-hero{
+      position:relative;width:100%;
+      background-image:url("https://lh3.googleusercontent.com/d/1k1_vSVxnS7PYTiqV8M2Y5_Xli6qHmPzO=w1600");
+      background-size:cover;background-position:center;
+      color:#fff;overflow:visible;
+      padding:4rem 1rem 4rem;
+    }
+    .status-hero::after{
+      content:"";position:absolute;inset:0;
+      background:linear-gradient(to bottom, rgba(0,0,0,.25), rgba(0,0,0,.45));
+    }
+    .status-inner{
+      position:relative;z-index:3;max-width:1200px;margin:0 auto;
+      display:flex;align-items:center;justify-content:space-between;
+      gap:2rem;flex-wrap:wrap;padding-left:4vw;
+    }
+    .status-left{flex:1 1 620px;text-align:left;position:relative;z-index:5;}
+    .status-title{font-weight:900;font-size:clamp(24px,2.8vw,36px);color:#fff;line-height:1.2;margin-bottom:0.25rem;text-shadow:0 2px 4px rgba(0,0,0,.45)}
+    .status-title .u{position:relative;display:inline-block;padding-bottom:6px}
+    .status-title .u::after{content:"";position:absolute;left:0;bottom:0;height:4px;background:var(--accent-red);width:0;animation:underline 1.8s ease-out forwards;}
+    .status-subtitle{font-size:.9rem;font-weight:800;opacity:.95;margin-bottom:1.2rem;color:#fff;text-shadow:0 2px 4px rgba(0,0,0,.45)}
+    .dev-row{display:flex;align-items:baseline;justify-content:flex-start;gap:.4rem;flex-wrap:nowrap}
+    .dev-prefix{font-weight:900;color:#fff;line-height:1;font-size:clamp(40px,5vw,70px);opacity:0;transform:translateY(8px);transition:.35s ease;text-shadow:0 4px 8px rgba(0,0,0,.55)}
+    .dev-amount{font-weight:900;color:#fff;line-height:1.03;font-size:clamp(56px,8vw,110px);letter-spacing:.01em;white-space:nowrap;opacity:0;transform:translateY(8px);transition:.35s ease;text-shadow:0 4px 8px rgba(0,0,0,.55)}
+    .dev-percent{font-weight:900;color:#fff;margin-top:.85rem;font-size:clamp(18px,1.8vw,28px);opacity:0;transform:translateY(8px);transition:.35s ease;text-shadow:0 3px 6px rgba(0,0,0,.55)}
+    .dev-source{margin-top:1rem;font-size:.85rem;line-height:1.35;color:#dbe2ea;text-shadow:0 2px 4px rgba(0,0,0,.7)}
+    .dev-source b{color:#fff}.dev-source em{color:#fff;font-style:italic}
+    .ready{opacity:1 !important;transform:none !important}
+    .status-figure{
+      position:absolute;right:0;bottom:-20px;z-index:2;
+      width:min(40%,460px);max-width:480px;pointer-events:none;
+      opacity:0;
+      transform:translate(15%,5%);
+      transition:opacity .9s ease-out .2s, transform .9s ease-out .2s;
+    }
+    .status-figure.animated{
+      opacity:1;
+      transform:translate(0,-4%);
+    }
+    .status-figure img{width:100%;height:auto;display:block;object-fit:contain;filter:drop-shadow(0 16px 26px rgba(0,0,0,.6))}
+    @media (max-width:1100px) and (min-width:521px){
+      .status-inner{padding-left:3vw}
+      .status-left{z-index:5;text-align:left}
+      .status-figure{width:46%;right:-10px;bottom:-12px;z-index:1;opacity:0.95}
+    }
+    @media(max-width:1000px){
+      .hero-left{left:3rem;bottom:5rem;}
+      .hero-title{font-size:3.6rem;}
+      .hero-right{right:3rem;top:62%;max-width:440px;font-size:1.05rem;}
+      .areas-grid{grid-template-columns:1fr;gap:3rem;}
+      .col-left,.col-right{opacity:1;transform:none;}
+    }
+    @media(max-width:520px){
+      .status-inner{flex-direction:column;align-items:center;text-align:center;padding-left:0;padding-bottom:8rem}
+      .status-left{text-align:center}
+      .dev-row{justify-content:center}
+      .status-figure{width:200px;right:5px;bottom:-8px}
+    }
 
-/* ====== CÓMO VAMOS (banner azul con ciudadana) ====== */
-.status-hero{
-  position:relative;width:100%;
-  background-image:url("https://lh3.googleusercontent.com/d/1k1_vSVxnS7PYTiqV8M2Y5_Xli6qHmPzO=w1600");
-  background-size:cover;background-position:center;
-  color:#fff;overflow:visible;
-  padding:4rem 1rem 4rem;
-}
-.status-hero::after{
-  content:"";position:absolute;inset:0;
-  background:linear-gradient(to bottom, rgba(0,0,0,.25), rgba(0,0,0,.45));
-}
-.status-inner{
-  position:relative;z-index:3;max-width:1200px;margin:0 auto;
-  display:flex;align-items:center;justify-content:space-between;
-  gap:2rem;flex-wrap:wrap;padding-left:4vw;
-}
-.status-left{flex:1 1 620px;text-align:left;position:relative;z-index:5;}
-.status-title{font-weight:900;font-size:clamp(24px,2.8vw,36px);color:#fff;line-height:1.2;margin-bottom:0.25rem;text-shadow:0 2px 4px rgba(0,0,0,.45)}
-.status-title .u{position:relative;display:inline-block;padding-bottom:6px}
-.status-title .u::after{content:"";position:absolute;left:0;bottom:0;height:4px;background:var(--accent-red);width:0;animation:underline 1.8s ease-out forwards;}
-.status-subtitle{font-size:.9rem;font-weight:800;opacity:.95;margin-bottom:1.2rem;color:#fff;text-shadow:0 2px 4px rgba(0,0,0,.45)}
-.dev-row{display:flex;align-items:baseline;justify-content:flex-start;gap:.4rem;flex-wrap:nowrap}
-.dev-prefix{font-weight:900;color:#fff;line-height:1;font-size:clamp(40px,5vw,70px);opacity:0;transform:translateY(8px);transition:.35s ease;text-shadow:0 4px 8px rgba(0,0,0,.55)}
-.dev-amount{font-weight:900;color:#fff;line-height:1.03;font-size:clamp(56px,8vw,110px);letter-spacing:.01em;white-space:nowrap;opacity:0;transform:translateY(8px);transition:.35s ease;text-shadow:0 4px 8px rgba(0,0,0,.55)}
-.dev-percent{font-weight:900;color:#fff;margin-top:.85rem;font-size:clamp(18px,1.8vw,28px);opacity:0;transform:translateY(8px);transition:.35s ease;text-shadow:0 3px 6px rgba(0,0,0,.55)}
-.dev-source{margin-top:1rem;font-size:.85rem;line-height:1.35;color:#dbe2ea;text-shadow:0 2px 4px rgba(0,0,0,.7)}
-.dev-source b{color:#fff}.dev-source em{color:#fff;font-style:italic}
-.ready{opacity:1 !important;transform:none !important}
-
-/* IMAGEN: Animación controlada por JS (no por CSS) */
-.status-figure{
-  position:absolute;right:0;bottom:-20px;z-index:2;
-  width:min(40%,460px);max-width:480px;pointer-events:none;
-  opacity:0;
-  transform:translate(15%,5%);
-  transition:opacity .9s ease-out .2s, transform .9s ease-out .2s;
-}
-.status-figure.animated{
-  opacity:1;
-  transform:translate(0,-4%);
-}
-
-.status-figure img{width:100%;height:auto;display:block;object-fit:contain;filter:drop-shadow(0 16px 26px rgba(0,0,0,.6))}
-
-/* Responsive ajustes del banner */
-@media (max-width:1100px) and (min-width:521px){
-  .status-inner{padding-left:3vw}
-  .status-left{z-index:5;text-align:left}
-  .status-figure{width:46%;right:-10px;bottom:-12px;z-index:1;opacity:0.95}
-}
-@media(max-width:1000px){
-  .hero-left{left:3rem;bottom:5rem;}
-  .hero-title{font-size:3.6rem;}
-  .hero-right{right:3rem;top:62%;max-width:440px;font-size:1.05rem;}
-  .areas-grid{grid-template-columns:1fr;gap:3rem;}
-  .col-left,.col-right{opacity:1;transform:none;}
-}
-@media(max-width:520px){
-  .status-inner{flex-direction:column;align-items:center;text-align:center;padding-left:0;padding-bottom:8rem}
-  .status-left{text-align:center}
-  .dev-row{justify-content:center}
-  .status-figure{width:200px;right:5px;bottom:-8px}
-}
-</style>
+    /* ================= Estilos del módulo de Rankings y Desempeño ================ */
+    :root{
+      /* definiciones adicionales para la sección de rankings */
+      --azul:#1e6eb6;
+      --azul-osc:#174f84;
+      --turquesa:#5ebad6;
+      --gap-header:#f3f4f6;
+      --rojo:#d00000;
+      --ink:#0f172a;
+      --muted:#64748b;
+      --card:#ffffff;
+      --plomo:#f3f4f6;
+      --line:#e5e7eb;
+      --chip-ok:#16a34a; --chip-mid:#f59e0b; --chip-bad:#ef4444;
+      --shadow-card: 0 10px 22px rgba(2,6,23,.06), 0 2px 6px rgba(2,6,23,.05);
+    }
+    .wrap{max-width:1180px;margin:28px auto;padding:0 16px}
+    .grid{display:grid;grid-template-columns:1fr 1fr;gap:22px}
+    @media(max-width:900px){ .grid{grid-template-columns:1fr;gap:16px} }
+    .card{
+      background:#fff;
+      border:1px solid var(--line);
+      border-radius:18px;
+      padding:28px 24px 22px;
+      box-shadow:var(--shadow-card);
+      display:flex; flex-direction:column; align-items:center; text-align:center;
+    }
+    .card p.lead{
+      margin:0 0 14px 0; color:#374151; font-size:15px; line-height:1.4; max-width:36ch;
+    }
+    .kpi{ display:flex; align-items:flex-start; gap:8px; margin:4px 0 10px; }
+    .kpi .num{ font-weight:900; font-size:72px; line-height:1; color:var(--azul); }
+    .kpi .suf{ position:relative; top:-16px; font-weight:900; font-size:34px; line-height:1; color:var(--azul); }
+    .labelPuesto{ margin-top:-6px; font-size:40px; font-weight:900; color:var(--azul); }
+    .actions{display:flex; gap:12px; flex-wrap:wrap; justify-content:center; margin-top:10px}
+    .btn{
+      appearance:none; border:2px solid var(--rojo);
+      background:transparent; color:var(--rojo); font-weight:800;
+      padding:10px 14px; border-radius:999px; cursor:pointer;
+      transition:.18s ease; font-size:14px;
+    }
+    .btn:hover{filter:brightness(.98)}
+    /* área de tabla compartida */
+    .tableSection{ max-width:1180px; margin:18px auto 8px; padding:0 16px; }
+    .tableShell{
+      background:#fff; border:1px solid var(--line); border-radius:14px;
+      box-shadow:0 14px 28px rgba(2,6,23,.08); overflow:hidden;
+      max-height:0; transition:max-height .28s ease;
+    }
+    .tableShell.open{ max-height:320px; }
+    .status{ padding:10px; font-weight:700; color:var(--muted) }
+    .status.error{ color:#b91c1c }
+    .scroller{ overflow:auto; max-height:320px; }
+    table{ width:100%; border-collapse:separate; border-spacing:0; table-layout:fixed; font-size:13px }
+    thead th{
+      position:sticky; top:0; z-index:2;
+      background:var(--turquesa); color:#ffffff;
+      font-weight:800; letter-spacing:.2px;
+      padding:12px 10px; text-align:center; border-bottom:2px solid #ffffff00;
+      border-right:6px solid var(--gap-header);
+    }
+    thead th:first-child{ border-top-left-radius:14px; }
+    thead th:last-child{ border-right:none; border-top-right-radius:14px; }
+    tbody td{ padding:10px 8px; border-bottom:1px solid var(--line); text-align:center }
+    tbody tr:nth-child(odd){ background:#f9fcfb }
+    td.num{ font-variant-numeric:tabular-nums }
+    col.c-rk{width:8%} col.c-sec{width:36%} col.c-pia{width:14%} col.c-pim{width:14%} col.c-dev{width:18%} col.c-avz{width:10%}
+    /* bloque desempeño (franja plomo) */
+    .perf{
+      background:var(--plomo);
+      border-top:1px solid var(--line);
+      padding:48px 16px 54px;
+      margin-top:24px;
+    }
+    .perf .box{max-width:980px;margin:0 auto;text-align:center}
+    .perf h2{
+      font-size:30px; color:var(--azul); font-weight:900; margin:0 0 12px 0;
+      display:inline-block; position:relative;
+    }
+    .perf h2::after{ content:""; position:absolute; left:0; right:0; bottom:-6px; height:4px; background:var(--rojo); }
+    .perf p{max-width:78ch;margin:12px auto 16px;color:#374151}
+    .perf .actions{margin-top:10px}
+    /* tabla por ejecutora (full-bleed, fondo blanco) */
+    .exec-wrap{
+      width:100vw;
+      margin-left:calc(50% - 50vw);
+      margin-right:calc(50% - 50vw);
+      background:#fff;
+    }
+    .card-flat{
+      border-top:1px solid var(--line);
+      border-bottom:1px solid var(--line);
+      border-left:0;border-right:0;
+      border-radius:0;
+      box-shadow:0 14px 28px rgba(2,6,23,.08);
+      overflow:hidden;
+    }
+    .header-flat{padding:12px 16px 8px;text-align:center;background:#fff}
+    .title-flat{margin:0;font-weight:800;font-size:19px;color:var(--ink)}
+    .legend{margin:8px 0 12px 0;display:flex;justify-content:center;gap:14px;font-size:12.5px;color:#111827;font-weight:600}
+    .legend .dot{width:.62rem;height:.62rem;border-radius:999px;display:inline-block;margin-right:.38rem;vertical-align:-.1rem}
+    .table-wrap{max-height:70vh;overflow:auto}
+    .table-exec{width:100%;border-collapse:separate;border-spacing:0;table-layout:fixed;font-size:13.5px}
+    .table-exec thead th{
+      position:sticky;top:0;z-index:40;
+      background:var(--turquesa);color:#fff;font-weight:800;padding:11px 8px;text-align:center;
+      border-bottom:2px solid #ffffff00;border-right:6px solid var(--gap-header);
+    }
+    .table-exec thead th.sticky-left{left:0;z-index:50;text-align:left;background:var(--turquesa);box-shadow:6px 0 8px -6px rgba(0,0,0,.18)}
+    .table-exec th+th,.table-exec td+td{border-left:1px solid var(--line)}
+    .table-exec tbody td,.table-exec tbody th{padding:9px 7px;border-bottom:1px solid var(--line);background:#fff;vertical-align:middle}
+    .table-exec tbody tr:nth-child(odd){background:#f9fcfb}
+    .num{text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
+    .pct{text-align:center;white-space:nowrap;font-variant-numeric:tabular-nums}
+    .table-exec tbody td.sticky,
+    .table-exec tbody th.sticky{
+      position:sticky;left:0;z-index:45;background:#fff;box-shadow:6px 0 8px -6px rgba(0,0,0,.18);text-align:left
+    }
+    .btn-expand{
+      border:0;background:transparent;font-weight:800;cursor:pointer;
+      padding:4px 0;border-radius:8px;text-align:left;color:var(--ink);
+      display:inline-flex;align-items:flex-start;gap:6px;max-width:100%;
+    }
+    .chev{
+      --chev-color:#ea580c;--chev-glow:rgba(234,88,12,.45);
+      width:1.35rem;height:1.35rem;position:relative;display:grid;place-items:center;flex-shrink:0;
+    }
+    .chev .arrow{
+      position:absolute;width:16px;height:16px;opacity:0;
+      filter:drop-shadow(0 5px 10px var(--chev-glow));
+      animation:chevDrip 1.8s ease-in-out infinite
+    }
+    .chev .arrow:nth-child(2){animation-delay:.22s}
+    .chev .arrow:nth-child(3){animation-delay:.44s}
+    @keyframes chevDrip{
+      0%{transform:translateY(-8px) scale(.95);opacity:0}
+      20%{transform:translateY(-2px) scale(1);opacity:1}
+      60%{transform:translateY(6px) scale(1.04);opacity:.95}
+      100%{transform:translateY(12px) scale(1);opacity:0}
+    }
+    .btn-expand:hover .chev{--chev-color:#ff6b1a;--chev-glow:rgba(255,107,26,.5)}
+    .btn-expand[aria-expanded="true"] .chev{--chev-color:#0ea5e9;--chev-glow:rgba(14,165,233,.45)}
+    .infoBtn{
+      position:relative;display:inline-flex;align-items:center;justify-content:center;
+      width:34px;height:34px;border-radius:10px;cursor:pointer;text-decoration:none;
+      background:radial-gradient(circle at 30% 30%, #38bdf8 0%, #0284c7 60%, #01497a 100%);
+      border:1.5px solid rgba(255,255,255,0.4);
+      box-shadow:0 0 14px rgba(56,189,248,.7), 0 6px 16px rgba(2,132,199,.4);
+      overflow:hidden;transition:transform .2s ease;
+    }
+    .infoBtn:hover{transform:scale(1.08)}
+    .infoBtn svg{width:20px;height:20px;stroke:#fff;stroke-width:2.2;fill:none}
+  </style>
 </head>
 <body>
-
-<!-- HERO (NUEVO DISEÑO) -->
-<section class="hero">
-  <header class="hero-header">
-    <img src="https://lh3.googleusercontent.com/d/1EjnXS6iO0TkdAzQyg3rstHw4XL7Mk59g=w1000" alt="MVCS Logo"/>
-    <nav class="hero-nav">
-      <a href="#areas">Áreas de acción</a>
-      <a href="#avance">¿Cómo vamos?</a>
-      <a href="#desempeño">Desempeño financiero</a>
-      <a href="#inversiones">Inversiones</a>
-      <a href="#proyectos">Grandes proyectos</a>
-      <a href="#multitemporal">Imágenes multitemporales</a>
-    </nav>
-  </header>
-
-  <div class="hero-content">
-    <div class="hero-left">
-      <h1 class="hero-title">
-        Presupuesto<br>público 2025
-        <span class="hero-underline"></span>
-      </h1>
-      <div class="hero-sub">Ministerio de Vivienda, Construcción y Saneamiento</div>
-    </div>
-
-    <div class="hero-right">
-      <p>
-        El presupuesto sectorial fomentará la economía local,
-        la generación de puestos de trabajo, y acelerará el
-        <b>cierre de brechas de agua potable, saneamiento, vivienda,
-        equipamiento urbano y formalización predial.</b>
-      </p>
-    </div>
-  </div>
-</section>
-
-<!-- BLOQUE PIM -->
-<section class="pim-block" id="pim">
-  <h2 class="pim-title">Presupuesto Institucional Modificado 2025</h2>
-
-  <div class="pim-center-wrap">
-    <div class="pim-row" id="pim-row">
-      <div class="pim-prefix" id="pim-cur">S/</div>
-      <div class="pim-amount" id="pim-val">0</div>
-    </div>
-  </div>
-
-  <p class="data-source">
-    <b>Fuente:</b> Ministerio de Economía y Finanzas – MEF<br/>
-    Portal de Datos Abiertos – <em id="pim-lastUpdate">Actualizado al —</em>
-  </p>
-</section>
-
-<!-- ÁREAS DE ACCIÓN -->
-<section class="areas-wrapper" id="areas">
-  <div class="areas-header">
-    <h2 class="areas-title">Áreas de acción</h2>
-  </div>
-
-  <div class="areas-grid">
-    <div class="col-left" id="col-left">
-      <div class="area-block-text">
-        <p><b>Ejecución de obras de agua potable y saneamiento a nivel nacional,</b> a través del:</p>
-        <ul>
-          <li>Programa Nacional de Saneamiento Urbano (PNSU).</li>
-          <li>Programa Nacional de Saneamiento Rural (PNSR).</li>
-          <li>Programa Agua Segura para Lima y Callao (PASLC).</li>
-        </ul>
+  <!-- ========== Sección original: Presupuesto público 2025 ========== -->
+  <section class="hero">
+    <header class="hero-header">
+      <img src="https://lh3.googleusercontent.com/d/1EjnXS6iO0TkdAzQyg3rstHw4XL7Mk59g=w1000" alt="MVCS Logo"/>
+      <nav class="hero-nav">
+        <a href="#areas">Áreas de acción</a>
+        <a href="#avance">¿Cómo vamos?</a>
+        <a href="#desempeno">Desempeño financiero</a>
+        <a href="#inversiones">Inversiones</a>
+        <a href="#proyectos">Grandes proyectos</a>
+        <a href="#multitemporal">Imágenes multitemporales</a>
+      </nav>
+    </header>
+    <div class="hero-content">
+      <div class="hero-left">
+        <h1 class="hero-title">
+          Presupuesto<br>público 2025
+          <span class="hero-underline"></span>
+        </h1>
+        <div class="hero-sub">Ministerio de Vivienda, Construcción y Saneamiento</div>
+      </div>
+      <div class="hero-right">
         <p>
-          Reactivación de proyectos de agua y saneamiento urbano, en beneficio de la población; y el financiamiento de la elaboración de estudios de preinversión para ejecutarse a nivel nacional.
+          El presupuesto sectorial fomentará la economía local,
+          la generación de puestos de trabajo, y acelerará el
+          <b>cierre de brechas de agua potable, saneamiento, vivienda,
+          equipamiento urbano y formalización predial.</b>
         </p>
       </div>
-
-      <div class="area-img">
-        <img src="https://lh3.googleusercontent.com/d/1XE4OUAOoZiEEKayGMRe9C0BSTCm0Do9u=w1000" alt="Proyecto rural de vivienda"/>
+    </div>
+  </section>
+  <!-- BLOQUE PIM -->
+  <section class="pim-block" id="pim">
+    <h2 class="pim-title">Presupuesto Institucional Modificado 2025</h2>
+    <div class="pim-center-wrap">
+      <div class="pim-row" id="pim-row">
+        <div class="pim-prefix" id="pim-cur">S/</div>
+        <div class="pim-amount" id="pim-val">0</div>
       </div>
     </div>
-
-    <div class="col-right" id="col-right">
-      <div class="area-img">
-        <img src="https://lh3.googleusercontent.com/d/1Rlix_IzbFNm1s9DyFFlHNW-7nnYcz-5e=w1000" alt="Obras de agua y saneamiento urbano"/>
-      </div>
-
-      <div class="area-block-text">
-        <p><b>Promoción de viviendas urbanas,</b> a través del:</p>
-        <ul>
-          <li>Bono Familiar Habitacional de Techo Propio.</li>
-          <li>Bono del Buen Pagador del Crédito Mivivienda.</li>
-          <li>Bono de Arrendamiento de Viviendas para Emergencias (BAE).</li>
-          <li>Viviendas Wasiymi para las zonas rurales, destinadas a atender a personas en situación de pobreza o pobreza extrema que viven en zonas de heladas y friaje.</li>
-        </ul>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- INVERSIÓN POR ACTIVIDAD / PROYECTO -->
-<section class="inv-wrapper" id="avance">
-  <div class="inv-chart-zone">
-    <h2 class="inv-h2 pim-title">Inversión pública por actividad / proyecto 2025</h2>
-
-    <div class="inv-chart-wrap" id="wrap">
-      <canvas id="chart"></canvas>
-      <div id="tip" class="inv-tip"></div>
-    </div>
-
-    <div class="inv-legend">
-      <span class="inv-leg-item">
-        <span class="inv-dot inv-dot-dev"></span>
-        <span>Monto devengado</span>
-      </span>
-      <span class="inv-leg-item">
-        <span class="inv-dot inv-dot-pim"></span>
-        <span>Monto PIM</span>
-      </span>
-    </div>
-
-    <p class="inv-source data-source">
+    <p class="data-source">
       <b>Fuente:</b> Ministerio de Economía y Finanzas – MEF<br/>
-      Portal de Datos Abiertos – <span id="lastUpdate"><em>Actualizado al —</em></span>
+      Portal de Datos Abiertos – <em id="pim-lastUpdate">Actualizado al —</em>
     </p>
-  </div>
-</section>
-
-<!-- ===== Banner azul con ciudadana (¿Cómo vamos?) ===== -->
-<section class="status-hero" id="como-vamos">
-  <div class="status-figure">
-    <img src="https://lh3.googleusercontent.com/d/16r2oP5b4bTadCXGsHO3EiiZbll7yrCdY=w1000" alt="Ciudadana beneficiaria">
-  </div>
-
-  <div class="status-inner">
-    <div class="status-left">
-      <h2 class="status-title"><span class="u">¿Cómo vamos?</span></h2>
-      <div class="status-subtitle">Presupuesto Devengado 2025</div>
-
-      <div class="dev-row">
-        <span class="dev-prefix" id="cur">S/</span>
-        <span class="dev-amount" id="val">0</span>
+  </section>
+  <!-- ÁREAS DE ACCIÓN -->
+  <section class="areas-wrapper" id="areas">
+    <div class="areas-header">
+      <h2 class="areas-title">Áreas de acción</h2>
+    </div>
+    <div class="areas-grid">
+      <div class="col-left" id="col-left">
+        <div class="area-block-text">
+          <p><b>Ejecución de obras de agua potable y saneamiento a nivel nacional,</b> a través del:</p>
+          <ul>
+            <li>Programa Nacional de Saneamiento Urbano (PNSU).</li>
+            <li>Programa Nacional de Saneamiento Rural (PNSR).</li>
+            <li>Programa Agua Segura para Lima y Callao (PASLC).</li>
+          </ul>
+          <p>
+            Reactivación de proyectos de agua y saneamiento urbano, en beneficio de la población; y el financiamiento de la elaboración de estudios de preinversión para ejecutarse a nivel nacional.
+          </p>
+        </div>
+        <div class="area-img">
+          <img src="https://lh3.googleusercontent.com/d/1XE4OUAOoZiEEKayGMRe9C0BSTCm0Do9u=w1000" alt="Proyecto rural de vivienda"/>
+        </div>
       </div>
-
-      <div class="dev-percent" id="percent">0%</div>
-
-      <div class="dev-source">
-        <b>Fuente:</b> Ministerio de Economía y Finanzas – MEF<br>
-        Portal de Datos Abiertos – <em id="lastUpdateDev">Actualizado al —</em>
+      <div class="col-right" id="col-right">
+        <div class="area-img">
+          <img src="https://lh3.googleusercontent.com/d/1Rlix_IzbFNm1s9DyFFlHNW-7nnYcz-5e=w1000" alt="Obras de agua y saneamiento urbano"/>
+        </div>
+        <div class="area-block-text">
+          <p><b>Promoción de viviendas urbanas,</b> a través del:</p>
+          <ul>
+            <li>Bono Familiar Habitacional de Techo Propio.</li>
+            <li>Bono del Buen Pagador del Crédito Mivivienda.</li>
+            <li>Bono de Arrendamiento de Viviendas para Emergencias (BAE).</li>
+            <li>Viviendas Wasiymi para las zonas rurales, destinadas a atender a personas en situación de pobreza o pobreza extrema que viven en zonas de heladas y friaje.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+  <!-- INVERSIÓN POR ACTIVIDAD / PROYECTO -->
+  <section class="inv-wrapper" id="avance">
+    <div class="inv-chart-zone">
+      <h2 class="inv-h2 pim-title">Inversión pública por actividad / proyecto 2025</h2>
+      <div class="inv-chart-wrap" id="wrap">
+        <canvas id="chart"></canvas>
+        <div id="tip" class="inv-tip"></div>
+      </div>
+      <div class="inv-legend">
+        <span class="inv-leg-item">
+          <span class="inv-dot inv-dot-dev"></span>
+          <span>Monto devengado</span>
+        </span>
+        <span class="inv-leg-item">
+          <span class="inv-dot inv-dot-pim"></span>
+          <span>Monto PIM</span>
+        </span>
+      </div>
+      <p class="inv-source data-source">
+        <b>Fuente:</b> Ministerio de Economía y Finanzas – MEF<br/>
+        Portal de Datos Abiertos – <span id="lastUpdate"><em>Actualizado al —</em></span>
+      </p>
+    </div>
+  </section>
+  <!-- Banner ¿Cómo vamos? -->
+  <section class="status-hero" id="como-vamos">
+    <div class="status-figure">
+      <img src="https://lh3.googleusercontent.com/d/16r2oP5b4bTadCXGsHO3EiiZbll7yrCdY=w1000" alt="Ciudadana beneficiaria">
+    </div>
+    <div class="status-inner">
+      <div class="status-left">
+        <h2 class="status-title"><span class="u">¿Cómo vamos?</span></h2>
+        <div class="status-subtitle">Presupuesto Devengado 2025</div>
+        <div class="dev-row">
+          <span class="dev-prefix" id="cur">S/</span>
+          <span class="dev-amount" id="val">0</span>
+        </div>
+        <div class="dev-percent" id="percent">0%</div>
+        <div class="dev-source">
+          <b>Fuente:</b> Ministerio de Economía y Finanzas – MEF<br/>
+          Portal de Datos Abiertos – <em id="lastUpdateDev">Actualizado al —</em>
+        </div>
+      </div>
+    </div>
+  </section>
+  <!-- ========== Sección Rankings y Desempeño por Ejecutora ========== -->
+  <div class="wrap">
+    <div class="grid" id="cards">
+      <article class="card" data-key="left">
+        <p class="lead">El Ministerio de Vivienda, Construcción y Saneamiento se encuentra en el ranking entre sectores en el:</p>
+        <div class="kpi" aria-live="polite">
+          <span class="num" id="kpi-left">—</span><span class="suf">°</span>
+        </div>
+        <div class="labelPuesto">puesto</div>
+        <div class="actions">
+          <button class="btn" data-action="toggle" data-side="left">Ver tabla</button>
+          <button class="btn" data-action="excel" data-side="left">Exportar a Excel</button>
+        </div>
+      </article>
+      <article class="card" data-key="right">
+        <p class="lead">A nivel de inversiones, el ministerio se encuentra en el ranking entre sectores en el:</p>
+        <div class="kpi" aria-live="polite">
+          <span class="num" id="kpi-right">—</span><span class="suf">°</span>
+        </div>
+        <div class="labelPuesto">puesto</div>
+        <div class="actions">
+          <button class="btn" data-action="toggle" data-side="right">Ver tabla</button>
+          <button class="btn" data-action="excel" data-side="right">Exportar a Excel</button>
+        </div>
+      </article>
+    </div>
+  </div>
+  <!-- Área de tabla compartida -->
+  <section class="tableSection">
+    <div id="tableShell" class="tableShell" aria-live="polite">
+      <div id="state" class="status" role="status">—</div>
+      <div class="scroller" id="scroller" style="display:none">
+        <table id="tbl">
+          <colgroup>
+            <col class="c-rk"><col class="c-sec"><col class="c-pia"><col class="c-pim"><col class="c-dev"><col class="c-avz">
+          </colgroup>
+          <thead>
+            <tr>
+              <th>RANKING</th>
+              <th>Sector</th>
+              <th>PIA</th>
+              <th>PIM</th>
+              <th>Devengado</th>
+              <th>Avance(%)</th>
+            </tr>
+          </thead>
+          <tbody id="tbody"></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+  <!-- Bloque desempeño (franja plomo) -->
+  <section class="perf" id="desempeno">
+    <div class="box">
+      <h2>Desempeño financiero por ejecutora</h2>
+      <p>
+        El presupuesto asignado, comprometido y ejecutado, permite identificar avances y
+        desafíos en la gestión de recursos, promoviendo así una gestión eficiente y transparente
+        de los recursos públicos asignados para viviendas, infraestructura urbana y saneamiento.
+      </p>
+      <div class="actions">
+        <button id="btnShowExec" class="btn">Ver tabla</button>
+        <button id="btnExcelExec" class="btn">Exportar a Excel</button>
+      </div>
+    </div>
+  </section>
+  <!-- Tabla por ejecutora -->
+  <div class="exec-wrap" id="execWrap" style="display:none">
+    <div class="card-flat">
+      <div class="header-flat">
+        <h3 class="title-flat">Ejecución presupuestal — MVCS (2025) por Pliego y Unidad Ejecutora</h3>
+        <div class="legend">
+          <span><span class="dot" style="background:#ef4444"></span><strong>Rojo</strong> &lt; 33%</span>
+          <span><span class="dot" style="background:#f59e0b"></span><strong>Ámbar</strong> 33%–67%</span>
+          <span><span class="dot" style="background:#16a34a"></span><strong>Verde</strong> ≥ 67%</span>
+        </div>
+      </div>
+      <div class="table-wrap">
+        <table class="table-exec" id="tblExec">
+          <colgroup>
+            <col style="width:320px">
+            <col style="width:130px"><col style="width:130px"><col style="width:110px">
+            <col style="width:130px"><col style="width:130px"><col style="width:110px">
+            <col style="width:130px"><col style="width:130px"><col style="width:110px">
+          </colgroup>
+          <thead>
+            <tr>
+              <th class="sticky-left">PLIEGO/EJECUTORAS</th>
+              <th>PIM ACTIVIDADES<br/>Y PROYECTOS</th>
+              <th>DEVENGADO</th>
+              <th>AVANCE %</th>
+              <th>PIM PROYECTO</th>
+              <th>DEVENGADO<br/>PROYECTO</th>
+              <th>AVANCE<br/>PROYECTO</th>
+              <th>PIM ACTIVIDAD</th>
+              <th>DEVENGADO<br/>ACTIVIDAD</th>
+              <th>AVANCE<br/>ACTIVIDAD</th>
+            </tr>
+          </thead>
+          <tbody id="tbodyExec"></tbody>
+          <tfoot id="tfootExec"></tfoot>
+        </table>
       </div>
     </div>
   </div>
-</section>
-
-<script>
-/* =======================
-   BLOQUE PIM (contador animado desde BD)
-   ======================= */
-const SERVICE_PIM="https://pportalgis.vivienda.gob.pe/pfdserver/rest/services/OGEI/Mapa_Inversiones_MEF/FeatureServer/13/query";
-const WHERE_PIM="sector_nombre = 'VIVIENDA CONSTRUCCION Y SANEAMIENTO' AND ano_eje = 2025";
-
-async function fetchPIMandMaxDate(){
-  const outStats=JSON.stringify([
-    {statisticType:"sum",onStatisticField:"monto_pim",outStatisticFieldName:"sum_pim"},
-    {statisticType:"max",onStatisticField:"fecha_proceso",outStatisticFieldName:"max_fp"}
-  ]);
-  const qs=new URLSearchParams({where:WHERE_PIM,outStatistics:outStats,returnGeometry:"false",f:"json"});
-  const res=await fetch(SERVICE_PIM+"?"+qs.toString(),{cache:"no-store"});
-  const json=await res.json();
-  const attrs=json.features?.[0]?.attributes||{};
-  return{total:Number(attrs.sum_pim)||0,lastTs:(attrs.max_fp!=null)?Number(attrs.max_fp):null};
-}
-function animateNumber(el,target,ms=1700){
-  const fmt=new Intl.NumberFormat('es-PE');
-  const start=performance.now();
-  function tick(t){
-    const p=Math.min(1,(t-start)/ms);
-    const eased=1-Math.pow(1-p,3);
-    const cur=Math.round(target*eased);
-    el.textContent=fmt.format(cur);
-    if(p<1)requestAnimationFrame(tick);
+  <!-- =================== Scripts combinados =================== -->
+  <script>
+  /* ----------- Scripts del bloque PIM e inversión ----------- */
+  const SERVICE_PIM="https://pportalgis.vivienda.gob.pe/pfdserver/rest/services/OGEI/Mapa_Inversiones_MEF/FeatureServer/13/query";
+  const WHERE_PIM="sector_nombre = 'VIVIENDA CONSTRUCCION Y SANEAMIENTO' AND ano_eje = 2025";
+  async function fetchPIMandMaxDate(){
+    const outStats=JSON.stringify([
+      {statisticType:"sum",onStatisticField:"monto_pim",outStatisticFieldName:"sum_pim"},
+      {statisticType:"max",onStatisticField:"fecha_proceso",outStatisticFieldName:"max_fp"}
+    ]);
+    const qs=new URLSearchParams({where:WHERE_PIM,outStatistics:outStats,returnGeometry:"false",f:"json"});
+    const res=await fetch(SERVICE_PIM+"?"+qs.toString(),{cache:"no-store"});
+    const json=await res.json();
+    const attrs=json.features?.[0]?.attributes||{};
+    return{total:Number(attrs.sum_pim)||0,lastTs:(attrs.max_fp!=null)?Number(attrs.max_fp):null};
   }
-  requestAnimationFrame(tick);
-}
-function formatEsDate(ts){
-  if(!Number.isFinite(ts))return"—";
-  const d=new Date(ts);
-  return new Intl.DateTimeFormat("es-PE",{day:"2-digit",month:"long",year:"numeric"}).format(d);
-}
-(async()=>{
-  const valEl=document.getElementById('pim-val');
-  const curEl=document.getElementById('pim-cur');
-  const lastEl=document.getElementById('pim-lastUpdate');
-  try{
-    const{total,lastTs}=await fetchPIMandMaxDate();
-    requestAnimationFrame(()=>{valEl.classList.add('ready');curEl.classList.add('ready');});
-    animateNumber(valEl,total);
-    lastEl.textContent="Actualizado al "+formatEsDate(lastTs);
-  }catch(e){
-    valEl.textContent="—";
-    lastEl.textContent="Actualizado al —";
+  function animateNumber(el,target,ms=1700){
+    const fmt=new Intl.NumberFormat('es-PE');
+    const start=performance.now();
+    function tick(t){
+      const p=Math.min(1,(t-start)/ms);
+      const eased=1-Math.pow(1-p,3);
+      const cur=Math.round(target*eased);
+      el.textContent=fmt.format(cur);
+      if(p<1)requestAnimationFrame(tick);
+    }
+    requestAnimationFrame(tick);
   }
-})();
-
-/* =======================
-   ÁREAS DE ACCIÓN efecto llegada
-   ======================= */
-const leftEl=document.getElementById('col-left');
-const rightEl=document.getElementById('col-right');
-function revealOnScroll(){
-  const vh=window.innerHeight;
-  if(leftEl.getBoundingClientRect().top < vh*0.8) leftEl.classList.add('visible');
-  if(rightEl.getBoundingClientRect().top < vh*0.8) rightEl.classList.add('visible');
-}
-window.addEventListener('scroll',revealOnScroll,{passive:true});
-window.addEventListener('load',revealOnScroll,{passive:true});
-
-/* =======================
-   GRÁFICO INVERSIÓN (datos vivos desde BD)
-   ======================= */
-const URL13="https://pportalgis.vivienda.gob.pe/pfdserver/rest/services/OGEI/Mapa_Inversiones_MEF/FeatureServer/13/query";
-const YEAR=2025;
-function fmtM(v){const n=Number(v)||0;return (n/1e6).toFixed(3).replace(/\B(?=(\d{3})+(?!\d))/g,'.').replace(/(\.\d*?)0+$/,'$1').replace(/\.$/,'')+" M";}
-function fmtPct(p){return `${Math.round((p||0))}%`;}
-
-async function fetchStats(){
-  const params=new URLSearchParams({
-    f:"json",
-    where:`ano_eje = ${YEAR}`,
-    returnGeometry:"false",
-    groupByFieldsForStatistics:"tipo_act_proy_nombre",
-    outFields:"tipo_act_proy_nombre",
-    orderByFields:"tipo_act_proy_nombre",
-    outStatistics:JSON.stringify([
-      {"statisticType":"sum","onStatisticField":"monto_pim","outStatisticFieldName":"sum_pim"},
-      {"statisticType":"sum","onStatisticField":"monto_devengado","outStatisticFieldName":"sum_dev"}
-    ])
-  });
-  const res=await fetch(URL13,{method:"POST",headers:{"Content-Type":"application/x-www-form-urlencoded;charset=UTF-8"},body:params.toString(),cache:"no-store"});
-  if(!res.ok) throw new Error("HTTP "+res.status);
-  const j=await res.json(); if(j.error) throw new Error(j.error.message||"Error ArcGIS");
-  const rows=(j.features||[]).map(f=>f.attributes||{});
-  const order=["PROYECTO","ACTIVIDAD"];
-  rows.sort((a,b)=>{const ai=order.indexOf(a.tipo_act_proy_nombre);const bi=order.indexOf(b.tipo_act_proy_nombre);return (ai<0?99:ai)-(bi<0?99:bi);});
-  return rows.map(r=>{const pim=Number(r.sum_pim)||0;const dev=Number(r.sum_dev)||0;return{cat:r.tipo_act_proy_nombre||"—",pim,dev,pct:pim>0?(dev/pim*100):0};});
-}
-async function fetchMaxDate(){
-  const params=new URLSearchParams({f:"json",where:`ano_eje = ${YEAR}`,returnGeometry:"false",outStatistics:JSON.stringify([{"statisticType":"max","onStatisticField":"fecha_proceso","outStatisticFieldName":"max_fp"}])});
-  const res=await fetch(URL13+"?"+params.toString(),{cache:"no-store"});
-  if(!res.ok) throw new Error("HTTP "+res.status);
-  const j=await res.json(); const at=j.features?.[0]?.attributes||{}; return Number(at.max_fp)||null;
-}
-function formatEsDate2(ts){if(!Number.isFinite(ts)) return "—"; const d=new Date(ts); return new Intl.DateTimeFormat("es-PE",{day:"2-digit",month:"long",year:"numeric"}).format(d);}
-
-function renderChart(data){
-  const wrap=document.getElementById("wrap");
-  const canvas=document.getElementById("chart");
-  const tip=document.getElementById("tip");
-  const ctx=canvas.getContext("2d");
-  let dims={}, scale={}, bars=[];
-  function roundRect(ctx,x,y,w,h,r){const rr=Math.min(r,h/2,w/2);ctx.beginPath();ctx.moveTo(x+rr,y);ctx.arcTo(x+w,y,x+w,y+h,rr);ctx.arcTo(x+w,y+h,x,y+h,rr);ctx.arcTo(x,y+h,x,y,rr);ctx.arcTo(x,y,x+w,y,rr);ctx.closePath();}
-  function buildScale(){
-    const dpr=Math.max(1,window.devicePixelRatio||1);
-    const W=wrap.clientWidth, H=wrap.clientHeight;
-    canvas.width=W*dpr; canvas.height=H*dpr; canvas.style.width=W+"px"; canvas.style.height=H+"px"; ctx.setTransform(dpr,0,0,dpr,0,0);
-    dims={W,H};
-    const pad={t:20,r:20,b:40,l:90};
-    const maxVal=Math.max(1,...data.map(d=>d.pim));
-    const pow=Math.pow(10,Math.floor(Math.log10(maxVal)));
-    const XMAX=Math.ceil(maxVal/(pow/2))*(pow/2);
-    scale={pad,max:XMAX,x:(val)=>pad.l+(W-pad.l-pad.r)*(val/XMAX),y:(i)=>{const n=data.length;const band=(H-pad.t-pad.b)/Math.max(1,n);return pad.t+band*(i+0.5);},bandH:(H-pad.t-pad.b)/Math.max(1,data.length)};
-    const barH=Math.min(32,scale.bandH*0.6);
-    bars=data.map((d,i)=>{const cy=scale.y(i);const yTop=cy-barH/2;const pimW=scale.x(d.pim)-scale.x(0);const devW=scale.x(d.dev)-scale.x(0);return{cat:d.cat,pim:d.pim,dev:d.dev,pct:d.pct,cy,barH,pimRect:{x:scale.x(0),y:yTop,w:pimW,h:barH},devRect:{x:scale.x(0),y:yTop,w:devW,h:barH}};});
+  function formatEsDate(ts){
+    if(!Number.isFinite(ts))return"—";
+    const d=new Date(ts);
+    return new Intl.DateTimeFormat("es-PE",{day:"2-digit",month:"long",year:"numeric"}).format(d);
   }
-  function draw(){
-    ctx.clearRect(0,0,dims.W,dims.H);
-    ctx.strokeStyle="#d1d5db"; ctx.lineWidth=1; ctx.setLineDash([3,5]);
-    const ticks=6; for(let t=0;t<=ticks;t++){const v=scale.max*(t/ticks);const x=scale.x(v);ctx.beginPath();ctx.moveTo(x,scale.pad.t);ctx.lineTo(x,dims.H-scale.pad.b);ctx.stroke();}
-    ctx.setLineDash([]);
-    ctx.font="700 13px 'Nunito Sans',system-ui"; ctx.fillStyle="#1f2937"; ctx.textAlign="right"; ctx.textBaseline="middle";
-    bars.forEach(b=>{const label=b.cat.charAt(0)+b.cat.slice(1).toLowerCase();ctx.fillText(label, scale.pad.l-10, b.cy);});
-    bars.forEach(b=>{
-      ctx.fillStyle=getComputedStyle(document.documentElement).getPropertyValue('--celeste-pim').trim() || "#5ebad6"; roundRect(ctx,b.pimRect.x,b.pimRect.y,b.pimRect.w,b.pimRect.h,16); ctx.fill();
-      ctx.fillStyle=getComputedStyle(document.documentElement).getPropertyValue('--azul-mvcs').trim() || "#1e6eb6"; roundRect(ctx,b.devRect.x,b.devRect.y,b.devRect.w,b.devRect.h,16); ctx.fill();
-      ctx.fillStyle="#ffffff"; ctx.font="700 12px 'Nunito Sans',system-ui"; ctx.textAlign="center"; ctx.textBaseline="middle";
-      if(b.devRect.w>40){const devTxt=fmtM(b.dev); const devMidX=b.devRect.x+b.devRect.w/2; ctx.fillText(devTxt,devMidX,b.cy);}
-      const restW=b.pimRect.w-b.devRect.w;
-      if(restW>40){const pimTxt=fmtM(b.pim); const restMidX=b.devRect.x+b.devRect.w+restW/2; ctx.fillText(pimTxt,restMidX,b.cy);}
-      ctx.font="700 12px 'Nunito Sans',system-ui"; ctx.textAlign="left"; ctx.textBaseline="middle"; ctx.fillStyle=getComputedStyle(document.documentElement).getPropertyValue('--azul-mvcs').trim() || "#1e6eb6"; const pctText=fmtPct(b.pct); const pctX=b.pimRect.x+b.pimRect.w+8; ctx.fillText(pctText,pctX,b.cy);
+  (async()=>{
+    const valEl=document.getElementById('pim-val');
+    const curEl=document.getElementById('pim-cur');
+    const lastEl=document.getElementById('pim-lastUpdate');
+    try{
+      const{total,lastTs}=await fetchPIMandMaxDate();
+      requestAnimationFrame(()=>{valEl.classList.add('ready');curEl.classList.add('ready');});
+      animateNumber(valEl,total);
+      lastEl.textContent="Actualizado al "+formatEsDate(lastTs);
+    }catch(e){
+      valEl.textContent="—";
+      lastEl.textContent="Actualizado al —";
+    }
+  })();
+  /* -------- Áreas de acción animación -------- */
+  const leftEl=document.getElementById('col-left');
+  const rightEl=document.getElementById('col-right');
+  function revealOnScroll(){
+    const vh=window.innerHeight;
+    if(leftEl.getBoundingClientRect().top < vh*0.8) leftEl.classList.add('visible');
+    if(rightEl.getBoundingClientRect().top < vh*0.8) rightEl.classList.add('visible');
+  }
+  window.addEventListener('scroll',revealOnScroll,{passive:true});
+  window.addEventListener('load',revealOnScroll,{passive:true});
+  /* -------- Inversión pública (gráfico barras) -------- */
+  const URL13="https://pportalgis.vivienda.gob.pe/pfdserver/rest/services/OGEI/Mapa_Inversiones_MEF/FeatureServer/13/query";
+  const YEAR=2025;
+  function fmtM(v){const n=Number(v)||0;return (n/1e6).toFixed(3).replace(/\B(?=(\d{3})+(?!\d))/g,'.').replace(/(\.\d*?)0+$/,'$1').replace(/\.$/,'')+" M";}
+  function fmtPctChart(p){return `${Math.round((p||0))}%`;}
+  async function fetchStats(){
+    const params=new URLSearchParams({
+      f:"json",
+      where:`ano_eje = ${YEAR}`,
+      returnGeometry:"false",
+      groupByFieldsForStatistics:"tipo_act_proy_nombre",
+      outFields:"tipo_act_proy_nombre",
+      orderByFields:"tipo_act_proy_nombre",
+      outStatistics:JSON.stringify([
+        {"statisticType":"sum","onStatisticField":"monto_pim","outStatisticFieldName":"sum_pim"},
+        {"statisticType":"sum","onStatisticField":"monto_devengado","outStatisticFieldName":"sum_dev"}
+      ])
+    });
+    const res=await fetch(URL13,{method:"POST",headers:{"Content-Type":"application/x-www-form-urlencoded;charset=UTF-8"},body:params.toString(),cache:"no-store"});
+    if(!res.ok) throw new Error("HTTP "+res.status);
+    const j=await res.json(); if(j.error) throw new Error(j.error.message||"Error ArcGIS");
+    const rows=(j.features||[]).map(f=>f.attributes||{});
+    const order=["PROYECTO","ACTIVIDAD"];
+    rows.sort((a,b)=>{const ai=order.indexOf(a.tipo_act_proy_nombre);const bi=order.indexOf(b.tipo_act_proy_nombre);return (ai<0?99:ai)-(bi<0?99:bi);});
+    return rows.map(r=>{const pim=Number(r.sum_pim)||0;const dev=Number(r.sum_dev)||0;return{cat:r.tipo_act_proy_nombre||"—",pim,dev,pct:pim>0?(dev/pim*100):0};});
+  }
+  async function fetchMaxDate(){
+    const params=new URLSearchParams({f:"json",where:`ano_eje = ${YEAR}`,returnGeometry:"false",outStatistics:JSON.stringify([{"statisticType":"max","onStatisticField":"fecha_proceso","outStatisticFieldName":"max_fp"}])});
+    const res=await fetch(URL13+"?"+params.toString(),{cache:"no-store"});
+    if(!res.ok) throw new Error("HTTP "+res.status);
+    const j=await res.json(); const at=j.features?.[0]?.attributes||{}; return Number(at.max_fp)||null;
+  }
+  function formatEsDate2(ts){if(!Number.isFinite(ts)) return "—"; const d=new Date(ts); return new Intl.DateTimeFormat("es-PE",{day:"2-digit",month:"long",year:"numeric"}).format(d);}
+  function renderChart(data){
+    const wrap=document.getElementById("wrap");
+    const canvas=document.getElementById("chart");
+    const tip=document.getElementById("tip");
+    const ctx=canvas.getContext("2d");
+    let dims={}, scale={}, bars=[];
+    function roundRect(ctx,x,y,w,h,r){const rr=Math.min(r,h/2,w/2);ctx.beginPath();ctx.moveTo(x+rr,y);ctx.arcTo(x+w,y,x+w,y+h,rr);ctx.arcTo(x+w,y+h,x,y+h,rr);ctx.arcTo(x,y+h,x,y,rr);ctx.arcTo(x,y,x+w,y,rr);ctx.closePath();}
+    function buildScale(){
+      const dpr=Math.max(1,window.devicePixelRatio||1);
+      const W=wrap.clientWidth, H=wrap.clientHeight;
+      canvas.width=W*dpr; canvas.height=H*dpr; canvas.style.width=W+"px"; canvas.style.height=H+"px"; ctx.setTransform(dpr,0,0,dpr,0,0);
+      dims={W,H};
+      const pad={t:20,r:20,b:40,l:90};
+      const maxVal=Math.max(1,...data.map(d=>d.pim));
+      const pow=Math.pow(10,Math.floor(Math.log10(maxVal)));
+      const XMAX=Math.ceil(maxVal/(pow/2))*(pow/2);
+      scale={pad,max:XMAX,x:(val)=>pad.l+(W-pad.l-pad.r)*(val/XMAX),y:(i)=>{const n=data.length;const band=(H-pad.t-pad.b)/Math.max(1,n);return pad.t+band*(i+0.5);},bandH:(H-pad.t-pad.b)/Math.max(1,data.length)};
+      const barH=Math.min(32,scale.bandH*0.6);
+      bars=data.map((d,i)=>{const cy=scale.y(i);const yTop=cy-barH/2;const pimW=scale.x(d.pim)-scale.x(0);const devW=scale.x(d.dev)-scale.x(0);return{cat:d.cat,pim:d.pim,dev:d.dev,pct:d.pct,cy,barH,pimRect:{x:scale.x(0),y:yTop,w:pimW,h:barH},devRect:{x:scale.x(0),y:yTop,w:devW,h:barH}};});
+    }
+    function draw(){
+      ctx.clearRect(0,0,dims.W,dims.H);
+      ctx.strokeStyle="#d1d5db"; ctx.lineWidth=1; ctx.setLineDash([3,5]);
+      const ticks=6; for(let t=0;t<=ticks;t++){const v=scale.max*(t/ticks);const x=scale.x(v);ctx.beginPath();ctx.moveTo(x,scale.pad.t);ctx.lineTo(x,dims.H-scale.pad.b);ctx.stroke();}
+      ctx.setLineDash([]);
+      ctx.font="700 13px 'Nunito Sans',system-ui"; ctx.fillStyle="#1f2937"; ctx.textAlign="right"; ctx.textBaseline="middle";
+      bars.forEach(b=>{const label=b.cat.charAt(0)+b.cat.slice(1).toLowerCase();ctx.fillText(label, scale.pad.l-10, b.cy);});
+      bars.forEach(b=>{
+        ctx.fillStyle=getComputedStyle(document.documentElement).getPropertyValue('--celeste-pim').trim() || "#5ebad6"; roundRect(ctx,b.pimRect.x,b.pimRect.y,b.pimRect.w,b.pimRect.h,16); ctx.fill();
+        ctx.fillStyle=getComputedStyle(document.documentElement).getPropertyValue('--azul-mvcs').trim() || "#1e6eb6"; roundRect(ctx,b.devRect.x,b.devRect.y,b.devRect.w,b.devRect.h,16); ctx.fill();
+        ctx.fillStyle="#ffffff"; ctx.font="700 12px 'Nunito Sans',system-ui"; ctx.textAlign="center"; ctx.textBaseline="middle";
+        if(b.devRect.w>40){const devTxt=fmtM(b.dev); const devMidX=b.devRect.x+b.devRect.w/2; ctx.fillText(devTxt,devMidX,b.cy);} 
+        const restW=b.pimRect.w-b.devRect.w;
+        if(restW>40){const pimTxt=fmtM(b.pim); const restMidX=b.devRect.x+b.devRect.w+restW/2; ctx.fillText(pimTxt,restMidX,b.cy);} 
+        ctx.font="700 12px 'Nunito Sans',system-ui"; ctx.textAlign="left"; ctx.textBaseline="middle"; ctx.fillStyle=getComputedStyle(document.documentElement).getPropertyValue('--azul-mvcs').trim() || "#1e6eb6"; const pctText=fmtPctChart(b.pct); const pctX=b.pimRect.x+b.pimRect.w+8; ctx.fillText(pctText,pctX,b.cy);
+      });
+    }
+    function hitTest(mx,my){for(const b of bars){const r=b.devRect;if(mx>=r.x&&mx<=r.x+r.w&&my>=r.y&&my<=r.y+r.h)return{b,kind:"dev"};const p=b.pimRect;if(mx>=p.x&&mx<=p.x+p.w&&my>=p.y&&my<=p.y+p.h)return{b,kind:"pim"};}return null;}
+    function attachTooltip(){
+      canvas.addEventListener("mousemove",e=>{const rect=canvas.getBoundingClientRect();const mx=e.clientX-rect.left;const my=e.clientY-rect.top;const h=hitTest(mx,my);if(!h){tip.style.opacity=0;return;}const b=h.b;tip.innerHTML=`
+        <div class="inv-tip-row"><span class="inv-tip-key">Categoría</span><span class="inv-tip-val">${b.cat}</span></div>
+        <div class="inv-tip-row"><span class="inv-tip-key">Monto PIM</span><span class="inv-tip-val">${(b.pim).toLocaleString('es-PE')}</span></div>
+        <div class="inv-tip-row"><span class="inv-tip-key">Monto devengado</span><span class="inv-tip-val">${(b.dev).toLocaleString('es-PE')}</span></div>
+        <div class="inv-tip-row"><span class="inv-tip-key">Avance</span><span class="inv-tip-val">${fmtPctChart(b.pct)}</span></div>`;
+        tip.style.left=(mx+14)+"px"; tip.style.top =(my-14)+"px"; tip.style.opacity=1;},{passive:true});
+      canvas.addEventListener("mouseleave",()=>{tip.style.opacity=0;},{passive:true});
+    }
+    function redrawAll(){buildScale();draw();}
+    redrawAll(); attachTooltip(); window.addEventListener("resize",redrawAll,{passive:true});
+  }
+  (async function(){
+    try{
+      const [rows,lastTs]=await Promise.all([fetchStats(),fetchMaxDate()]);
+      renderChart(rows);
+      const lu=document.getElementById("lastUpdate"); lu.innerHTML=`<em>Actualizado al ${formatEsDate2(lastTs)}</em>`;
+    }catch(err){
+      console.error(err);
+      document.getElementById("wrap").innerHTML='<div style="display:grid;place-items:center;height:100%;color:#6b7280;font-size:14px;font-family:Nunito Sans,system-ui;">Error al cargar datos</div>';
+    }
+  })();
+  /* ---- ¿Cómo vamos? devengado + imagen ---- */
+  const statusSection = document.querySelector('.status-hero');
+  const figure = document.querySelector('.status-figure');
+  let devData = null;
+  async function fetchDevengadoData(){
+    const outStats = JSON.stringify([
+      { statisticType: "sum", onStatisticField: "monto_devengado", outStatisticFieldName: "sum_dev" },
+      { statisticType: "sum", onStatisticField: "monto_pim",       outStatisticFieldName: "sum_pim" },
+      { statisticType: "max", onStatisticField: "fecha_proceso",   outStatisticFieldName: "max_fp"  }
+    ]);
+    const qs = new URLSearchParams({
+      where: WHERE_PIM,
+      outStatistics: outStats,
+      returnGeometry: "false",
+      f: "json"
+    });
+    const url = SERVICE_PIM + "?" + qs.toString();
+    const res = await fetch(url, { cache: "no-store" });
+    const json = await res.json();
+    const a = json.features?.[0]?.attributes || {};
+    return { dev: Number(a.sum_dev||0), pim: Number(a.sum_pim||0), lastTs: (a.max_fp != null) ? Number(a.max_fp) : null };
+  }
+  function animateNumberFmt(el, target, ms, fmt, suffix=""){
+    const start = performance.now();
+    function tick(t){
+      const p = Math.min(1, (t - start) / ms);
+      const eased = 1 - Math.pow(1 - p, 3);
+      const cur = target * eased;
+      el.textContent = fmt.format(cur) + suffix;
+      if(p < 1) requestAnimationFrame(tick);
+    }
+    requestAnimationFrame(tick);
+  }
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting && !devData) {
+        (async () => {
+          try {
+            const { dev, pim, lastTs } = await fetchDevengadoData();
+            devData = { dev, pim, lastTs };
+            const val = document.getElementById('val');
+            const cur = document.getElementById('cur');
+            const percentEl = document.getElementById('percent');
+            const last = document.getElementById('lastUpdateDev');
+            const perc = pim > 0 ? (dev / pim * 100) : 0;
+            [val, cur, percentEl].forEach(el => el.classList.add('ready'));
+            const fmtInt = new Intl.NumberFormat('es-PE', { maximumFractionDigits: 0 });
+            const fmtPerc = new Intl.NumberFormat('es-PE', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+            animateNumberFmt(val, dev, 1700, fmtInt);
+            animateNumberFmt(percentEl, perc, 1700, fmtPerc, "%");
+            last.textContent = "Actualizado al " + formatEsDate(lastTs);
+            requestAnimationFrame(() => {
+              figure.classList.add('animated');
+            });
+          } catch (e) {
+            document.getElementById('val').textContent = "—";
+            document.getElementById('percent').textContent = "—";
+            document.getElementById('lastUpdateDev').textContent = "Actualizado al —";
+            [document.getElementById('val'), document.getElementById('cur'), document.getElementById('percent')].forEach(el => el.classList.add('ready'));
+          }
+        })();
+      }
+    });
+  }, { threshold: 0.3 });
+  observer.observe(statusSection);
+  /* ----------- Módulo Rankings y tablas compartidas ----------- */
+  const ENDPOINT_LEFT  = "https://pportalgis.vivienda.gob.pe/pfdserver/rest/services/OGEI/Mapa_Inversiones_MEF/MapServer/9";
+  const ENDPOINT_RIGHT = "https://pportalgis.vivienda.gob.pe/pfdserver/rest/services/OGEI/Mapa_Inversiones_MEF/MapServer/10";
+  const KPI_SECTOR = "VIVIENDA CONSTRUCCION Y SANEAMIENTO";
+  let currentSide = null;
+  let cacheRows   = { left: null, right: null };
+  function cacheBust(){ return String(Date.now()); }
+  function esriPOST(url, obj){
+    const body = new URLSearchParams({ f:"json", returnGeometry:"false", ...obj, __ts:cacheBust() });
+    return fetch(url+"/query", { method:"POST", headers:{ "Content-Type":"application/x-www-form-urlencoded;charset=UTF-8" }, body })
+      .then(r=>{ if(!r.ok) throw new Error("HTTP "+r.status); return r.json(); })
+      .then(j=>{ if(j.error) throw new Error(j.error.message||"ArcGIS"); return j; });
+  }
+  function fmtMoney(n){ return new Intl.NumberFormat("es-PE",{minimumFractionDigits:2,maximumFractionDigits:2}).format(Number(n)||0); }
+  function fmtPct(n){ const v=Number(n); return isFinite(v) ? new Intl.NumberFormat("es-PE",{minimumFractionDigits:2,maximumFractionDigits:2}).format(v) : "—"; }
+  function escQuotes(v){ return String(v).replaceAll("'","''"); }
+  function escapeHtml(s){ return String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]||c)); }
+  async function loadKPI(side){
+    const url = side==="left" ? ENDPOINT_LEFT : ENDPOINT_RIGHT;
+    try{
+      const outStatistics = JSON.stringify([{statisticType:"min",onStatisticField:"rankin",outStatisticFieldName:"min_rankin"}]);
+      const where = `sector_nombre='${escQuotes(KPI_SECTOR)}'`;
+      const j = await esriPOST(url, { where, outStatistics, groupByFieldsForStatistics:"" });
+      const num = j.features?.[0]?.attributes?.min_rankin ?? null;
+      document.getElementById("kpi-"+side).textContent = (num!=null) ? Number(num).toLocaleString('es-PE') : "—";
+    }catch(e){
+      document.getElementById("kpi-"+side).textContent = "—";
+      console.error("KPI "+side, e);
+    }
+  }
+  const OUT_FIELDS = ["rankin","sector_nombre","sum_monto_pia","sum_monto_pim","sum_monto_devengado","avance"].join(",");
+  async function fetchRows(side){
+    const url = side==="left" ? ENDPOINT_LEFT : ENDPOINT_RIGHT;
+    const page=2000; let offset=0; const rows=[];
+    while(true){
+      const j = await esriPOST(url, {
+        where:"1=1", outFields:OUT_FIELDS, orderByFields:"rankin ASC",
+        resultRecordCount:page, resultOffset:offset
+      });
+      (j.features||[]).forEach(f=>{
+        const a=f.attributes||{};
+        rows.push({rk:a.rankin??null, sec:a.sector_nombre??"", pia:+a.sum_monto_pia||0, pim:+a.sum_monto_pim||0, dev:+a.sum_monto_devengado||0, avz:+a.avance});
+      });
+      if(!j.exceededTransferLimit || (j.features||[]).length<page) break;
+      offset += page;
+    }
+    return rows;
+  }
+  function renderTable(rows){
+    const tb = document.getElementById("tbody");
+    tb.innerHTML = rows.map(r=>`
+      <tr>
+        <td class="num">${r.rk ?? "—"}</td>
+        <td>${escapeHtml(r.sec||"—")}</td>
+        <td class="num">${fmtMoney(r.pia)}</td>
+        <td class="num">${fmtMoney(r.pim)}</td>
+        <td class="num">${fmtMoney(r.dev)}</td>
+        <td class="num">${fmtPct(r.avz)}</td>
+      </tr>
+    `).join("");
+  }
+  async function toggleTable(side){
+    const shell = document.getElementById("tableShell");
+    const scroller = document.getElementById("scroller");
+    const stateEl = document.getElementById("state");
+    const buttons = document.querySelectorAll('button[data-action="toggle"]');
+    if (shell.classList.contains("open") && currentSide===side){
+      shell.classList.remove("open"); stateEl.textContent = "—"; scroller.style.display = "none"; currentSide = null;
+      buttons.forEach(b=> b.textContent="Ver tabla");
+      return;
+    }
+    buttons.forEach(b=> b.textContent = (b.dataset.side===side) ? "Ocultar tabla" : "Ver tabla");
+    shell.classList.add("open"); stateEl.classList.remove("error"); stateEl.textContent = "Cargando datos…"; scroller.style.display = "none";
+    try{
+      const rows = cacheRows[side] || await fetchRows(side);
+      cacheRows[side] = rows; renderTable(rows);
+      stateEl.textContent = `Listo (${rows.length.toLocaleString('es-PE')} filas)`;
+      scroller.style.display = "block"; currentSide = side;
+    }catch(e){
+      console.error(e); stateEl.classList.add("error"); stateEl.textContent = "No se pudo cargar la tabla."; scroller.style.display = "none";
+    }
+  }
+  function toCSV(rows){
+    const sep=";"; const header=["RANKING","Sector","PIA","PIM","Devengado","Avance(%)"];
+    const esc=v=>`"${String(v??"").replace(/"/g,'""')}"`;
+    const lines = rows.map(r=>[r.rk,r.sec,r.pia,r.pim,r.dev,r.avz].map(esc).join(sep));
+    return header.join(sep)+"\n"+lines.join("\n");
+  }
+  function downloadCSV(side){
+    const rows = cacheRows[side];
+    if(!rows || !rows.length) return;
+    const csv=toCSV(rows);
+    const bom=new Uint8Array([0xEF,0xBB,0xBF]);
+    const blob=new Blob([bom,csv],{type:"text/csv;charset=utf-8"});
+    const a=document.createElement("a");
+    a.href=URL.createObjectURL(blob);
+    a.download = side==="left" ? "ranking_general_sector.csv" : "ranking_inversiones_sector.csv";
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(()=>URL.revokeObjectURL(a.href),1200);
+  }
+  document.querySelectorAll('button[data-action="toggle"]').forEach(btn=> btn.addEventListener('click', ()=> toggleTable(btn.dataset.side)));
+  document.querySelectorAll('button[data-action="excel"]').forEach(btn=> btn.addEventListener('click', ()=> {
+    const side = btn.dataset.side;
+    if(!cacheRows[side]){ toggleTable(side).then(()=> downloadCSV(side)); } else{ downloadCSV(side); }
+  }));
+  loadKPI("left"); loadKPI("right");
+  /* ----------- Ejecutoras (desempeño por pliego) ----------- */
+  const SERVICE="https://pportalgis.vivienda.gob.pe/pfdserver/rest/services/OGEI/Mapa_Inversiones_MEF/FeatureServer/13/query";
+  const BASE_WHERE="sector_nombre = 'VIVIENDA CONSTRUCCION Y SANEAMIENTO' AND ano_eje = 2025";
+  const INFO_LINKS={ "MINISTERIO DE VIVIENDA, CONSTRUCCION Y SANEAMIENTO": "https://pportalgis.vivienda.gob.pe/pportal/apps/storymaps/stories/750c7c6b13bf477287b8db07c865f1b1" };
+  const nf=new Intl.NumberFormat('es-PE');
+  const pctStr=(r)=>isFinite(r)?(r*100).toFixed(2)+' %':'0.00 %';
+  function buildParams(extra){
+    return new URLSearchParams({
+      where:`${BASE_WHERE}${extra? ' AND '+extra:''}`,
+      groupByFieldsForStatistics:"pliego_nombre,ejecutora_nombre",
+      outStatistics:JSON.stringify([
+        {statisticType:"sum",onStatisticField:"monto_pim",outStatisticFieldName:"sum_pim"},
+        {statisticType:"sum",onStatisticField:"monto_devengado",outStatisticFieldName:"sum_dev"}
+      ]),
+      returnGeometry:"false", f:"json"
+    }).toString();
+  }
+  async function queryStats(extra){
+    const res=await fetch(`${SERVICE}?${buildParams(extra)}`,{cache:'no-store'});
+    if(!res.ok) throw new Error('HTTP '+res.status);
+    const json=await res.json();
+    if(json.error) throw new Error(json.error.message||'Error servicio');
+    return (json.features||[]).map(f=>{
+      const a=f.attributes||{};
+      return { pliego:String(a.pliego_nombre||'').trim()||'(Sin pliego)', ejecutora:String(a.ejecutora_nombre||'').trim()||'(Sin ejecutora)', pim:Number(a.sum_pim||0), dev:Number(a.sum_dev||0) };
     });
   }
-  function hitTest(mx,my){for(const b of bars){const r=b.devRect;if(mx>=r.x&&mx<=r.x+r.w&&my>=r.y&&my<=r.y+r.h)return{b,kind:"dev"};const p=b.pimRect;if(mx>=p.x&&mx<=p.x+p.w&&my>=p.y&&my<=p.y+p.h)return{b,kind:"pim"};}return null;}
-  function attachTooltip(){
-    canvas.addEventListener("mousemove",e=>{const rect=canvas.getBoundingClientRect();const mx=e.clientX-rect.left;const my=e.clientY-rect.top;const h=hitTest(mx,my);if(!h){tip.style.opacity=0;return;}const b=h.b;tip.innerHTML=`
-      <div class="inv-tip-row"><span class="inv-tip-key">Categoría</span><span class="inv-tip-val">${b.cat}</span></div>
-      <div class="inv-tip-row"><span class="inv-tip-key">Monto PIM</span><span class="inv-tip-val">${(b.pim).toLocaleString('es-PE')}</span></div>
-      <div class="inv-tip-row"><span class="inv-tip-key">Monto devengado</span><span class="inv-tip-val">${(b.dev).toLocaleString('es-PE')}</span></div>
-      <div class="inv-tip-row"><span class="inv-tip-key">Avance</span><span class="inv-tip-val">${fmtPct(b.pct)}</span></div>`;
-      tip.style.left=(mx+14)+"px"; tip.style.top =(my-14)+"px"; tip.style.opacity=1;},{passive:true});
-    canvas.addEventListener("mouseleave",()=>{tip.style.opacity=0;},{passive:true});
+  function mergeStats(total,proy,act){
+    const key=r=>`${r.pliego}|||${r.ejecutora}`;
+    const it=new Map(), ip=new Map(), ia=new Map();
+    total.forEach(r=>it.set(key(r),r)); proy.forEach(r=>ip.set(key(r),r)); act.forEach(r=>ia.set(key(r),r));
+    const rows=[...new Set([...it.keys(),...ip.keys(),...ia.keys()])].map(k=>{
+      const t=it.get(k)||{}, p=ip.get(k)||{}, a=ia.get(k)||{};
+      return { pliego:t.pliego||p.pliego||a.pliego||'', ejecutora:t.ejecutora||p.ejecutora||a.ejecutora||'', pim:t.pim||0, dev:t.dev||0, pim_proy:p.pim||0, dev_proy:p.dev||0, pim_act:a.pim||0, dev_act:a.dev||0 };
+    });
+    const byP=new Map();
+    for(const r of rows){ if(!byP.has(r.pliego)) byP.set(r.pliego,[]); byP.get(r.pliego).push(r); }
+    for(const arr of byP.values()){ arr.sort((x,y)=>x.ejecutora.localeCompare(y.ejecutora,'es')); }
+    return new Map([...byP.entries()].sort((a,b)=>a[0].localeCompare(b[0],'es')));
   }
-  function redrawAll(){buildScale();draw();}
-  redrawAll(); attachTooltip(); window.addEventListener("resize",redrawAll,{passive:true});
-}
-(async function(){
-  try{
-    const [rows,lastTs]=await Promise.all([fetchStats(),fetchMaxDate()]);
-    renderChart(rows);
-    const lu=document.getElementById("lastUpdate"); lu.innerHTML=`<em>Actualizado al ${formatEsDate2(lastTs)}</em>`;
-  }catch(err){
-    console.error(err);
-    document.getElementById("wrap").innerHTML='<div style="display:grid;place-items:center;height:100%;color:#6b7280;font-size:14px;font-family:Nunito Sans,system-ui;">Error al cargar datos</div>';
-  }
-})();
-
-/* ===== Devengado + Imagen (solo cuando se ve) ===== */
-const statusSection = document.querySelector('.status-hero');
-const figure = document.querySelector('.status-figure');
-let devData = null;
-
-async function fetchDevengadoData(){
-  const outStats = JSON.stringify([
-    { statisticType: "sum", onStatisticField: "monto_devengado", outStatisticFieldName: "sum_dev" },
-    { statisticType: "sum", onStatisticField: "monto_pim",       outStatisticFieldName: "sum_pim" },
-    { statisticType: "max", onStatisticField: "fecha_proceso",   outStatisticFieldName: "max_fp"  }
-  ]);
-  const qs = new URLSearchParams({
-    where: WHERE_PIM,
-    outStatistics: outStats,
-    returnGeometry: "false",
-    f: "json"
-  });
-  const url = SERVICE_PIM + "?" + qs.toString();
-  const res = await fetch(url, { cache: "no-store" });
-  const json = await res.json();
-  const a = json.features?.[0]?.attributes || {};
-  return { dev: Number(a.sum_dev||0), pim: Number(a.sum_pim||0), lastTs: (a.max_fp != null) ? Number(a.max_fp) : null };
-}
-
-function animateNumberFmt(el, target, ms, fmt, suffix=""){
-  const start = performance.now();
-  function tick(t){
-    const p = Math.min(1, (t - start) / ms);
-    const eased = 1 - Math.pow(1 - p, 3);
-    const cur = target * eased;
-    el.textContent = fmt.format(cur) + suffix;
-    if(p < 1) requestAnimationFrame(tick);
-  }
-  requestAnimationFrame(tick);
-}
-
-// Observer: Activa contador + imagen
-const observer = new IntersectionObserver((entries) => {
-  entries.forEach(entry => {
-    if (entry.isIntersecting && !devData) {
-      (async () => {
-        try {
-          const { dev, pim, lastTs } = await fetchDevengadoData();
-          devData = { dev, pim, lastTs };
-
-          const val = document.getElementById('val');
-          const cur = document.getElementById('cur');
-          const percentEl = document.getElementById('percent');
-          const last = document.getElementById('lastUpdateDev');
-
-          const perc = pim > 0 ? (dev / pim * 100) : 0;
-          [val, cur, percentEl].forEach(el => el.classList.add('ready'));
-
-          const fmtInt = new Intl.NumberFormat('es-PE', { maximumFractionDigits: 0 });
-          const fmtPerc = new Intl.NumberFormat('es-PE', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
-
-          animateNumberFmt(val, dev, 1700, fmtInt);
-          animateNumberFmt(percentEl, perc, 1700, fmtPerc, "%");
-          last.textContent = "Actualizado al " + formatEsDate(lastTs);
-
-          // Animación de la imagen (deslizamiento)
-          requestAnimationFrame(() => {
-            figure.classList.add('animated');
-          });
-
-        } catch (e) {
-          document.getElementById('val').textContent = "—";
-          document.getElementById('percent').textContent = "—";
-          document.getElementById('lastUpdateDev').textContent = "Actualizado al —";
-          [document.getElementById('val'), document.getElementById('cur'), document.getElementById('percent')].forEach(el => el.classList.add('ready'));
-        }
-      })();
+  function renderExec(grouped){
+    const tbody=document.getElementById('tbodyExec'); tbody.innerHTML='';
+    let tot={pim:0,dev:0,pim_proy:0,dev_proy:0,pim_act:0,dev_act:0};
+    for(const [pliego,items] of grouped.entries()){
+      const s=items.reduce((a,r)=>({
+        pim:a.pim+r.pim, dev:a.dev+r.dev,
+        pim_proy:a.pim_proy+r.pim_proy, dev_proy:a.dev_proy+r.dev_proy,
+        pim_act:a.pim_act+r.pim_act, dev_act:a.dev_act+r.dev_act
+      }),{pim:0,dev:0,pim_proy:0,dev_proy:0,pim_act:0,dev_act:0});
+      Object.keys(tot).forEach(k=>tot[k]+=s[k]);
+      const av = s.pim>0 ? s.dev/s.pim : 0;
+      const avp = s.pim_proy>0 ? s.dev_proy/s.pim_proy : 0;
+      const ava = s.pim_act>0 ? s.dev_act/s.pim_act : 0;
+      const gid = 'g_' + Math.random().toString(36).slice(2,9);
+      const story = (pliego.toUpperCase().includes("MINISTERIO DE VIVIENDA")) ?
+        `<a class="infoBtn" href="${INFO_LINKS['MINISTERIO DE VIVIENDA, CONSTRUCCION Y SANEAMIENTO']}" target="_blank" rel="noopener" title="Ver StoryMap">
+           <svg viewBox="0 0 24 24"><path d="M14 3h7v7"/><path d="M10 14 21 3"/><path d="M21 14v7h-7"/><path d="M3 10 14 21"/></svg>
+         </a>` : '';
+      const groupHTML = `<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;">
+        <button class="btn-expand" aria-expanded="false" aria-controls="${gid}">
+          <span class="chev">
+            <svg class="arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 4v12"></path><path d="M8 12l4 4 4-4"></path></svg>
+            <svg class="arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 4v12"></path><path d="M8 12l4 4 4-4"></path></svg>
+            <svg class="arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 4v12"></path><path d="M8 12l4 4 4-4"></path></svg>
+          </span>
+          <span style="white-space:normal;word-break:break-word;">${pliego}</span>
+        </button>
+        ${story}
+      </div>`;
+      const dot = v => `<span class="dot" style="background:${v<0.33?'#ef4444':v<0.67?'#f59e0b':'#16a34a'}"></span>`;
+      const addRow=(cells,isHead=false)=>{
+        const tr=document.createElement('tr');
+        tr.className=isHead?'group':'';
+        cells.forEach(c=>{
+          const el=document.createElement(isHead?'th':'td');
+          if(c.cls) el.className=c.cls;
+          el.innerHTML=c.html; tr.appendChild(el);
+        });
+        tbody.appendChild(tr);
+      };
+      addRow([
+        {html:groupHTML, cls:'sticky'},
+        {html:nf.format(s.pim),cls:'num'},{html:nf.format(s.dev),cls:'num'},
+        {html:`${dot(av)}${pctStr(av)}`,cls:'pct'},
+        {html:nf.format(s.pim_proy),cls:'num'},{html:nf.format(s.dev_proy),cls:'num'},
+        {html:`${dot(avp)}${pctStr(avp)}`,cls:'pct'},
+        {html:nf.format(s.pim_act),cls:'num'},{html:nf.format(s.dev_act),cls:'num'},
+        {html:`${dot(ava)}${pctStr(ava)}`,cls:'pct'}
+      ],true);
+      for(const r of items){
+        const av2 = r.pim>0 ? r.dev/r.pim : 0;
+        const avp2 = r.pim_proy>0 ? r.dev_proy/r.pim_proy : 0;
+        const ava2 = r.pim_act>0 ? r.dev_act/r.pim_act : 0;
+        const tr=document.createElement('tr');
+        tr.className='item'; tr.setAttribute('data-parent',gid); tr.style.display='none';
+        tr.innerHTML=`
+          <td class="sticky" style="padding-left:24px;white-space:normal;word-break:break-word;">${r.ejecutora}</td>
+          <td class="num">${nf.format(r.pim)}</td><td class="num">${nf.format(r.dev)}</td>
+          <td class="pct">${dot(av2)}${pctStr(av2)}</td>
+          <td class="num">${nf.format(r.pim_proy)}</td><td class="num">${nf.format(r.dev_proy)}</td>
+          <td class="pct">${dot(avp2)}${pctStr(avp2)}</td>
+          <td class="num">${nf.format(r.pim_act)}</td><td class="num">${nf.format(r.dev_act)}</td>
+          <td class="pct">${dot(ava2)}${pctStr(ava2)}</td>`;
+        tbody.appendChild(tr);
+      }
     }
+    const tfoot=document.getElementById('tfootExec');
+    const tav = tot.pim>0 ? tot.dev/tot.pim : 0;
+    const tavp = tot.pim_proy>0 ? tot.dev_proy/tot.pim_proy : 0;
+    const tava = tot.pim_act>0 ? tot.dev_act/tot.pim_act : 0;
+    const dot = v => `<span class="dot" style="background:${v<0.33?'#ef4444':v<0.67?'#f59e0b':'#16a34a'}"></span>`;
+    tfoot.innerHTML=`<tr>
+      <td class="sticky" style="font-weight:900;text-align:left">Total</td>
+      <td class="num">${nf.format(tot.pim)}</td><td class="num">${nf.format(tot.dev)}</td>
+      <td class="pct">${dot(tav)}${pctStr(tav)}</td>
+      <td class="num">${nf.format(tot.pim_proy)}</td><td class="num">${nf.format(tot.dev_proy)}</td>
+      <td class="pct">${dot(tavp)}${pctStr(tavp)}</td>
+      <td class="num">${nf.format(tot.pim_act)}</td><td class="num">${nf.format(tot.dev_act)}</td>
+      <td class="pct">${dot(tava)}${pctStr(tava)}</td>
+    </tr>`;
+    tbody.querySelectorAll('.btn-expand').forEach(btn=>{
+      btn.addEventListener('click',()=>{
+        const id=btn.getAttribute('aria-controls');
+        const open=btn.getAttribute('aria-expanded')==='true';
+        btn.setAttribute('aria-expanded',String(!open));
+        tbody.querySelectorAll(`tr.item[data-parent="${id}"]`).forEach(tr=> tr.style.display=open?'none':'');
+      });
+    });
+  }
+  async function loadExecutors(){
+    try{
+      const [all,proy,act]=await Promise.all([
+        queryStats("1=1"),
+        queryStats("tipo_act_proy_nombre = 'PROYECTO'"),
+        queryStats("tipo_act_proy_nombre = 'ACTIVIDAD'")
+      ]);
+      renderExec(mergeStats(all,proy,act));
+    }catch(err){
+      console.error(err);
+      document.getElementById('tbodyExec').innerHTML=`<tr><td colspan="10" style="text-align:center;color:#b91c1c;padding:18px">Error al cargar datos</td></tr>`;
+    }
+  }
+  function exportTableToExcel(){
+    const table=document.getElementById('tblExec'); if(!table) return;
+    const clone=table.cloneNode(true);
+    clone.querySelectorAll('td.num, th.num').forEach(td=> td.setAttribute('style',(td.getAttribute('style')||'')+'; mso-number-format:"\\#\\,\\#\\#0";'));
+    const html=`<!DOCTYPE html><html><head><meta charset="utf-8">
+    <style>table{border-collapse:collapse}th,td{border:1px solid #d1d5db;padding:6px 8px;white-space:nowrap}
+    th{background:#5ebad6;color:#fff;font-weight:800}</style>
+    </head><body>${clone.outerHTML}</body></html>`;
+    const blob=new Blob([html],{type:'application/vnd.ms-excel;charset=utf-8;'});
+    const a=document.createElement('a');
+    a.href=URL.createObjectURL(blob);
+    a.download='ejecutoras_mvcs_2025.xls';
+    document.body.appendChild(a); a.click(); a.remove();
+  }
+  const btnShowExec = document.getElementById('btnShowExec');
+  btnShowExec.addEventListener('click',()=>{
+    const wrap=document.getElementById('execWrap');
+    const isHidden = wrap.style.display==='none';
+    if(isHidden){ wrap.style.display='block'; loadExecutors(); btnShowExec.textContent='Ocultar tabla'; }
+    else{ wrap.style.display='none'; btnShowExec.textContent='Ver tabla'; }
   });
-}, { threshold: 0.3 });
-
-observer.observe(statusSection);
-</script>
+  document.getElementById('btnExcelExec').addEventListener('click',exportTableToExcel);
+  </script>
 </body>
 </html>
