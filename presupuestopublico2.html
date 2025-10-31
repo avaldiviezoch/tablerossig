@@ -3,77 +3,160 @@
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>Map Tour — Proyectos de Inversión MVCS</title>
+<title>Map Tour + Indicadores + Swipes — MVCS</title>
 
+<!-- ArcGIS -->
 <link rel="stylesheet" href="https://js.arcgis.com/4.29/esri/themes/light/main.css">
 <script src="https://js.arcgis.com/4.29/"></script>
 
+<!-- Fuente institucional (para el módulo Swipe) -->
+<link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@600;700;800;900&display=swap" rel="stylesheet"/>
+
 <style>
-  :root{
-    --brand:#1e6eb6; --ink:#0b2532; --muted:#475569; --line:#e5e7eb; --card:#ffffff;
-  }
-  html,body{height:100%;margin:0;background:#eef3f8;color:var(--ink);
-    font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial}
+/* ================== VARIABLES GLOBALES ================== */
+:root{
+  --brand:#1e6eb6; --ink:#0b2532; --muted:#475569; --line:#e5e7eb; --card:#ffffff;
+  --bg:#eef3f8; --accent:#e50914;
+}
 
-  .layout{
-    display:grid;
-    grid-template-columns:min(820px,58vw) 1fr;
-    gap:18px; min-height:100vh;
-  }
-  .story{padding:clamp(12px,2.2vw,24px);}
-  .intro{
-    background:#fff;border:1px solid #dbe3ec;border-radius:16px;
-    padding:16px 18px;margin-bottom:16px;
-  }
-  .intro h1{margin:0 0 6px;font-weight:900;color:var(--brand);}
-  .intro p{margin:0;color:var(--muted);font-weight:600}
-  .mapCol{position:sticky;top:0;height:100vh;border-left:1px solid #e6edf5}
-  #viewDiv2D,#viewDiv3D{height:100%;width:100%}
-  #viewDiv2D{display:none;}
+/* ================== BASE ================== */
+html,body{
+  height:100%; margin:0; background:var(--bg); color:var(--ink);
+  font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial;
+}
 
-  .step{margin:0 0 18px;scroll-margin-top:18px}
-  .card{
-    background:#fff;border:1px solid #dbe3ec;border-radius:16px;
-    box-shadow:0 14px 36px rgba(2,6,23,.14);
-    overflow:hidden;display:grid;grid-auto-rows:auto;
-  }
-  .img{height:260px;position:relative;overflow:hidden}
-  .img img{width:100%;height:100%;object-fit:cover}
-  .badge{
-    position:absolute;top:10px;left:10px;width:32px;height:32px;
-    border-radius:999px;background:var(--brand);color:#fff;
-    display:grid;place-items:center;font-weight:900;
-    outline:3px solid #ebf3ff;box-shadow:0 8px 18px rgba(30,110,182,.35);
-  }
-  .body{padding:14px 16px 16px}
-  .title{margin:0 0 8px;font-weight:900;letter-spacing:.2px;font-size:1.3rem;line-height:1.15}
-  .meta{margin:0 0 10px;color:#213547;font-weight:800}
-  .links{display:flex;gap:14px;flex-wrap:wrap;margin-top:8px}
-  .a{color:var(--brand);text-decoration:none;font-weight:900;border-bottom:2px solid #cfe3fb}
-  .a:hover{filter:brightness(.96)}
+/* ================== MAP TOUR ================== */
+.layout{
+  display:grid;
+  grid-template-columns:min(820px,58vw) 1fr;
+  gap:18px; min-height:100vh;
+}
+.story{padding:clamp(12px,2.2vw,24px);}
+.intro{
+  background:#fff;border:1px solid #dbe3ec;border-radius:16px;
+  padding:16px 18px;margin-bottom:16px;
+}
+.intro h1{margin:0 0 6px;font-weight:900;color:var(--brand);}
+.intro p{margin:0;color:var(--muted);font-weight:600}
+.mapCol{position:sticky;top:0;height:100vh;border-left:1px solid #e6edf5}
+#viewDiv2D,#viewDiv3D{height:100%;width:100%}
+#viewDiv2D{display:none;} /* inicia en 3D */
 
-  .step.is-active .card{outline:3px solid #e6f2ff}
+/* Tarjetas */
+.step{margin:0 0 18px;scroll-margin-top:18px}
+.card{
+  background:#fff;border:1px solid #dbe3ec;border-radius:16px;
+  box-shadow:0 14px 36px rgba(2,6,23,.14);
+  overflow:hidden;display:grid;grid-auto-rows:auto;
+}
+.img{height:260px;position:relative;overflow:hidden}
+.img img{width:100%;height:100%;object-fit:cover}
+.badge{
+  position:absolute;top:10px;left:10px;width:32px;height:32px;border-radius:999px;
+  background:var(--brand);color:#fff;display:grid;place-items:center;font-weight:900;
+  outline:3px solid #ebf3ff;box-shadow:0 8px 18px rgba(30,110,182,.35);
+}
+.body{padding:14px 16px 16px}
+.title{margin:0 0 8px;font-weight:900;letter-spacing:.2px;font-size:1.3rem;line-height:1.15}
+.meta{margin:0 0 10px;color:#213547;font-weight:800}
+.links{display:flex;gap:14px;flex-wrap:wrap;margin-top:8px}
+.a{color:var(--brand);text-decoration:none;font-weight:900;border-bottom:2px solid #cfe3fb}
+.a:hover{filter:brightness(.96)}
+.step.is-active .card{outline:3px solid #e6f2ff}
 
-  .nav{
-    position:fixed;left:16px;bottom:16px;z-index:20;display:flex;gap:8px;
-  }
-  .btn{
-    border:1px solid #dbe3ec;background:#fff;min-width:42px;height:42px;padding:0 10px;
-    border-radius:12px;display:grid;place-items:center;cursor:pointer;font-weight:900;
-    color:#1f2937;box-shadow:0 6px 16px rgba(0,0,0,.14);
-  }
-  .btn:hover{background:#f7fafc}
-  .esri-popup,.esri-popup__main-container{display:none!important}
+/* Controles */
+.nav{
+  position:fixed;left:16px;bottom:16px;z-index:20;display:flex;gap:8px;
+}
+.btn{
+  border:1px solid #dbe3ec;background:#fff;min-width:42px;height:42px;padding:0 10px;
+  border-radius:12px;display:grid;place-items:center;cursor:pointer;font-weight:900;
+  color:#1f2937;box-shadow:0 6px 16px rgba(0,0,0,.14);
+}
+.btn:hover{background:#f7fafc}
+.esri-popup,.esri-popup__main-container{display:none!important}
 
-  @media(max-width:960px){
-    .layout{grid-template-columns:1fr}
-    .mapCol{order:-1;height:60vh}
-    .img{height:220px}
-  }
+@media(max-width:960px){
+  .layout{grid-template-columns:1fr}
+  .mapCol{order:-1;height:60vh}
+  .img{height:220px}
+}
+
+/* ================== INDICADORES (debajo del tour) ================== */
+.section{
+  max-width:1200px;margin:40px auto 24px;padding:24px;background:#fff;border:1px solid var(--line);
+  border-radius:16px;box-shadow:0 18px 40px rgba(2,6,23,.08);
+}
+.section h2{margin:0 0 14px;color:var(--brand);font-weight:900}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:24px}
+.kpi{background:#f8fafc;padding:20px;border-radius:12px;text-align:center;border:1px solid #eef2f7}
+.kpi h3{margin:0;font-size:2rem;color:#0b2532}
+.kpi p{margin:6px 0 0;color:#475569}
+
+/* ================== SWIPE (tu módulo) ================== */
+/* Usamos Nunito Sans SOLO en esta sección para respetar tu estilo sin alterar el resto */
+.swipe-scope{font-family:"Nunito Sans", system-ui, -apple-system, Segoe UI, Roboto, Arial;}
+.wrap{
+  max-width:1200px;
+  margin:clamp(16px,3vw,28px) auto;
+  background:var(--card);
+  border:1px solid var(--line);
+  border-radius:20px;
+  padding:clamp(16px,3vw,28px);
+  box-shadow:0 18px 40px rgba(2,6,23,.08);
+}
+.title{
+  text-align:center;font-weight:900;color:var(--brand);
+  font-size:clamp(22px,3.6vw,34px);line-height:1.15;margin:0 0 8px 0;position:relative;display:inline-block;
+}
+.title-underline{position:relative;height:4px;background:transparent;overflow:hidden;margin:8px auto 0}
+.title-underline::before{
+  content:"";display:block;height:4px;width:0%;background:var(--accent);border-radius:999px;
+  box-shadow:0 0 0 1px rgba(0,0,0,.06) inset;transform-origin:left center;
+}
+.animate .title-underline::before{animation:underline 700ms ease-out forwards}
+@keyframes underline{from{width:0%}to{width:100%}}
+.intro{
+  max-width:940px;margin:8px auto 18px;text-align:center;color:var(--muted);
+  font-weight:700;line-height:1.45;font-size:clamp(13px,1.6vw,16px);
+}
+.swipe-block{ margin:26px auto 18px; }
+.swipe{
+  position:relative;width:100%;height:min(66vh,620px);border:1px solid var(--line);
+  border-radius:14px;overflow:hidden;background:#000;user-select:none;touch-action:none;--pos:50%;
+}
+.swipe img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center;display:block}
+.swipe .top{clip-path: inset(0 calc(100% - var(--pos)) 0 0);will-change: clip-path;}
+.divider{position:absolute;inset:0 0 0 auto;left:var(--pos);transform:translateX(-50%);z-index:3;pointer-events:none}
+.divider::before{content:"";position:absolute;top:0;bottom:0;left:50%;width:2px;background:#ffffffcc;outline:1px solid rgba(0,0,0,.18)}
+.knob{
+  position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+  width:46px;height:46px;border-radius:50%;background:#fff;border:2px solid #fff;outline:2px solid rgba(0,0,0,.18);
+  display:grid;place-items:center;box-shadow:0 8px 18px rgba(0,0,0,.18);
+}
+.knob svg{ width:22px; height:22px; fill:var(--brand) }
+.hit{position:absolute;inset:0;cursor:ew-resize;z-index:4;background:transparent}
+
+.caption{
+  display:grid;grid-template-columns: 1fr auto;gap:12px;align-items:center;margin-top:10px;
+}
+.cap-title{margin:0;font-weight:900;font-size:clamp(14px,2vw,18px);line-height:1.35}
+.meta{color:var(--brand);font-weight:900;font-size:clamp(12px,1.7vw,14px)}
+.year{margin-top:4px;color:#6b7280;font-weight:700;font-size:12px}
+.cui{
+  justify-self:end;background:var(--brand);color:#fff;border:0;padding:8px 12px;border-radius:999px;
+  font-weight:900;font-size:13px;letter-spacing:.2px;box-shadow:0 6px 14px rgba(30,110,182,.28);
+}
+@media (max-width:720px){
+  .swipe{ height:min(58vh,520px) }
+  .caption{ grid-template-columns: 1fr; gap:8px; }
+  .cui{ justify-self:start; }
+}
 </style>
 </head>
 <body>
 
+<!-- ================== MAP TOUR ================== -->
 <div class="layout">
   <div class="story" id="story">
     <section class="intro">
@@ -83,19 +166,109 @@
   </div>
 
   <div class="mapCol">
-    <div id="viewDiv3D"></div>
-    <div id="viewDiv2D"></div>
+    <div id="viewDiv3D" aria-label="Escena 3D del tour"></div>
+    <div id="viewDiv2D" aria-label="Mapa 2D del tour"></div>
   </div>
 </div>
 
+<!-- Controles Tour -->
 <div class="nav">
-  <button id="toggleDimBtn" class="btn">2D / 3D</button>
-  <button id="prevBtn" class="btn">‹</button>
-  <button id="nextBtn" class="btn">›</button>
+  <button id="toggleDimBtn" class="btn" title="Cambiar entre 2D/3D">2D / 3D</button>
+  <button id="prevBtn" class="btn" title="Anterior">‹</button>
+  <button id="nextBtn" class="btn" title="Siguiente">›</button>
 </div>
 
+<!-- ================== INDICADORES DEBAJO DEL TOUR ================== -->
+<section class="section" id="indicadores">
+  <h2>Indicadores de Avance</h2>
+  <div class="kpis">
+    <div class="kpi">
+      <h3>75%</h3>
+      <p>Ejecución Física</p>
+    </div>
+    <div class="kpi">
+      <h3>68%</h3>
+      <p>Avance Financiero</p>
+    </div>
+  </div>
+</section>
+
+<!-- ================== SWIPES MULTITEMPORALES (TU MÓDULO) ================== -->
+<section class="wrap swipe-scope" id="swipe-section">
+  <div style="text-align:center">
+    <h1 class="title">Imágenes multitemporales</h1>
+    <div class="title-underline" aria-hidden="true" style="width:280px"></div>
+  </div>
+  <p class="intro">
+    Visualiza el antes y después de las intervenciones del ministerio y conoce el impacto tangible en el territorio.
+    Esta herramienta permite monitorear visualmente el avance de las obras y apoyar la toma de decisiones basada en evidencia.
+  </p>
+
+  <!-- ========= COMPARADOR 1 ========= -->
+  <div class="swipe-block">
+    <div class="swipe" data-start="50" aria-label="Swipe 1 — Antes/Después">
+      <!-- Abajo -->
+      <img class="bottom" src="https://lh3.googleusercontent.com/d/1CG38GplqcLrceuh0PejAkqp5uUvGaCy5=w1600" alt="Antes — base">
+      <!-- Arriba -->
+      <img class="top" src="https://lh3.googleusercontent.com/d/1PokQrkV-y98cDZyFBD-vcn9Y52fanDwa=w1600" alt="Después — superior">
+
+      <div class="divider" aria-hidden="true">
+        <div class="knob" title="Arrastra para comparar">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M8.5 12l4-4-1.4-1.4L6 11.7l5.1 5.1L12.5 15l-4-4zM15.5 12l-4 4 1.4 1.4L18 12.3l-5.1-5.1L11.5 9l4 4z"/>
+          </svg>
+        </div>
+      </div>
+      <button class="hit" aria-label="Arrastra para mover el divisor"></button>
+    </div>
+
+    <div class="caption">
+      <div>
+        <p class="cap-title">
+          CUI 2256322 — INSTALACION DE LOS SERVICIOS DE AGUA POTABLE Y ALCANTARILLADO SANITARIO EN LA NUEVA CIUDAD DE OLMOS,
+          DISTRITO DE OLMOS — PROVINCIA DE LAMBAYEQUE — REGIÓN LAMBAYEQUE
+        </p>
+        <div class="meta">Olmos | Lambayeque | Lambayeque</div>
+        <div class="year">Imágenes año 2018 y 2025</div>
+      </div>
+      <span class="cui">CUI 2256322</span>
+    </div>
+  </div>
+
+  <!-- ========= COMPARADOR 2 ========= -->
+  <div class="swipe-block">
+    <div class="swipe" data-start="50" aria-label="Swipe 2 — Antes/Después">
+      <!-- Abajo -->
+      <img class="bottom" src="https://lh3.googleusercontent.com/d/1jnAuQ1jPjfEgEVCUSjpfvlWLCHl1rPbg=w1600" alt="Antes — base">
+      <!-- Arriba -->
+      <img class="top" src="https://lh3.googleusercontent.com/d/1QsL3PnQTQ1elA4i2SRkf0nG297zAFsXe=w1600" alt="Después — superior">
+
+      <div class="divider" aria-hidden="true">
+        <div class="knob" title="Arrastra para comparar">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M8.5 12l4-4-1.4-1.4L6 11.7l5.1 5.1L12.5 15l-4-4zM15.5 12l-4 4 1.4 1.4L18 12.3l-5.1-5.1L11.5 9l4 4z"/>
+          </svg>
+        </div>
+      </div>
+      <button class="hit" aria-label="Arrastra para mover el divisor"></button>
+    </div>
+
+    <div class="caption">
+      <div>
+        <p class="cap-title">
+          CUI 2266697 — INSTALACION DE LOS SERVICIOS DE VIALIDAD URBANA PARA LA NUEVA CIUDAD DE OLMOS,
+          DISTRITO DE OLMOS, PROVINCIA DE LAMBAYEQUE — DEPARTAMENTO LAMBAYEQUE
+        </p>
+        <div class="meta">Olmos | Lambayeque | Lambayeque</div>
+        <div class="year">Imágenes año 2018 y 2025</div>
+      </div>
+      <span class="cui">CUI 2266697</span>
+    </div>
+  </div>
+</section>
+
 <script>
-/* =================== DATOS REALES =================== */
+/* =================== DATA (10 primeros) =================== */
 const DATA = [
   {
     titulo:"AMPLIACION, RENOVACION Y MEJORAMIENTO DEL SISTEMA DE AGUA POTABLE Y ALCANTARILLADO DE LA LOCALIDAD DE CARAVELI",
@@ -178,8 +351,8 @@ const DATA = [
     url_pdf:"https://ssp.vivienda.gob.pe/Monitor/Ayuda_Memoria.aspx?id=46810&idtipo=3&t=r"
   }
 ];
-/* =================================================== */
 
+/* =================== MAP TOUR (ArcGIS JS) =================== */
 require([
   "esri/Map","esri/views/MapView","esri/views/SceneView","esri/layers/GraphicsLayer","esri/Graphic","esri/geometry/Point","esri/widgets/BasemapToggle"
 ], (Map,MapView,SceneView,GraphicsLayer,Graphic,Point,BasemapToggle)=>{
@@ -187,8 +360,8 @@ require([
   const map = new Map({basemap:"satellite"});
   const layer = new GraphicsLayer(); map.add(layer);
 
-  const view2D = new MapView({container:"viewDiv2D",map,center:[-75,-10],zoom:5});
-  const view3D = new SceneView({container:"viewDiv3D",map,center:[-75,-10],zoom:5,tilt:65});
+  const view2D = new MapView({container:"viewDiv2D",map,center:[-75,-10],zoom:5,highlightOptions:{color:[30,110,182],haloOpacity:0.8,fillOpacity:0.2}});
+  const view3D = new SceneView({container:"viewDiv3D",map,center:[-75,-10],zoom:5,tilt:65,highlightOptions:{color:[30,110,182],haloOpacity:0.8,fillOpacity:0.2}});
   view2D.ui.add(new BasemapToggle({view:view2D,nextBasemap:"osm"}),"bottom-right");
   view3D.ui.add(new BasemapToggle({view:view3D,nextBasemap:"osm"}),"bottom-right");
 
@@ -198,12 +371,14 @@ require([
   const dimSymbol={type:"simple-marker",size:12,color:[24,160,251,0.4],outline:{color:"white",width:1.5}};
   const hotSymbol={type:"simple-marker",size:26,color:[30,110,182,1],outline:{color:"white",width:3}};
 
+  // Si lon/lat son null, ponemos posiciones “placeholder” para que funcione el tour
   const graphics=DATA.map((d,i)=>new Graphic({
-    geometry:new Point({longitude:d.lon||(-77+i),latitude:d.lat||(-10+i*0.5)}),
+    geometry:new Point({longitude:(d.lon!=null?d.lon:(-81 + (i%5)*2)), latitude:(d.lat!=null?d.lat:(-5 - (i*2)%10))}),
     attributes:{idx:i,...d},symbol:baseSymbol
   }));
   layer.addMany(graphics);
 
+  // Construir tarjetas
   const story=document.getElementById("story");
   DATA.forEach((d,i)=>{
     story.insertAdjacentHTML("beforeend",`
@@ -214,35 +389,117 @@ require([
           <h2 class="title">${d.titulo}</h2>
           <p class="meta">CUI: ${d.cui}<br>PROGRAMA: ${d.programa}</p>
           <div class="links">
-            <a class="a" href="${d.url_detalle}" target="_blank">Detalle Proyecto</a>
-            <a class="a" href="${d.url_pdf}" target="_blank">Ayuda Memoria</a>
+            <a class="a" href="${d.url_detalle}" target="_blank" rel="noopener">Detalle Proyecto</a>
+            <a class="a" href="${d.url_pdf}" target="_blank" rel="noopener">Ayuda Memoria</a>
           </div>
         </div>
       </div>
     </article>`);
   });
 
+  // Sync scroll ↔ mapa
   let active=0;
   function applySymbols(idx){graphics.forEach((g,i)=>g.symbol=i===idx?hotSymbol:dimSymbol);}
-  function flyTo(idx){const g=graphics[idx];if(!g)return;activeView().goTo({target:g.geometry,zoom:17,tilt:is3D?65:0},{duration:900});}
-  function setActive(idx){active=idx;document.querySelectorAll(".step").forEach(s=>s.classList.remove("is-active"));
+  function flyTo(idx){
+    const g=graphics[idx]; if(!g) return;
+    activeView().goTo({target:g.geometry,zoom:17,tilt:is3D?65:0,heading:(idx*37)%360},{duration:900,easing:"ease"}).catch(()=>{});
+  }
+  function setActive(idx){
+    active=idx;
+    document.querySelectorAll(".step").forEach(s=>s.classList.remove("is-active"));
     document.querySelector(`.step[data-idx="${idx}"]`)?.classList.add("is-active");
-    applySymbols(idx);flyTo(idx);}
-  const obs=new IntersectionObserver(entries=>{entries.forEach(e=>{if(e.isIntersecting){setActive(Number(e.target.dataset.idx));}})},{threshold:0.55});
+    applySymbols(idx); flyTo(idx);
+  }
+
+  const obs=new IntersectionObserver(entries=>{
+    entries.forEach(e=>{ if(e.isIntersecting){ setActive(Number(e.target.dataset.idx)); } });
+  },{threshold:0.55});
   document.querySelectorAll(".step").forEach(s=>obs.observe(s));
 
+  // Click en mapa salta a tarjeta
+  function wireClick(v){
+    v.on("click", async (e)=>{
+      const hit = await v.hitTest(e);
+      const g = hit.results.find(r=>r.graphic && r.graphic.layer===layer)?.graphic;
+      if(g){
+        const idx = g.attributes.idx;
+        document.querySelector(`.step[data-idx="${idx}"]`)?.scrollIntoView({behavior:"smooth",block:"center"});
+        setActive(idx);
+      }
+    });
+  }
+  wireClick(view2D); wireClick(view3D);
+
+  // Controles
   document.getElementById("toggleDimBtn").onclick=()=>{
     const from=activeView();const to=is3D?view2D:view3D;
-    to.goTo(from.viewpoint,{duration:0});
+    try{ if(from.viewpoint) to.goTo(from.viewpoint,{duration:0}); }catch(e){}
     document.getElementById("viewDiv3D").style.display=is3D?"none":"block";
     document.getElementById("viewDiv2D").style.display=is3D?"block":"none";
-    is3D=!is3D;setActive(active);
+    is3D=!is3D; setActive(active);
   };
   document.getElementById("prevBtn").onclick=()=>{const i=(active-1+DATA.length)%DATA.length;
     document.querySelector(`.step[data-idx="${i}"]`)?.scrollIntoView({behavior:"smooth",block:"center"});}
   document.getElementById("nextBtn").onclick=()=>{const i=(active+1)%DATA.length;
     document.querySelector(`.step[data-idx="${i}"]`)?.scrollIntoView({behavior:"smooth",block:"center"});}
 });
+
+/* ===== Subrayado animado del título de Swipes al entrar en vista ===== */
+(function(){
+  const section = document.getElementById('swipe-section');
+  const observer = new IntersectionObserver((entries)=>{
+    for(const e of entries){
+      if(e.isIntersecting){
+        section.classList.add('animate');
+        observer.disconnect();
+        break;
+      }
+    }
+  }, {threshold:.4});
+  observer.observe(section);
+})();
+
+/* ===== Swipe: superposición tipo Esri ===== */
+(function(){
+  function setupSwipe(el){
+    const start = Number(el.getAttribute('data-start') || 50);
+    setPos(start);
+    function setPos(pct){
+      pct = Math.max(0, Math.min(100, pct));
+      el.style.setProperty('--pos', pct + '%');
+    }
+    function pctFromEvent(e){
+      const r = el.getBoundingClientRect();
+      const clientX = (e.clientX ?? (e.touches && e.touches[0]?.clientX) ?? r.left);
+      return ((clientX - r.left) / r.width) * 100;
+    }
+    let dragging=false;
+    const down=(e)=>{ dragging=true; setPos(pctFromEvent(e)); e.preventDefault(); };
+    const move=(e)=>{ if(dragging) setPos(pctFromEvent(e)); };
+    const up=()=> dragging=false;
+
+    const hit=el.querySelector('.hit');
+    hit.addEventListener('pointerdown', down);
+    window.addEventListener('pointermove', move);
+    window.addEventListener('pointerup', up);
+
+    hit.addEventListener('touchstart', down, {passive:false});
+    window.addEventListener('touchmove', move, {passive:false});
+    window.addEventListener('touchend', up);
+
+    // Accesible por teclado
+    hit.setAttribute('tabindex','0');
+    hit.addEventListener('keydown', (e)=>{
+      const step = e.shiftKey ? 5 : 1;
+      const css = getComputedStyle(el).getPropertyValue('--pos');
+      let cur = Number(css.replace('%','')) || 50;
+      if(e.key === 'ArrowLeft')  setPos(cur - step);
+      if(e.key === 'ArrowRight') setPos(cur + step);
+    });
+  }
+  document.querySelectorAll('.swipe').forEach(setupSwipe);
+})();
 </script>
+
 </body>
 </html>
