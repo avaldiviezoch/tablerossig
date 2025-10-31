@@ -24,7 +24,8 @@
       --gris-borde:#d1d5db;
       --gris-texto:#1e293b;
       --gris-sec:#4b5563;
-      --bg-page:#e5e7eb;
+      /* Fondo general de la página ahora será blanco para evitar zonas grises */
+      --bg-page:#ffffff;
       --bg-white:#ffffff;
     }
 
@@ -292,6 +293,13 @@
       --line:#e5e7eb;
       --chip-ok:#16a34a; --chip-mid:#f59e0b; --chip-bad:#ef4444;
       --shadow-card: 0 10px 22px rgba(2,6,23,.06), 0 2px 6px rgba(2,6,23,.05);
+
+    /* Variables de apoyo para la sección de inversiones */
+    --blue: var(--azul);
+    --sky: var(--turquesa);
+    --danger: var(--rojo);
+    --shadow: var(--shadow-card);
+    --radius: 18px;
     }
     .wrap{max-width:1180px;margin:28px auto;padding:0 16px}
     .grid{display:grid;grid-template-columns:1fr 1fr;gap:22px}
@@ -319,6 +327,165 @@
       transition:.18s ease; font-size:14px;
     }
     .btn:hover{filter:brightness(.98)}
+    /* Estilo para el contenedor de tarjetas de ranking con fondo blanco y sombra */
+    #ranking-cards{
+      /* Bloque de ranking: contenedor blanco con sombra para agrupar las tarjetas */
+      background:var(--card);
+      border:1px solid var(--line);
+      border-radius:18px;
+      box-shadow:var(--shadow-card);
+      padding:28px 24px;
+      margin-top:28px;
+      margin-bottom:28px;
+    }
+
+    /*
+      ==== Estilos para sección de inversiones (pim/devengado) ==== 
+      Los estilos originales del módulo de inversiones se adaptan aquí para evitar
+      interferir con otras partes del sitio. Utilizan identificadores únicos
+      (#sec-inversiones, #sec-generar, #sec-estados) para aislar su alcance.
+    */
+    #sec-inversiones{
+      /* envuelve título y tarjetas */
+      max-width:1100px;
+      margin:28px auto;
+      padding:0 20px;
+      display:block;
+    }
+    #sec-inversiones .grid{
+      display:grid;
+      gap:28px;
+      grid-template-columns:1.15fr .85fr;
+      align-items:start;
+    }
+    @media (max-width:980px){
+      #sec-inversiones .grid{grid-template-columns:1fr;}
+    }
+    #sec-inversiones .title{
+      width:max-content;
+      position:relative;
+      color:var(--azul);
+      font-weight:900;
+      font-size:clamp(22px,3.2vw,30px);
+      margin:0 0 16px;
+      padding-bottom:12px;
+    }
+    #sec-inversiones .title::after{
+      content:"";
+      position:absolute;
+      left:0;
+      bottom:0;
+      height:6px;
+      border-radius:6px;
+      background:linear-gradient(90deg,var(--rojo),#ff7b7b);
+      width:100%;
+      transform:scaleX(0);
+      transform-origin:left;
+      transition:transform 3s cubic-bezier(.22,1,.36,1);
+    }
+    #sec-inversiones .title.inview::after{transform:scaleX(1);}
+    #sec-inversiones .lead{
+      font-size:15px;
+      line-height:1.7;
+      color:#2d4458;
+      margin:0 0 12px;
+    }
+    #sec-inversiones .src{
+      color:var(--muted);
+      font-size:13px;
+      line-height:1.6;
+    }
+    #sec-inversiones .src em{display:block;margin-top:6px;}
+    /* lado derecho */
+    #sec-inversiones .topline{
+      display:flex;
+      align-items:center;
+      gap:12px;
+    }
+    #sec-inversiones .topline img{width:40px;height:40px;object-fit:contain;}
+    #sec-inversiones .topline .txt{color:#334b62;font-weight:800;}
+    #sec-inversiones .topline .n{color:var(--azul);font-weight:900;font-size:clamp(30px,4.8vw,44px);} 
+    #sec-inversiones .stack{display:grid;gap:16px;margin-top:12px;}
+    #sec-inversiones .card{
+      background:var(--card);
+      border:1px solid var(--line);
+      border-radius:var(--radius);
+      box-shadow:var(--shadow);
+      padding:18px 20px;
+    }
+    #sec-inversiones .k-label{color:#6a7f95;font-weight:800;text-transform:uppercase;letter-spacing:.02em;font-size:13px;}
+    #sec-inversiones .k-value{color:var(--azul);font-size:clamp(26px,4.6vw,36px);font-weight:900;line-height:1.15;}
+    #sec-inversiones .k-sub{color:var(--sky);font-weight:900;font-size:15px;margin-top:6px;}
+    #sec-inversiones .num{display:inline-block;font-variant-numeric:tabular-nums;letter-spacing:.02em;}
+
+    /* contenedor para el lado derecho de inversiones (tarjetas agrupadas) */
+    #sec-inversiones .inv-right-card{
+      background:var(--card);
+      border:1px solid var(--line);
+      border-radius:var(--radius);
+      box-shadow:var(--shadow);
+      padding:20px 24px;
+    }
+    #sec-inversiones .inv-right-card .stack{
+      margin-top:16px;
+    }
+
+    /* se espera generar y estados */
+    .gen-wrap{
+      max-width:1100px;
+      margin:16px auto 36px;
+      padding:0 20px;
+      font-family:"Nunito Sans",system-ui,Segoe UI,Roboto,Arial;
+    }
+    .gen-pill{
+      display:block;
+      width:100%;
+      background:var(--sky);
+      color:#fff;
+      font-weight:900;
+      text-align:center;
+      padding:10px 14px;
+      border-radius:999px;
+      margin:4px 0 18px;
+      letter-spacing:.2px;
+    }
+    #sec-estados .gen-pill{background:var(--azul);}
+    .gen-grid{display:grid;gap:16px;grid-template-columns:1fr 1fr;}
+    @media (max-width:900px){
+      .gen-grid{grid-template-columns:1fr;}
+    }
+    #sec-estados .gen-grid{grid-template-columns:repeat(4,1fr);}
+    @media (max-width:900px){#sec-estados .gen-grid{grid-template-columns:repeat(2,1fr);} }
+    .gen-card{
+      display:grid;
+      grid-template-columns:auto 1fr;
+      gap:12px;
+      align-items:center;
+      background:var(--card);
+      border:1px solid var(--line);
+      border-radius:var(--radius);
+      box-shadow:var(--shadow);
+      padding:16px 18px;
+    }
+    #sec-estados .gen-card{
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      justify-content:center;
+      text-align:center;
+      padding:20px 16px;
+    }
+    #sec-estados .gen-card .gen-label{
+      margin:0 0 8px;
+      font-size:14px;
+      line-height:1.3;
+    }
+    #sec-estados .gen-card .gen-value{
+      font-size:clamp(28px,4.5vw,36px);
+    }
+    .gen-left img{width:56px;height:56px;object-fit:contain;}
+    .gen-label{margin:0 0 6px;color:#4a5f74;font-size:15px;font-weight:900;}
+    .gen-value{color:var(--azul);font-weight:900;font-size:clamp(26px,4.2vw,36px);line-height:1.1;}
     /* área de tabla compartida */
     .tableSection{ max-width:1180px; margin:18px auto 8px; padding:0 16px; }
     .tableShell{
@@ -577,7 +744,8 @@
     </div>
   </section>
   <!-- ========== Sección Rankings y Desempeño por Ejecutora ========== -->
-  <div class="wrap">
+  <!-- Sección de ranking de puestos: envolvemos la grid en un contenedor con fondo blanco -->
+  <div class="wrap" id="ranking-cards">
     <div class="grid" id="cards">
       <article class="card" data-key="left">
         <p class="lead">El Ministerio de Vivienda, Construcción y Saneamiento se encuentra en el ranking entre sectores en el:</p>
@@ -682,6 +850,156 @@
     </div>
   </div>
   <!-- =================== Scripts combinados =================== -->
+  
+  <!-- ======================= NUEVO MÓDULO DE INVERSIONES ======================= -->
+  <!-- Sección Inversiones (PIM/Devengado) -->
+  <section class="wrap" id="sec-inversiones">
+    <div class="grid">
+      <!-- Izquierda: descripción del módulo -->
+      <div>
+        <h2 class="title">Inversiones</h2>
+        <p class="lead">
+          Las inversiones planificadas para el 2025 reflejan el compromiso del MVCS con el cierre de brechas en
+          infraestructura y brechas de saneamiento. Estas inversiones forman parte de la planificación estratégica del
+          ministerio y responden a las necesidades priorizadas en el territorio, especialmente en sectores vulnerables.
+          La planificación contempla obras en saneamiento y vivienda y urbanismo, en coordinación con los gobiernos
+          regionales y locales.
+        </p>
+        <p class="src">
+          <strong>Fuente:</strong> Ministerio de Economía y Finanzas – MEF<br/>
+          Portal de datos Abiertos – Actualizado al 19 de octubre de 2025
+          <em>Incluye inversiones cuyo PIM sea mayor a 0</em>
+        </p>
+      </div>
+      <!-- Derecha: indicadores de inversión agrupados en un contenedor blanco -->
+      <div>
+        <div class="inv-right-card">
+          <div class="topline">
+            <img src="https://lh3.googleusercontent.com/d/18tWhc-SzR8dEqrZZs8trBnqa6o9-Y-9P=w1000" alt="Cámara inversiones"/>
+            <span class="txt">A través de</span>
+            <span class="n num" id="inv-count">0</span>
+            <span class="txt">inversiones</span>
+          </div>
+          <div class="stack">
+            <div class="card">
+              <div class="k-label">PIM</div>
+              <div class="k-value">S/ <span class="num" id="inv-pim">0</span></div>
+            </div>
+            <div class="card">
+              <div class="k-label">Devengado</div>
+              <div class="k-value">S/ <span class="num" id="inv-dev">0</span></div>
+              <div class="k-sub"><span class="num" id="inv-pct">0</span>%</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Sección Se espera generar -->
+  <section class="gen-wrap" id="sec-generar">
+    <div class="gen-pill">Se espera generar</div>
+    <div class="gen-grid">
+      <!-- Agua -->
+      <article class="gen-card">
+        <div class="gen-left">
+          <img src="https://lh3.googleusercontent.com/d/1U1bT6XOwlWARi7SMsuyox3dSkHRB6CbO=w1000" alt="Conexiones de agua"/>
+        </div>
+        <div class="gen-right">
+          <h3 class="gen-label">Conexiones nuevas de agua</h3>
+          <div class="gen-value"><span class="num" id="k-agua">0</span></div>
+        </div>
+      </article>
+      <!-- Alcantarillado -->
+      <article class="gen-card">
+        <div class="gen-left">
+          <img src="https://lh3.googleusercontent.com/d/1FJzFJZKmLqvnDKHUjMWCKAic6RrP2K6j=w1000" alt="Conexiones de alcantarillado"/>
+        </div>
+        <div class="gen-right">
+          <h3 class="gen-label">Conexiones nuevas de alcantarillado</h3>
+          <div class="gen-value"><span class="num" id="k-alc">0</span></div>
+        </div>
+      </article>
+      <!-- Pavimento -->
+      <article class="gen-card">
+        <div class="gen-left">
+          <img src="https://lh3.googleusercontent.com/d/1Nov2kbITwZGC3DUR4kwj-yo9vjQZqVqB=w1000" alt="M2 de pavimento"/>
+        </div>
+        <div class="gen-right">
+          <h3 class="gen-label">M2 de pavimento</h3>
+          <div class="gen-value"><span class="num" id="k-pav">0</span></div>
+        </div>
+      </article>
+      <!-- Vereda -->
+      <article class="gen-card">
+        <div class="gen-left">
+          <img src="https://lh3.googleusercontent.com/d/1SKZkQW_boA1HSTxnQHwI17DSFM0wPmp5=w1000" alt="M2 de vereda"/>
+        </div>
+        <div class="gen-right">
+          <h3 class="gen-label">M2 de vereda</h3>
+          <div class="gen-value"><span class="num" id="k-ver">0</span></div>
+        </div>
+      </article>
+    </div>
+  </section>
+
+  <!-- Sección Estados -->
+  <section class="gen-wrap" id="sec-estados">
+    <div class="gen-pill">Estados</div>
+    <div class="gen-grid">
+      <!-- Fila 1 -->
+      <article class="gen-card">
+        <div class="gen-right">
+          <h3 class="gen-label">Obras concluidas</h3>
+          <div class="gen-value"><span class="num" id="est-obras-concluidas">0</span></div>
+        </div>
+      </article>
+      <article class="gen-card">
+        <div class="gen-right">
+          <h3 class="gen-label">Obras en ejecución</h3>
+          <div class="gen-value"><span class="num" id="est-obras-ejec">0</span></div>
+        </div>
+      </article>
+      <article class="gen-card">
+        <div class="gen-right">
+          <h3 class="gen-label">Obras por iniciar</h3>
+          <div class="gen-value"><span class="num" id="est-obras-iniciar">0</span></div>
+        </div>
+      </article>
+      <article class="gen-card">
+        <div class="gen-right">
+          <h3 class="gen-label">Obras en proceso de selección</h3>
+          <div class="gen-value"><span class="num" id="est-obras-sel">0</span></div>
+        </div>
+      </article>
+      <!-- Fila 2 -->
+      <article class="gen-card">
+        <div class="gen-right">
+          <h3 class="gen-label">Expedientes concluidos</h3>
+          <div class="gen-value"><span class="num" id="est-exp-concluidos">0</span></div>
+        </div>
+      </article>
+      <article class="gen-card">
+        <div class="gen-right">
+          <h3 class="gen-label">Expedientes en elaboración</h3>
+          <div class="gen-value"><span class="num" id="est-exp-elab">0</span></div>
+        </div>
+      </article>
+      <article class="gen-card">
+        <div class="gen-right">
+          <h3 class="gen-label">Expedientes en proceso de selección</h3>
+          <div class="gen-value"><span class="num" id="est-exp-sel">0</span></div>
+        </div>
+      </article>
+      <article class="gen-card">
+        <div class="gen-right">
+          <h3 class="gen-label">Obras en proceso de selección</h3>
+          <div class="gen-value"><span class="num" id="est-obras-sel2">0</span></div>
+        </div>
+      </article>
+    </div>
+  </section>
+
   <script>
   /* ----------- Scripts del bloque PIM e inversión ----------- */
   const SERVICE_PIM="https://pportalgis.vivienda.gob.pe/pfdserver/rest/services/OGEI/Mapa_Inversiones_MEF/FeatureServer/13/query";
@@ -1166,6 +1484,221 @@
     else{ wrap.style.display='none'; btnShowExec.textContent='Ver tabla'; }
   });
   document.getElementById('btnExcelExec').addEventListener('click',exportTableToExcel);
+  </script>
+
+  <!-- =================== Script del módulo de Inversiones =================== -->
+  <script>
+  /* ========= Helpers específicos del módulo de inversiones ========= */
+  const FS_URL_INV = "https://pportalgis.vivienda.gob.pe/pfdserver/rest/services/OGEI/Mapa_Inversiones_Coord_MEF/FeatureServer/0";
+
+  // Formateador para enteros
+  const fmtInv = new Intl.NumberFormat('es-PE', { maximumFractionDigits: 0 });
+  // Animación numérica con easing
+  function animateNumInv(el, to, ms=1400){
+    const start = performance.now();
+    const from = 0;
+    function step(t){
+      const p = Math.min(1, (t-start)/ms);
+      const e = 1 - Math.pow(1-p, 4); // easeOutQuart
+      el.textContent = fmtInv.format(Math.round(from + (to-from)*e));
+      if(p < 1) requestAnimationFrame(step);
+    }
+    requestAnimationFrame(step);
+  }
+  // Consulta POST a servicios ArcGIS (versión para inversiones) evitando conflicto con esriPOST global
+  function esriPOST_INV(url, params){
+    const body = new URLSearchParams({ f:"json", returnGeometry:"false", ...params });
+    return fetch(url, { method:"POST", headers:{ "Content-Type":"application/x-www-form-urlencoded;charset=UTF-8" }, body, cache:"no-store" })
+      .then(r => r.json());
+  }
+  /* ========= Inversiones (conteo + PIM/DEV) ========= */
+  async function loadInvestmentsCountInv(where="1=1"){ 
+    const page = 2000; let offset = 0; const set = new Set();
+    while(true){
+      const j = await esriPOST_INV(FS_URL_INV + "/query", {
+        where, outFields:"producto_proyecto", returnDistinctValues:"true",
+        orderByFields:"producto_proyecto", resultRecordCount:page, resultOffset:offset
+      });
+      const rows = (j.features||[]).map(f => f?.attributes?.producto_proyecto).filter(Boolean);
+      rows.forEach(v => set.add(v));
+      if(!j.exceededTransferLimit || rows.length < page) break;
+      offset += page;
+    }
+    return set.size;
+  }
+  async function loadPIMDevInv(where="1=1"){ 
+    // primer intento utilizando outStatistics
+    try{
+      const j = await esriPOST_INV(FS_URL_INV + "/query", {
+        where,
+        outStatistics: JSON.stringify([
+          { statisticType:"sum", onStatisticField:"monto_pim",        outStatisticFieldName:"sPIM" },
+          { statisticType:"sum", onStatisticField:"monto_devengado",  outStatisticFieldName:"sDEV" }
+        ])
+      });
+      const a = j.features?.[0]?.attributes || {};
+      const pim = Number(a.sPIM||0), dev = Number(a.sDEV||0);
+      if(pim === 0 && dev === 0) throw new Error("zeros");
+      return { pim, dev };
+    }catch(_){
+      // fallback iterando páginas
+      let pim=0, dev=0, offset=0, page=2000;
+      while(true){
+        const j = await esriPOST_INV(FS_URL_INV + "/query", {
+          where, outFields:"monto_pim,monto_devengado", resultRecordCount:page, resultOffset:offset
+        });
+        const feats = j.features||[];
+        for(const f of feats){
+          const at = f.attributes || {};
+          pim += Number(at.monto_pim)||0;
+          dev += Number(at.monto_devengado)||0;
+        }
+        if(!j.exceededTransferLimit || feats.length < page) break;
+        offset += page;
+      }
+      return { pim, dev };
+    }
+  }
+  // Observer para activar conteo de inversiones
+  const inversionesSection = document.getElementById('sec-inversiones');
+  const inversionesObserver = new IntersectionObserver(async (entries) => {
+    for(const e of entries){
+      if(!e.isIntersecting) continue;
+      // activar subrayado animado
+      document.querySelector('#sec-inversiones .title').classList.add('inview');
+      // cargar datos
+      const [count, sums] = await Promise.all([
+        loadInvestmentsCountInv("1=1"),
+        loadPIMDevInv("1=1")
+      ]);
+      const pim = Math.round(sums.pim || 0);
+      const dev = Math.round(sums.dev || 0);
+      const pct = (pim > 0) ? Math.round((dev/pim)*100) : 0;
+      animateNumInv(document.getElementById('inv-count'), count);
+      animateNumInv(document.getElementById('inv-pim'), pim);
+      animateNumInv(document.getElementById('inv-dev'), dev);
+      animateNumInv(document.getElementById('inv-pct'), pct);
+      inversionesObserver.disconnect();
+    }
+  }, { threshold: 0.25 });
+  inversionesObserver.observe(inversionesSection);
+
+  /* ===== "Se espera generar" ========= */
+  // Utilidades compartidas en el módulo
+  const invUtil = {
+    FS_URL: FS_URL_INV,
+    fmt: new Intl.NumberFormat('es-PE', { maximumFractionDigits: 0 }),
+    esriPOST: esriPOST_INV,
+    animateNum: (el, to, ms=1200) => {
+      const start = performance.now(), from = 0;
+      function step(t){
+        const p = Math.min(1,(t-start)/ms);
+        const e = 1 - Math.pow(1-p,4);
+        el.textContent = invUtil.fmt.format(Math.round(from + (to-from)*e));
+        if(p<1) requestAnimationFrame(step);
+      }
+      requestAnimationFrame(step);
+    }
+  };
+  async function sumFieldInv(field, where="1=1"){ 
+    // intenta por outStatistics y luego fallback
+    try{
+      const j = await esriPOST_INV(FS_URL_INV + "/query", {
+        where,
+        outStatistics: JSON.stringify([{ statisticType:"sum", onStatisticField: field, outStatisticFieldName:"s" }])
+      });
+      const v = Number(j.features?.[0]?.attributes?.s || 0);
+      if(v > 0) return v;
+      throw new Error("zero");
+    }catch(_){
+      let tot = 0, offset = 0, page = 2000;
+      while(true){
+        const j2 = await esriPOST_INV(FS_URL_INV + "/query", {
+          where, outFields: field, resultRecordCount: page, resultOffset: offset
+        });
+        const feats = j2.features||[];
+        for(const f of feats){ tot += Number(f.attributes?.[field] || 0); }
+        if(!j2.exceededTransferLimit || feats.length < page) break;
+        offset += page;
+      }
+      return tot;
+    }
+  }
+  // Observer para activar se espera generar
+  (() => {
+    const sec = document.getElementById('sec-generar');
+    const io2 = new IntersectionObserver(async (ents) => {
+      for(const e of ents){
+        if(!e.isIntersecting) continue;
+        const where = "1=1";
+        const [agua, alc, pav, ver] = await Promise.all([
+          sumFieldInv("cnx_nuevas_agua", where),
+          sumFieldInv("cnx_nuevas_alcantarillado_dse", where),
+          sumFieldInv("final_pavimento_m2_monitoreo", where),
+          sumFieldInv("final_vereda_m2_monitoreo", where)
+        ]);
+        invUtil.animateNum(document.getElementById('k-agua'), Math.round(agua||0));
+        invUtil.animateNum(document.getElementById('k-alc'),  Math.round(alc||0));
+        invUtil.animateNum(document.getElementById('k-pav'),  Math.round(pav||0));
+        invUtil.animateNum(document.getElementById('k-ver'),  Math.round(ver||0));
+        io2.disconnect();
+      }
+    }, { threshold: 0.25 });
+    io2.observe(sec);
+  })();
+
+  /* ===== ESTADOS (8 contadores) ===== */
+  function IN_INV(list){ return list.map(v => `\'${v.replaceAll("'", "''")}\'`).join(","); }
+  async function countDistinctProductosInv(where){
+    const page = 2000; let offset = 0; const set = new Set();
+    while(true){
+      const j = await esriPOST_INV(FS_URL_INV + "/query", {
+        where, outFields:"producto_proyecto", returnDistinctValues:"true",
+        orderByFields:"producto_proyecto", resultRecordCount:page, resultOffset:offset
+      });
+      const rows = (j.features||[]).map(f => f?.attributes?.producto_proyecto).filter(Boolean);
+      rows.forEach(v => set.add(v));
+      if(!j.exceededTransferLimit || rows.length < page) break;
+      offset += page;
+    }
+    return set.size;
+  }
+  (async function estadosInv(){
+    const OBRA = ["OBRA (SALDO)","OBRA"];
+    const EXP  = ["EXPEDIENTE TECNICO (SALDO)","OBRA (Expediente Saldo)","EXPEDIENTE TECNICO"];
+    const W = (...conds) => ["1=1", ...conds.filter(Boolean)].join(" AND ");
+    const q = {
+      obrasConcluidas:  W(`etapa IN (${IN_INV(OBRA)})`, `estado IN ('Transferencia','Post Ejecución','Concluido')`),
+      obrasEjec:        W(`etapa IN (${IN_INV(OBRA)})`, `estado IN ('En Ejecución')`),
+      obrasIniciar:     W(`etapa IN (${IN_INV(OBRA)})`, `estado IN ('Actos Previos')`, `subestado = 'Por Iniciar'`),
+      obrasSel:         W(`etapa IN (${IN_INV(OBRA)})`, `estado IN ('Actos Previos')`, `subestado = 'Proceso de Selección'`),
+      expConcluidos:    W(`etapa IN (${IN_INV(EXP)})`,  `estado IN ('Concluido')`),
+      expElab:          W(`etapa IN (${IN_INV(EXP)})`,  `estado IN ('En elaboración')`),
+      expSel:           W(`etapa IN (${IN_INV(EXP)})`,  `estado IN ('Actos Previos')`, `subestado = 'Proceso de Selección'`),
+      obrasSel2:        W(`etapa IN (${IN_INV(OBRA)})`, `estado IN ('Actos Previos')`, `subestado = 'Proceso de Selección'`)
+    };
+    const [
+      nObC, nObE, nObI, nObPS,
+      nExC, nExE, nExPS, nObPS2
+    ] = await Promise.all([
+      countDistinctProductosInv(q.obrasConcluidas),
+      countDistinctProductosInv(q.obrasEjec),
+      countDistinctProductosInv(q.obrasIniciar),
+      countDistinctProductosInv(q.obrasSel),
+      countDistinctProductosInv(q.expConcluidos),
+      countDistinctProductosInv(q.expElab),
+      countDistinctProductosInv(q.expSel),
+      countDistinctProductosInv(q.obrasSel2)
+    ]);
+    animateNumInv(document.getElementById("est-obras-concluidas"), nObC);
+    animateNumInv(document.getElementById("est-obras-ejec"),        nObE);
+    animateNumInv(document.getElementById("est-obras-iniciar"),     nObI);
+    animateNumInv(document.getElementById("est-obras-sel"),         nObPS);
+    animateNumInv(document.getElementById("est-exp-concluidos"),    nExC);
+    animateNumInv(document.getElementById("est-exp-elab"),          nExE);
+    animateNumInv(document.getElementById("est-exp-sel"),           nExPS);
+    animateNumInv(document.getElementById("est-obras-sel2"),        nObPS2);
+  })();
   </script>
 </body>
 </html>
