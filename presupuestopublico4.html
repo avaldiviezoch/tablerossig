@@ -3,25 +3,69 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <title>Mapa · Inversiones MEF (con buscador tipo sugerencias)</title>
+  <title>Mapa · Inversiones MVCS</title>
+
+  <!-- Fuente: Nunito Sans -->
+  <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;600;700;800;900&display=swap" rel="stylesheet"/>
 
   <!-- ArcGIS JS 4.29 -->
   <link rel="stylesheet" href="https://js.arcgis.com/4.29/esri/themes/light/main.css">
   <script src="https://js.arcgis.com/4.29/"></script>
 
   <style>
-    :root{ --ink:#0b2532; --line:#e5e7eb; --bar:#0b3b38; }
-    html,body{height:100%;margin:0;background:#fff;color:var(--ink);font-family:system-ui,-apple-system,Segoe UI,Roboto,Inter,Arial}
-    .page{ min-height:100%; display:grid; place-items:center; padding:24px; box-sizing:border-box; }
+    :root{
+      --ink:#0b2532; --muted:#6b7280; --line:#e5e7eb; --accent-blue:#1e6eb6;
+      --bar:#0b3b38; --card:#fff; --shadow:0 12px 28px rgba(2,6,23,.08);
+      --underline:#e11d2e; /* rojo subrayado */
+    }
+    html,body{height:100%;margin:0;background:#fff;color:var(--ink);font-family:"Nunito Sans",system-ui,-apple-system,Segoe UI,Roboto,Inter,Arial}
+    a{color:var(--accent-blue);text-decoration:none;font-weight:800}
+
+    /* Contenedor general */
+    .wrap{
+      max-width:1200px; margin:0 auto; padding:28px 20px 10px; box-sizing:border-box;
+    }
+
+    /* ===== Encabezado con subrayado animado ===== */
+    .intro{
+      text-align:center; margin:0 auto 18px; color:var(--ink);
+    }
+    .intro h2{
+      color: var(--accent-blue);               /* << Azul institucional */
+      font-weight:900; font-size:clamp(22px,3.2vw,28px);
+      display:inline-block; position:relative; margin:0 0 18px;
+      padding-bottom:10px; /* espacio para el subrayado */
+    }
+    .intro h2::after{
+      content:""; position:absolute; left:0; bottom:0;
+      height:4px; width:100%;
+      background:var(--underline);
+      transform:scaleX(0); transform-origin:left center;
+      transition:transform .7s cubic-bezier(.22,.9,.3,1);
+      border-radius:999px;
+    }
+    .intro h2.in-view::after{ transform:scaleX(1); }
+
+    .intro p{
+      margin:0 auto 10px;
+      max-width:900px; line-height:1.55; color:#4b5563;
+      font-size:clamp(14px,1.5vw,16.5px);
+    }
+
+    /* ===== Mapa con marco blanco ===== */
+    .page{ display:grid; place-items:center; padding:0 20px 28px; box-sizing:border-box; }
     .map-card{
       width:min(1200px, 92vw);
       height:min(72vh, 760px);
-      background:#fff; border:1px solid var(--line); border-radius:16px;
-      box-shadow:0 12px 28px rgba(2,6,23,.08); position:relative; overflow:hidden;
+      background:var(--card);
+      border:1px solid var(--line);
+      border-radius:16px;
+      box-shadow:var(--shadow);
+      position:relative; overflow:hidden;
     }
     #viewDiv{ position:absolute; inset:0; }
 
-    /* ===== Buscador (igual comportamiento, solo cambia el icono) ===== */
+    /* ===== Buscador (mismas características; icono rojo) ===== */
     .search-wrap{ position:absolute; top:14px; right:14px; z-index:6; }
     .search-fab{
       width:44px; height:44px; border-radius:999px; cursor:pointer;
@@ -46,26 +90,24 @@
       border:none; background:#f3f4f6; border:1px solid #e5e7eb;
       width:36px; height:36px; border-radius:10px; cursor:pointer; font-size:18px; line-height:0; display:grid; place-items:center;
     }
-    .suggestions{
-      list-style:none; padding:6px 0 0; margin:6px 0 0; max-height:240px; overflow-y:auto;
-    }
+    .suggestions{ list-style:none; padding:6px 0 0; margin:6px 0 0; max-height:240px; overflow-y:auto; }
     .suggestions li{
-      padding:8px 10px; cursor:pointer; border-bottom:1px solid #f2f2f2; font-weight:700; color:#0b2532;
+      padding:8px 10px; cursor:pointer; border-bottom:1px solid #f2f2f2; font-weight:700; color:var(--ink);
     }
     .suggestions li:hover{ background:#f0f7f6; }
 
-    /* ===== Popup fino (cabecera oscura, resto igual) ===== */
+    /* ===== Popup fino ===== */
     .esri-popup__header{ display:none !important; }
     .esri-popup__main-container{ padding-top:0 !important; border-radius:14px !important; overflow:hidden !important; }
     .pop-card{
       background:#ffffff; border:1px solid var(--line); border-radius:14px;
-      box-shadow:0 12px 30px rgba(2,6,23,.12); overflow:hidden; color:#0b2532;
-      font:12.5px/1.4 system-ui,-apple-system,Segoe UI,Roboto,Inter,Arial;
+      box-shadow:0 12px 30px rgba(2,6,23,.12); overflow:hidden; color:var(--ink);
+      font:12.5px/1.4 "Nunito Sans",system-ui,-apple-system,Segoe UI,Roboto,Inter,Arial;
     }
     .pop-hdr{ background:#0b3b38; color:#e6fffb; padding:10px 12px; font-weight:900; letter-spacing:.2px; }
     .pop-grid{ display:grid; grid-template-columns:1fr 1fr; gap:8px 12px; padding:12px; }
     .pop-grid .lbl{ font-weight:800; color:#47606b; font-size:11.5px }
-    .pop-grid .val{ font-weight:800; color:#0b2532 }
+    .pop-grid .val{ font-weight:800; color:var(--ink) }
     .pop-chipwrap{ display:flex; gap:8px; padding:0 12px 10px }
     .chip{
       background:#e8f5f3; color:#0b3b38; border:1px solid #cfe7e3; padding:5px 8px;
@@ -80,11 +122,31 @@
   </style>
 </head>
 <body>
-  <div class="page">
+
+  <!-- Texto superior -->
+  <section class="wrap intro">
+    <h2 id="introTitle">¿Dónde se ubican nuestras inversiones?</h2>
+    <p>
+      El mapa interactivo muestra la ubicación geográfica de los proyectos de inversión del ministerio a nivel nacional,
+      clasificados por tipo y estado (en ejecución, concluidos o por iniciar). Puedes filtrar por región, provincia o distrito para
+      identificar las intervenciones en tu localidad. Esta herramienta facilita la rendición de cuentas y la participación
+      ciudadana en el seguimiento de obras públicas.
+    </p>
+    <p>
+      La visualización facilita el análisis territorial, permitiendo detectar posibles brechas de infraestructura, priorizar zonas
+      críticas y garantizar una cobertura equitativa de los servicios de agua y saneamiento en todas las regiones del país.
+    </p>
+    <p>
+      <a href="#viewDiv">¡Explora el mapa y conoce cómo las inversiones del MVCS han mejorado la calidad de vida de tu comunidad!</a>
+    </p>
+  </section>
+
+  <!-- Mapa con marco blanco -->
+  <section class="page">
     <div class="map-card">
       <div id="viewDiv" aria-label="Mapa con límites y puntos"></div>
 
-      <!-- Buscador con icono rojo y MISMAS características que el anterior -->
+      <!-- Buscador con icono rojo y mismas características -->
       <div class="search-wrap">
         <button class="search-fab" id="searchBtn" title="Buscar">
           <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
@@ -101,9 +163,20 @@
         </div>
       </div>
     </div>
-  </div>
+  </section>
 
   <script>
+    /* ===== Subrayado animado al entrar en vista ===== */
+    (function underlineOnView(){
+      const title = document.getElementById('introTitle');
+      const obs = new IntersectionObserver((entries)=>{
+        entries.forEach(e=>{
+          if(e.isIntersecting){ title.classList.add('in-view'); }
+        });
+      }, { root:null, threshold:0.35 });
+      obs.observe(title);
+    })();
+
     /* ========= Constantes y utilidades ========= */
     const FS_URL = "https://pportalgis.vivienda.gob.pe/pfdserver/rest/services/OGEI/Mapa_Inversiones_Coord_MEF/FeatureServer/0";
     const LIMITES_URL = "https://pportalgis.vivienda.gob.pe/pfdserver/rest/services/COES/Limites_Pol%C3%ADticos/MapServer/0";
@@ -180,7 +253,6 @@
         listMode:"hide"
       });
       limites.when(()=>{
-        // Si es polígono, dibuja solo contorno; si es línea, simple-line.
         limites.renderer = (limites.geometryType === "polygon")
           ? { type:"simple", symbol:{ type:"simple-fill", color:[0,0,0,0], outline:{ color:[255,255,255,230], width:1.2 } } }
           : { type:"simple", symbol:{ type:"simple-line", color:[255,255,255,230], width:1.2 } };
@@ -228,64 +300,10 @@
       });
       map.add(layer);
 
-      // LayerView para highlight
-      let layerView = null;
+      // Para highlight + ripple
+      let layerView=null;
       view.when(async ()=>{ layerView = await view.whenLayerView(layer); });
 
-      /* ========= Buscador con MISMA UX que el anterior ========= */
-      const searchBtn = document.getElementById('searchBtn');
-      const searchContent = document.getElementById('searchContent');
-      const searchInput = document.getElementById('searchInput');
-      const clearSearch = document.getElementById('clearSearch');
-      const suggestions = document.getElementById('suggestions');
-      let allProjects = [];
-
-      // Abrir/cerrar panel
-      searchBtn.addEventListener('click', ()=>{
-        searchContent.classList.toggle('open');
-        if (searchContent.classList.contains('open')) setTimeout(()=>searchInput.focus(), 50);
-      });
-      document.addEventListener('click',(e)=>{
-        if (!document.querySelector('.search-wrap').contains(e.target)) searchContent.classList.remove('open');
-      });
-
-      // Borrar
-      clearSearch.addEventListener('click', ()=>{
-        searchInput.value=''; suggestions.innerHTML=''; searchInput.focus();
-      });
-
-      // Sugerencias en vivo (catálogo precargado)
-      searchInput.addEventListener('input', (e)=>{
-        const val = e.target.value.toLowerCase().trim();
-        suggestions.innerHTML = '';
-        if (val.length < 2) return;
-        const matches = allProjects.filter(name => name.toLowerCase().includes(val)).slice(0, 20);
-        matches.forEach(name=>{
-          const li=document.createElement('li');
-          li.textContent=name;
-          li.addEventListener('click', ()=>{
-            searchInput.value=name;
-            suggestions.innerHTML='';
-            searchContent.classList.remove('open');
-            performSearchExact(name);
-          });
-          suggestions.appendChild(li);
-        });
-      });
-
-      // Enter => LIKE (primer match)
-      searchInput.addEventListener('keydown', (e)=>{
-        if(e.key==='Enter'){
-          e.preventDefault();
-          const val = searchInput.value.trim();
-          if(val.length<2) return;
-          performSearchLike(val);
-          searchContent.classList.remove('open');
-          suggestions.innerHTML='';
-        }
-      });
-
-      // Ripple/Highlight helpers
       function rippleAt(point){
         for(let i=0;i<3;i++){
           setTimeout(()=>{
@@ -310,6 +328,53 @@
         }catch(_){}
       }
 
+      /* ========= Buscador con MISMA UX ========= */
+      const searchBtn = document.getElementById('searchBtn');
+      const searchContent = document.getElementById('searchContent');
+      const searchInput = document.getElementById('searchInput');
+      const clearSearch = document.getElementById('clearSearch');
+      const suggestions = document.getElementById('suggestions');
+      let allProjects = [];
+
+      searchBtn.addEventListener('click', ()=>{
+        searchContent.classList.toggle('open');
+        if (searchContent.classList.contains('open')) setTimeout(()=>searchInput.focus(), 50);
+      });
+      document.addEventListener('click',(e)=>{
+        const wrap = document.querySelector('.search-wrap');
+        if (!wrap.contains(e.target)) searchContent.classList.remove('open');
+      });
+      clearSearch.addEventListener('click', ()=>{
+        searchInput.value=''; suggestions.innerHTML=''; searchInput.focus();
+      });
+      searchInput.addEventListener('input', (e)=>{
+        const val = e.target.value.toLowerCase().trim();
+        suggestions.innerHTML = '';
+        if (val.length < 2) return;
+        const matches = allProjects.filter(name => name.toLowerCase().includes(val)).slice(0, 20);
+        matches.forEach(name=>{
+          const li=document.createElement('li');
+          li.textContent=name;
+          li.addEventListener('click', ()=>{
+            searchInput.value=name;
+            suggestions.innerHTML='';
+            searchContent.classList.remove('open');
+            performSearchExact(name);
+          });
+          suggestions.appendChild(li);
+        });
+      });
+      searchInput.addEventListener('keydown', (e)=>{
+        if(e.key==='Enter'){
+          e.preventDefault();
+          const val = searchInput.value.trim();
+          if(val.length<2) return;
+          performSearchLike(val);
+          searchContent.classList.remove('open');
+          suggestions.innerHTML='';
+        }
+      });
+
       async function performSearchExact(name){
         try{
           const q = layer.createQuery();
@@ -324,7 +389,6 @@
           }
         }catch(_){}
       }
-
       async function performSearchLike(text){
         try{
           const q = layer.createQuery();
@@ -340,7 +404,7 @@
         }catch(_){}
       }
 
-      // Init: catálogo de proyectos para sugerencias
+      // Cargar catálogo para sugerencias
       (async function initSearch(){
         try{
           allProjects = (await loadDistinct("producto_proyecto_nombre"))
@@ -352,3 +416,4 @@
   </script>
 </body>
 </html>
+
