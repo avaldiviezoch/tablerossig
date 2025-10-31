@@ -429,6 +429,22 @@
     }
     .infoBtn:hover{transform:scale(1.08)}
     .infoBtn svg{width:20px;height:20px;stroke:#fff;stroke-width:2.2;fill:none}
+
+    /*
+      Los puntos de avance en la tabla de ejecutoras necesitan un tamaño y forma
+      consistente.  Definimos la clase .dot para que cualquier span con este
+      nombre tenga un diámetro pequeño, redondo y con margen derecho.  El color
+      de fondo se define en línea mediante style o mediante clases
+      (.bad/.mid/.ok), por lo que no se establece aquí.
+    */
+    .dot{
+      display:inline-block;
+      width:.58rem;
+      height:.58rem;
+      border-radius:999px;
+      vertical-align:-.08rem;
+      margin-right:.32rem;
+    }
   </style>
 </head>
 <body>
