@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <title>Mapa · Inversiones MVCS</title>
+  <title>Mapa · Inversiones MVCS + Proyectos</title>
 
   <!-- Fuente: Nunito Sans -->
   <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;600;700;800;900&display=swap" rel="stylesheet"/>
@@ -18,11 +18,23 @@
       --accent-blue:#1e6eb6; --accent-blue-2:#135a92;
       --card:#fff; --shadow:0 12px 28px rgba(2,6,23,.08);
       --underline:#e11d2e; --red:#e11d2e;
+
+      /* Tabla */
+      --azul:#1e6eb6;
+      --turquesa:#5ebad6;
+      --rojo:#d00000;
+      --row-alt:#f9fcfb;
+      --shadow-table:0 8px 18px rgba(2,6,23,.08);
+      --radius:10px;
     }
-    html,body{height:100%;margin:0;background:#fff;color:var(--ink);font-family:"Nunito Sans",system-ui,-apple-system,Segoe UI,Roboto,Inter,Arial}
+
+    html,body{
+      height:100%; margin:0; background:#fff; color:var(--ink);
+      font-family:"Nunito Sans",system-ui,-apple-system,Segoe UI,Roboto,Inter,Arial,sans-serif;
+    }
     a{color:var(--accent-blue);text-decoration:none;font-weight:800}
 
-    /* ===== TU TEXTO SUPERIOR ORIGINAL (INTACTO) ===== */
+    /* ===== Intro (tal cual tu estilo) ===== */
     .wrap{ max-width:1200px; margin:0 auto; padding:28px 20px 10px; box-sizing:border-box; }
     .intro{ text-align:center; margin:0 auto 18px; color:var(--ink); }
     .intro h2{
@@ -37,13 +49,10 @@
       transition:transform .7s cubic-bezier(.22,.9,.3,1); border-radius:999px;
     }
     .intro h2.in-view::after{ transform:scaleX(1); }
-    .intro p{
-      margin:0 auto 10px; max-width:900px; line-height:1.55; color:#4b5563;
-      font-size:clamp(14px,1.5vw,16.5px);
-    }
+    .intro p{ margin:0 auto 10px; max-width:900px; line-height:1.55; color:#4b5563; font-size:clamp(14px,1.5vw,16.5px) }
 
-    /* ===== MAPA ===== */
-    .page{ display:grid; place-items:center; padding:0 20px 28px; box-sizing:border-box; }
+    /* ===== Mapa (tu estética intacta) ===== */
+    .page{ display:grid; place-items:center; padding:0 20px 0; box-sizing:border-box; } /* sin borde/espacio extra abajo */
     .map-card{
       width:min(1200px, 92vw); height:min(72vh, 760px);
       background:var(--card); border:1px solid var(--line); border-radius:16px;
@@ -51,7 +60,6 @@
     }
     #viewDiv{ position:absolute; inset:0; }
 
-    /* === BUSCADOR === */
     .search-wrap{ position:absolute; top:14px; right:14px; z-index:6; }
     .search-fab{
       width:44px; height:44px; border-radius:999px; cursor:pointer;
@@ -77,7 +85,6 @@
     .suggestions li{ padding:8px 10px; cursor:pointer; border-bottom:1px solid #f2f2f2; font-weight:700; color:var(--ink); }
     .suggestions li:hover{ background:#f0f7f6; }
 
-    /* === POPUP (VERDE ORIGINAL) === */
     .esri-popup__header{ display:none !important; }
     .esri-popup__main-container{ padding-top:0 !important; border-radius:14px !important; overflow:hidden !important; }
     .pop-card{
@@ -99,7 +106,6 @@
     }
     .pop-btn:hover{ filter:brightness(1.05) }
 
-    /* === FILTRO PROGRAMA (PEQUEÑO, AUTOMÁTICO, SIN LIMPIAR) === */
     .filter-wrap{ position:absolute; top:14px; left:14px; z-index:6; }
     .filter-btn{
       background:#ffffff; color:var(--accent-blue);
@@ -111,22 +117,15 @@
     .filter-panel{
       display:none; position:absolute; top:100%; left:0; margin-top:8px;
       background:#fff; border:1px solid var(--line); border-radius:14px;
-      box-shadow:0 10px 24px rgba(2,6,23,.12);
-      width:260px; overflow:hidden;
+      box-shadow:0 10px 24px rgba(2,6,23,.12); width:260px; overflow:hidden;
     }
     .filter-panel.open{ display:block; }
-    .fp-head{
-      background:var(--accent-blue); color:#ffffff; padding:8px 10px; font-weight:900; font-size:13px;
-    }
-    .fp-body{ padding:8px 10px; max-height:180px; overflow:auto; }
-    .fp-body label{
-      display:flex; align-items:center; gap:8px;
-      padding:4px 0; font-size:12.5px; color:var(--ink); cursor:pointer;
-    }
-    .fp-body input[type="checkbox"]{ accent-color: var(--accent-blue); }
-    .fp-body input[type="checkbox"]:checked + span{ color:var(--red); font-weight:900; }
+    .fp-head{ background:var(--accent-blue); color:#ffffff; padding:8px 10px; font-weight:900; font-size:13px }
+    .fp-body{ padding:8px 10px; max-height:180px; overflow:auto }
+    .fp-body label{ display:flex; align-items:center; gap:8px; padding:4px 0; font-size:12.5px; color:var(--ink); cursor:pointer }
+    .fp-body input[type="checkbox"]{ accent-color: var(--accent-blue) }
+    .fp-body input[type="checkbox"]:checked + span{ color:var(--red); font-weight:900 }
 
-    /* === BOTÓN RESTAURAR (FLECHA CIRCULAR) === */
     .reset-wrap{ position:absolute; bottom:14px; left:14px; z-index:6; }
     .reset-btn{
       width:44px; height:44px; border-radius:999px; cursor:pointer;
@@ -134,12 +133,89 @@
       box-shadow:0 8px 20px rgba(2,6,23,.18); font-size:20px; color:#e11d2e;
       transition:transform .2s ease, background .2s ease;
     }
-    .reset-btn:hover{ background:#fdf2f2; transform:scale(1.08); }
+    .reset-btn:hover{ background:#fdf2f2; transform:scale(1.08) }
+
+    /* ===== Sección tabla (pegada al mapa, sin “separador”) ===== */
+    .table-section{ padding:12px 20px 28px; } /* margen superior pequeño para “pegarlo” al mapa */
+    .table-wrap{ max-width:1200px; margin:0 auto; }
+
+    .title-row{
+      display:flex; align-items:center; justify-content:center;
+      margin:10px 0 10px 0;
+    }
+    .title-row h3{
+      margin:0; font-weight:900; font-size:clamp(18px,2.8vw,22px); color:var(--accent-blue);
+      letter-spacing:.2px;
+    }
+
+    .status{font-weight:800;color:#334155;margin:8px 0 12px;font-size:13px}
+
+    .tableWrap{
+      background:#fff;border:1px solid var(--line);
+      border-radius:var(--radius);box-shadow:var(--shadow-table);
+      position:relative;overflow:hidden;
+    }
+
+    /* Scroll vertical (10 filas visibles) */
+    .scrollY{ overflow-y:auto; overflow-x:hidden; -webkit-overflow-scrolling:touch; }
+    .scrollY::-webkit-scrollbar{width:10px}
+    .scrollY::-webkit-scrollbar-track{background:#f1f5f9}
+    .scrollY::-webkit-scrollbar-thumb{background:#cbd5e1;border-radius:6px;border:2px solid #f1f5f9}
+    .scrollY:hover::-webkit-scrollbar-thumb{background:#94a3b8}
+
+    /* Scroll horizontal solo en pantallas pequeñas */
+    @media (max-width:900px){
+      .scrollY{overflow-x:auto}
+      .scrollY::-webkit-scrollbar{height:10px;width:10px}
+    }
+
+    table{ width:100%; min-width:1100px; border-collapse:separate; border-spacing:0; table-layout:fixed }
+    thead th{
+      position:sticky; top:0; z-index:2;
+      background:var(--turquesa); color:#fff;
+      font-weight:800; letter-spacing:.2px;
+      padding:8px 6px; text-align:center; font-size:12.5px;
+    }
+    tbody td{
+      border-top:1px solid var(--line); border-right:1px solid var(--line);
+      padding:7px; vertical-align:top;
+      font-size:12px; line-height:1.35; text-align:center;
+      word-break:break-word; hyphens:auto;
+    }
+    tbody td:last-child, thead th:last-child{border-right:none}
+    tbody tr:nth-child(odd){background:var(--row-alt)}
+    .num{font-variant-numeric:tabular-nums;text-align:center;white-space:nowrap}
+
+    /* Tooltip azul institucional */
+    .inv-cell{position:relative;overflow:visible}
+    .ellip-text{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:center}
+    .inv-cell[data-tip]::after{
+      content:attr(data-tip);position:absolute;left:50%;bottom:100%;
+      transform:translate(-50%,-6px);
+      background:var(--azul);color:#fff;padding:6px 8px;border-radius:8px;max-width:560px;
+      white-space:normal;line-height:1.25;font-size:11.5px;pointer-events:none;z-index:50;
+      border:1px solid rgba(8,31,28,.35);box-shadow:0 6px 14px rgba(0,0,0,.18);
+      opacity:0;visibility:hidden;transition:opacity .12s ease,visibility .12s ease
+    }
+    .inv-cell[data-tip]::before{
+      content:"";position:absolute;left:50%;bottom:100%;
+      transform:translate(-50%,-2px);
+      border:6px solid transparent;border-top-color:var(--azul);
+      z-index:51;opacity:0;visibility:hidden;transition:opacity .12s ease,visibility .12s ease
+    }
+    .inv-cell:hover::after,.inv-cell:hover::before{opacity:1;visibility:visible}
+
+    a.chipLink{color:var(--rojo);font-weight:900;text-decoration:none;font-size:12px}
+    a.chipLink:hover{text-decoration:underline}
+    .pill{
+      background:#f3f4f6;color:#334155;padding:3px 6px;border-radius:999px;
+      font-weight:800;display:inline-block;font-size:11.5px;
+    }
   </style>
 </head>
 <body>
 
-  <!-- TU TEXTO SUPERIOR ORIGINAL -->
+  <!-- Intro -->
   <section class="wrap intro">
     <h2 id="introTitle">¿Dónde se ubican nuestras inversiones?</h2>
     <p>
@@ -162,18 +238,16 @@
     <div class="map-card">
       <div id="viewDiv" aria-label="Mapa con límites y puntos"></div>
 
-      <!-- FILTRO PROGRAMA (SIN LIMPIAR) -->
+      <!-- Filtro -->
       <div class="filter-wrap">
         <button class="filter-btn" id="filterBtn">Programas</button>
         <div class="filter-panel" id="filterPanel">
-          <div class="fp-head">
-            <span>Filtrar por Programa</span>
-          </div>
+          <div class="fp-head"><span>Filtrar por Programa</span></div>
           <div class="fp-body" id="progList"></div>
         </div>
       </div>
 
-      <!-- BUSCADOR -->
+      <!-- Buscador -->
       <div class="search-wrap">
         <button class="search-fab" id="searchBtn" title="Buscar">
           <svg viewBox="0 0 24 24" aria-hidden="true"><circle class="ring" cx="10" cy="10" r="6.5"></circle><line class="handle" x1="14.8" y1="14.8" x2="20" y2="20"></line></svg>
@@ -187,20 +261,55 @@
         </div>
       </div>
 
-      <!-- BOTÓN RESTAURAR (FLECHA) -->
+      <!-- Reset -->
       <div class="reset-wrap">
         <button class="reset-btn" id="resetBtn" title="Restaurar mapa">↺</button>
       </div>
     </div>
   </section>
 
+  <!-- TABLA: pegada al mapa, título “Proyectos” -->
+  <section class="table-section">
+    <div class="table-wrap">
+      <div class="title-row"><h3>Proyectos</h3></div>
+      <div class="wrap" style="padding:0 0 0 0; max-width:unset;"></div> <!-- placeholder para mantener consistencia -->
+      <div class="tableWrap">
+        <div class="scrollY" id="scrollY">
+          <table id="tbl" aria-live="polite">
+            <colgroup>
+              <col class="cui"><col class="inv"><col class="dep"><col class="pro"><col class="dis">
+              <col class="pim"><col class="dev"><col class="det"><col class="pdf">
+            </colgroup>
+            <thead>
+              <tr>
+                <th>CUI</th>
+                <th>Inversión</th>
+                <th>Departamento</th>
+                <th>Provincia</th>
+                <th>Distrito</th>
+                <th>PIM</th>
+                <th>Devengado</th>
+                <th>Detalle proyecto</th>
+                <th>Ayuda memoria</th>
+              </tr>
+            </thead>
+            <tbody id="tbody"></tbody>
+          </table>
+        </div>
+      </div>
+      <div id="state" class="status" style="text-align:center;">Cargando datos…</div>
+    </div>
+  </section>
+
   <script>
+    /* Subrayado animado al entrar en vista (intro) */
     (function underlineOnView(){
       const title = document.getElementById('introTitle');
       const obs = new IntersectionObserver(e => e.forEach(en => en.isIntersecting && title.classList.add('in-view')), { threshold: 0.35 });
       obs.observe(title);
     })();
 
+    /* ======= Config común y utilidades ======= */
     const FS_URL = "https://pportalgis.vivienda.gob.pe/pfdserver/rest/services/OGEI/Mapa_Inversiones_Coord_MEF/FeatureServer/0";
     const LIMITES_URL = "https://pportalgis.vivienda.gob.pe/pfdserver/rest/services/COES/Limites_Pol%C3%ADticos/MapServer/0";
 
@@ -208,6 +317,7 @@
     function money(n){ return "S/. " + moneyFmt.format(Number(n||0)); }
     function safe(v){ return (v==null || v==="") ? "—" : String(v); }
     function esc(v){ return String(v).replaceAll("'", "''"); }
+    function escHtml(s){ return String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&gt;","\"":"&quot;"}[c] || c)); }
 
     function esriPOST(url, paramsObj){
       const body = new URLSearchParams({ f:"json", returnGeometry:"false", ...paramsObj, __ts: Date.now() });
@@ -231,12 +341,13 @@
       return [...vals];
     }
 
+    /* ======= MAPA ======= */
     require([
       "esri/Map","esri/views/MapView","esri/layers/FeatureLayer","esri/widgets/BasemapToggle",
       "esri/widgets/ScaleBar","esri/geometry/Extent","esri/layers/GraphicsLayer","esri/Graphic"
     ], (Map, MapView, FeatureLayer, BasemapToggle, ScaleBar, Extent, GraphicsLayer, Graphic) => {
 
-      const map = new Map({ basemap: "satellite" });
+      const map = new Map({ basemap: "satellite" }); /* respetando tu código pegado */
       const view = new MapView({
         container: "viewDiv", map, center: [-75.2, -9.3], zoom: 5,
         padding: { left:8, right:8, top:8, bottom:8 }, constraints: { minZoom: 3 }
@@ -290,7 +401,7 @@
       });
       map.add(layer);
 
-      // === FILTRO AUTOMÁTICO ===
+      /* Filtro por Programa */
       const filterBtn = document.getElementById('filterBtn');
       const filterPanel = document.getElementById('filterPanel');
       const progList = document.getElementById('progList');
@@ -330,22 +441,18 @@
         if (!document.querySelector('.filter-wrap').contains(e.target)) filterPanel.classList.remove('open');
       });
 
-      // === BOTÓN RESTAURAR ===
+      /* Reset */
       const resetBtn = document.getElementById('resetBtn');
       resetBtn.addEventListener('click', () => {
-        // Desmarcar todos
         progList.querySelectorAll('input[type="checkbox"]').forEach(cb => cb.checked = false);
-        // Restaurar capa
         layer.definitionExpression = "1=1";
-        // Restaurar vista
         view.goTo(peruExtent.expand(0.96));
-        // Limpiar búsqueda
         document.getElementById('searchInput').value = '';
         document.getElementById('suggestions').innerHTML = '';
         view.popup.close();
       });
 
-      // === BUSCADOR ===
+      /* Buscador */
       const searchBtn = document.getElementById('searchBtn');
       const searchContent = document.getElementById('searchContent');
       const searchInput = document.getElementById('searchInput');
@@ -384,7 +491,7 @@
       });
 
       function rippleAt(point){
-        [0,160,320].forEach((d,i) => setTimeout(() => {
+        [0,160,320].forEach((d) => setTimeout(() => {
           const g = new Graphic({ geometry: point, symbol: { type:"simple-marker", style:"circle", size:10, color:[255,255,0,0], outline:{ color:[255,255,0,1], width:2 } } });
           fxLayer.add(g);
           let s = 0;
@@ -426,6 +533,70 @@
         }
       }
 
+      /* ======= TABLA (debajo del mapa) ======= */
+      async function loadRows(){
+        const state=document.getElementById("state");
+        const tb=document.getElementById("tbody");
+        state.textContent="Cargando datos…";
+
+        const page=2000; let offset=0; const out=[];
+        while(true){
+          const j=await esriPOST(FS_URL+"/query",{
+            where:"monto_pim>0",
+            outFields:[
+              "producto_proyecto","producto_proyecto_nombre",
+              "departamento","provincia","distrito",
+              "monto_pim","monto_devengado","url_ssp","url_pdf"
+            ].join(","),
+            orderByFields:"monto_pim DESC",
+            resultRecordCount:page,resultOffset:offset
+          });
+          (j.features||[]).forEach(f=>{
+            const a=f.attributes||{};
+            out.push({
+              cui:a.producto_proyecto??"", inv:a.producto_proyecto_nombre??"",
+              dep:a.departamento??"", pro:a.provincia??"", dis:a.distrito??"",
+              pim:Number(a.monto_pim)||0, dev:Number(a.monto_devengado)||0,
+              ssp:(a.url_ssp||"").trim(), pdf:(a.url_pdf||"").trim()
+            });
+          });
+          if(!j.exceededTransferLimit || (j.features||[]).length<page) break;
+          offset+=page;
+        }
+
+        tb.innerHTML = out.map(r=>`
+          <tr>
+            <td class="num">${r.cui||"—"}</td>
+            <td class="inv-cell" data-tip="${escHtml(r.inv)}">
+              <span class="ellip-text" title="${escHtml(r.inv)}">${escHtml(r.inv)}</span>
+            </td>
+            <td>${escHtml(r.dep)||"—"}</td>
+            <td>${escHtml(r.pro)||"—"}</td>
+            <td>${escHtml(r.dis)||"—"}</td>
+            <td class="num">${money(r.pim)}</td>
+            <td class="num">${money(r.dev)}</td>
+            <td>${r.ssp?`<a class="chipLink" href="${r.ssp}" target="_blank" rel="noopener">Ver detalle</a>`:`<span class="pill">—</span>`}</td>
+            <td>${r.pdf?`<a class="chipLink" href="${r.pdf}" target="_blank" rel="noopener">Ver PDF</a>`:`<span class="pill">—</span>`}</td>
+          </tr>
+        `).join("");
+
+        // Limitar visualmente a 10 filas (altura)
+        requestAnimationFrame(()=>{
+          const scrollY=document.getElementById('scrollY');
+          const thead=document.querySelector('#tbl thead');
+          const firstRow=document.querySelector('#tbl tbody tr');
+          if(scrollY && thead && firstRow){
+            const hHead=thead.getBoundingClientRect().height;
+            const hRow=firstRow.getBoundingClientRect().height||26;
+            scrollY.style.maxHeight=(hHead + hRow*10)+'px';
+          }
+        });
+
+        state.innerHTML=`<strong>Lista (${out.length.toLocaleString('es-PE')} filas)</strong>`;
+      }
+
+      // Cargar tabla una vez que el mapa esté listo
+      view.when(loadRows);
     });
   </script>
 </body>
