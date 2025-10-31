@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Mapa · Inversiones MEF (con buscador tipo sugerencias)</title>
+
+  <!-- ArcGIS JS 4.29 -->
+  <link rel="stylesheet" href="https://js.arcgis.com/4.29/esri/themes/light/main.css">
+  <script src="https://js.arcgis.com/4.29/"></script>
+
+  <style>
+    :root{ --ink:#0b2532; --line:#e5e7eb; --bar:#0b3b38; }
+    html,body{height:100%;margin:0;background:#fff;color:var(--ink);font-family:system-ui,-apple-system,Segoe UI,Roboto,Inter,Arial}
+    .page{ min-height:100%; display:grid; place-items:center; padding:24px; box-sizing:border-box; }
+    .map-card{
+      width:min(1200px, 92vw);
+      height:min(72vh, 760px);
+      background:#fff; border:1px solid var(--line); border-radius:16px;
+      box-shadow:0 12px 28px rgba(2,6,23,.08); position:relative; overflow:hidden;
+    }
+    #viewDiv{ position:absolute; inset:0; }
+
+    /* ===== Buscador (igual comportamiento, solo cambia el icono) ===== */
+    .search-wrap{ position:absolute; top:14px; right:14px; z-index:6; }
+    .search-fab{
+      width:44px; height:44px; border-radius:999px; cursor:pointer;
+      border:1px solid #e5e7eb; background:#ffffff; display:grid; place-items:center;
+      box-shadow:0 8px 20px rgba(2,6,23,.18);
+    }
+    .search-fab svg{ width:22px; height:22px; display:block }
+    .search-fab .ring{ stroke:#d80000; stroke-width:3; fill:none }
+    .search-fab .handle{ stroke:#d80000; stroke-width:3; stroke-linecap:round }
+
+    .search-content{
+      display:none; position:absolute; top:100%; right:0; margin-top:8px;
+      background:#fff; border:1px solid var(--line); border-radius:14px;
+      box-shadow:0 10px 24px rgba(2,6,23,.12); padding:10px; width:320px;
+    }
+    .search-content.open{ display:block; }
+    .search-input-wrap{ display:flex; align-items:center; gap:8px; }
+    .search-input{
+      flex:1; padding:10px; border:1px solid #d1d5db; border-radius:10px; box-sizing:border-box; font-weight:700;
+    }
+    .clear-btn{
+      border:none; background:#f3f4f6; border:1px solid #e5e7eb;
+      width:36px; height:36px; border-radius:10px; cursor:pointer; font-size:18px; line-height:0; display:grid; place-items:center;
+    }
+    .suggestions{
+      list-style:none; padding:6px 0 0; margin:6px 0 0; max-height:240px; overflow-y:auto;
+    }
+    .suggestions li{
+      padding:8px 10px; cursor:pointer; border-bottom:1px solid #f2f2f2; font-weight:700; color:#0b2532;
+    }
+    .suggestions li:hover{ background:#f0f7f6; }
+
+    /* ===== Popup fino (cabecera oscura, resto igual) ===== */
+    .esri-popup__header{ display:none !important; }
+    .esri-popup__main-container{ padding-top:0 !important; border-radius:14px !important; overflow:hidden !important; }
+    .pop-card{
+      background:#ffffff; border:1px solid var(--line); border-radius:14px;
+      box-shadow:0 12px 30px rgba(2,6,23,.12); overflow:hidden; color:#0b2532;
+      font:12.5px/1.4 system-ui,-apple-system,Segoe UI,Roboto,Inter,Arial;
+    }
+    .pop-hdr{ background:#0b3b38; color:#e6fffb; padding:10px 12px; font-weight:900; letter-spacing:.2px; }
+    .pop-grid{ display:grid; grid-template-columns:1fr 1fr; gap:8px 12px; padding:12px; }
+    .pop-grid .lbl{ font-weight:800; color:#47606b; font-size:11.5px }
+    .pop-grid .val{ font-weight:800; color:#0b2532 }
+    .pop-chipwrap{ display:flex; gap:8px; padding:0 12px 10px }
+    .chip{
+      background:#e8f5f3; color:#0b3b38; border:1px solid #cfe7e3; padding:5px 8px;
+      border-radius:999px; font-weight:900; font-size:11px;
+    }
+    .pop-actions{ display:flex; gap:8px; justify-content:flex-end; padding:10px 12px 12px; border-top:1px solid var(--line); }
+    .pop-btn{
+      border:1px solid #0e4a43; background:#0b3b38; color:#e6fffb; padding:8px 10px; border-radius:10px;
+      font-weight:800; text-decoration:none; display:inline-flex; align-items:center; gap:8px;
+    }
+    .pop-btn:hover{ filter:brightness(1.05) }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <div class="map-card">
+      <div id="viewDiv" aria-label="Mapa con límites y puntos"></div>
+
+      <!-- Buscador con icono rojo y MISMAS características que el anterior -->
+      <div class="search-wrap">
+        <button class="search-fab" id="searchBtn" title="Buscar">
+          <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+            <circle class="ring" cx="10" cy="10" r="6.5"></circle>
+            <line class="handle" x1="14.8" y1="14.8" x2="20" y2="20"></line>
+          </svg>
+        </button>
+        <div class="search-content" id="searchContent">
+          <div class="search-input-wrap">
+            <input type="text" class="search-input" id="searchInput" placeholder="Buscar por nombre de proyecto…">
+            <button class="clear-btn" id="clearSearch" title="Borrar">✕</button>
+          </div>
+          <ul class="suggestions" id="suggestions"></ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    /* ========= Constantes y utilidades ========= */
+    const FS_URL = "https://pportalgis.vivienda.gob.pe/pfdserver/rest/services/OGEI/Mapa_Inversiones_Coord_MEF/FeatureServer/0";
+    const LIMITES_URL = "https://pportalgis.vivienda.gob.pe/pfdserver/rest/services/COES/Limites_Pol%C3%ADticos/MapServer/0";
+
+    const moneyFmt = new Intl.NumberFormat("es-PE",{ maximumFractionDigits: 0 });
+    function money(n){ return "S/. " + moneyFmt.format(Number(n||0)); }
+    function safe(v){ return (v==null || v==="") ? "—" : String(v); }
+    function esc(v){ return String(v).replaceAll("'", "''"); }
+    function cacheBust(){ return String(Date.now()); }
+
+    function esriPOST(url, paramsObj){
+      const body = new URLSearchParams({ f:"json", returnGeometry:"false", ...paramsObj, __ts: cacheBust() });
+      return fetch(url, {
+        method:"POST",
+        headers:{ "Content-Type":"application/x-www-form-urlencoded;charset=UTF-8" },
+        body: body.toString(),
+        cache:"no-store"
+      })
+      .then(r=>r.ok?r.json():Promise.reject("HTTP "+r.status))
+      .then(j=> j.error ? Promise.reject(j.error?.message||"ArcGIS") : j)
+      .catch(()=>({}));
+    }
+    async function loadDistinct(field, where){
+      const page=2000; let offset=0; const vals=new Set();
+      while(true){
+        const j = await esriPOST(FS_URL+"/query", {
+          where: where || "1=1",
+          outFields: field,
+          orderByFields: field,
+          returnDistinctValues: "true",
+          resultRecordCount: page,
+          resultOffset: offset
+        });
+        const rows = (j.features||[]).map(f => (f.attributes||{})[field]).filter(v => v!=null && v!=="");
+        rows.forEach(v=>vals.add(v));
+        if(!j.exceededTransferLimit || rows.length<page) break;
+        offset += page;
+      }
+      return [...vals];
+    }
+
+    require([
+      "esri/Map","esri/views/MapView","esri/layers/FeatureLayer","esri/widgets/BasemapToggle",
+      "esri/widgets/ScaleBar","esri/geometry/Extent","esri/layers/GraphicsLayer","esri/Graphic"
+    ], (Map,MapView,FeatureLayer,BasemapToggle,ScaleBar,Extent,GraphicsLayer,Graphic) => {
+
+      /* ========= Mapa base ========= */
+      const map = new Map({ basemap: "satellite" });
+      const view = new MapView({
+        container: "viewDiv",
+        map,
+        center: [-75.2,-9.3],
+        zoom: 5,
+        padding: { left:8, right:8, top:8, bottom:8 },
+        constraints: { minZoom: 3, snapToZoom: false }
+      });
+      view.ui.add(new BasemapToggle({ view, nextBasemap:"osm" }), "bottom-right");
+      view.ui.add(new ScaleBar({ view, unit:"metric" }), "bottom-left");
+      view.ui.move("zoom", "bottom-right");
+
+      // Extent Perú
+      const peruExtent = new Extent({ xmin:-81.6, ymin:-18.5, xmax:-68.5, ymax:-0.03, spatialReference:{wkid:4326} });
+      view.when(()=> view.goTo({ target: peruExtent.expand(0.96) }, { duration: 0 }));
+
+      // Capa FX para “ripple” de enfoque
+      const fxLayer = new GraphicsLayer({ listMode:"hide" });
+      map.add(fxLayer);
+
+      // Límites políticos
+      const limites = new FeatureLayer({
+        url: LIMITES_URL,
+        title: "Límites políticos",
+        popupEnabled: false,
+        listMode:"hide"
+      });
+      limites.when(()=>{
+        // Si es polígono, dibuja solo contorno; si es línea, simple-line.
+        limites.renderer = (limites.geometryType === "polygon")
+          ? { type:"simple", symbol:{ type:"simple-fill", color:[0,0,0,0], outline:{ color:[255,255,255,230], width:1.2 } } }
+          : { type:"simple", symbol:{ type:"simple-line", color:[255,255,255,230], width:1.2 } };
+      });
+      map.add(limites);
+
+      // Puntos de inversiones (con popup fino)
+      const layer = new FeatureLayer({
+        url: FS_URL,
+        outFields:["*"],
+        title:"Proyectos MEF",
+        renderer:{
+          type:"simple",
+          symbol:{ type:"simple-marker", color:[255,234,0,0.95], size:7, outline:{ color:[0,0,0,220], width:0.6 } }
+        },
+        popupEnabled:true,
+        popupTemplate:{
+          title:"",
+          content:(e)=>{
+            const a = e.graphic.attributes || {};
+            const url1 = a.url_ssp && String(a.url_ssp).trim() ? String(a.url_ssp).trim() : null;
+            const url2 = a.url_pdf && String(a.url_pdf).trim() ? String(a.url_pdf).trim() : null;
+            return `
+              <div class="pop-card">
+                <div class="pop-hdr">${safe(a.producto_proyecto_nombre)}</div>
+                <div class="pop-grid">
+                  <div class="lbl">Programa</div><div class="val">${safe(a.programa)}</div>
+                  <div class="lbl">Departamento</div><div class="val">${safe(a.departamento)}</div>
+                  <div class="lbl">Provincia</div><div class="val">${safe(a.provincia)}</div>
+                  <div class="lbl">Distrito</div><div class="val">${safe(a.distrito)}</div>
+                  <div class="lbl">Monto PIM</div><div class="val">${money(a.monto_pim)}</div>
+                  <div class="lbl">Monto Devengado</div><div class="val">${money(a.monto_devengado)}</div>
+                </div>
+                <div class="pop-chipwrap">
+                  <div class="chip">Etapa: ${safe(a.etapa)}</div>
+                  <div class="chip">Estado: ${safe(a.estado)}</div>
+                </div>
+                <div class="pop-actions">
+                  ${url1?`<a class="pop-btn" href="${url1}" target="_blank" rel="noopener">🔗 Detalle</a>`:""}
+                  ${url2?`<a class="pop-btn" href="${url2}" target="_blank" rel="noopener">📄 PDF</a>`:""}
+                </div>
+              </div>`;
+          }
+        }
+      });
+      map.add(layer);
+
+      // LayerView para highlight
+      let layerView = null;
+      view.when(async ()=>{ layerView = await view.whenLayerView(layer); });
+
+      /* ========= Buscador con MISMA UX que el anterior ========= */
+      const searchBtn = document.getElementById('searchBtn');
+      const searchContent = document.getElementById('searchContent');
+      const searchInput = document.getElementById('searchInput');
+      const clearSearch = document.getElementById('clearSearch');
+      const suggestions = document.getElementById('suggestions');
+      let allProjects = [];
+
+      // Abrir/cerrar panel
+      searchBtn.addEventListener('click', ()=>{
+        searchContent.classList.toggle('open');
+        if (searchContent.classList.contains('open')) setTimeout(()=>searchInput.focus(), 50);
+      });
+      document.addEventListener('click',(e)=>{
+        if (!document.querySelector('.search-wrap').contains(e.target)) searchContent.classList.remove('open');
+      });
+
+      // Borrar
+      clearSearch.addEventListener('click', ()=>{
+        searchInput.value=''; suggestions.innerHTML=''; searchInput.focus();
+      });
+
+      // Sugerencias en vivo (catálogo precargado)
+      searchInput.addEventListener('input', (e)=>{
+        const val = e.target.value.toLowerCase().trim();
+        suggestions.innerHTML = '';
+        if (val.length < 2) return;
+        const matches = allProjects.filter(name => name.toLowerCase().includes(val)).slice(0, 20);
+        matches.forEach(name=>{
+          const li=document.createElement('li');
+          li.textContent=name;
+          li.addEventListener('click', ()=>{
+            searchInput.value=name;
+            suggestions.innerHTML='';
+            searchContent.classList.remove('open');
+            performSearchExact(name);
+          });
+          suggestions.appendChild(li);
+        });
+      });
+
+      // Enter => LIKE (primer match)
+      searchInput.addEventListener('keydown', (e)=>{
+        if(e.key==='Enter'){
+          e.preventDefault();
+          const val = searchInput.value.trim();
+          if(val.length<2) return;
+          performSearchLike(val);
+          searchContent.classList.remove('open');
+          suggestions.innerHTML='';
+        }
+      });
+
+      // Ripple/Highlight helpers
+      function rippleAt(point){
+        for(let i=0;i<3;i++){
+          setTimeout(()=>{
+            const g=new Graphic({ geometry:point, symbol:{ type:"simple-marker", style:"circle", size:10, color:[255,255,0,0], outline:{ color:[255,255,0,1], width:2 } } });
+            fxLayer.add(g);
+            let step=0;
+            const iv=setInterval(()=>{
+              step++;
+              const opacity=Math.max(0,1-step/14);
+              g.symbol={ type:"simple-marker", style:"circle", size:10+step*6, color:[255,255,0,0], outline:{ color:[255,255,0,opacity], width:Math.max(1,2-step*0.08) } };
+              if(step>14){ clearInterval(iv); fxLayer.remove(g); }
+            },40);
+          },i*180);
+        }
+      }
+      let currentHighlight=null;
+      function doHighlight(graphic){
+        try{
+          if(currentHighlight){ currentHighlight.remove(); currentHighlight=null; }
+          if(layerView) currentHighlight=layerView.highlight(graphic);
+          setTimeout(()=>{ if(currentHighlight){ currentHighlight.remove(); currentHighlight=null; } },5000);
+        }catch(_){}
+      }
+
+      async function performSearchExact(name){
+        try{
+          const q = layer.createQuery();
+          q.where = `producto_proyecto_nombre = '${esc(name)}'`;
+          q.returnGeometry = true; q.outFields=['*'];
+          const results = await layer.queryFeatures(q);
+          if((results.features||[]).length>0){
+            const f=results.features[0];
+            await view.goTo({ target:f.geometry, zoom:15 }, { duration:800 });
+            doHighlight(f); rippleAt(f.geometry);
+            view.popup.open({ features:[f], location:f.geometry });
+          }
+        }catch(_){}
+      }
+
+      async function performSearchLike(text){
+        try{
+          const q = layer.createQuery();
+          q.where = `producto_proyecto_nombre LIKE '%${esc(text)}%'`;
+          q.returnGeometry=true; q.outFields=['*']; q.num=1;
+          const results = await layer.queryFeatures(q);
+          if((results.features||[]).length>0){
+            const f=results.features[0];
+            await view.goTo({ target:f.geometry, zoom:15 }, { duration:800 });
+            doHighlight(f); rippleAt(f.geometry);
+            view.popup.open({ features:[f], location:f.geometry });
+          }
+        }catch(_){}
+      }
+
+      // Init: catálogo de proyectos para sugerencias
+      (async function initSearch(){
+        try{
+          allProjects = (await loadDistinct("producto_proyecto_nombre"))
+            .filter(v => v && String(v).trim()!=="");
+        }catch(_){ allProjects=[]; }
+      })();
+
+    });
+  </script>
+</body>
+</html>
