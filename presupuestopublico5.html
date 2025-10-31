@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Listado MEF · Tabla (ArcGIS)</title>
+
+<style>
+  :root{
+    --azul:#1e6eb6;
+    --turquesa:#5ebad6;
+    --rojo:#d00000;
+    --ink:#0f172a;
+    --muted:#64748b;
+    --line:#e5e7eb;
+    --row-alt:#f9fcfb;
+    --shadow:0 8px 18px rgba(2,6,23,.08);
+    --radius:10px;
+  }
+
+  *{box-sizing:border-box}
+  html,body{
+    margin:0;background:#fff;color:var(--ink);
+    font-family:system-ui,Segoe UI,Roboto,Arial,sans-serif;
+  }
+
+  .wrap{max-width:100%;margin:16px auto;padding:0 2vw}
+  .status{font-weight:800;color:#334155;margin:8px 0 12px;font-size:13px}
+
+  .tableWrap{
+    background:#fff;border:1px solid var(--line);
+    border-radius:var(--radius);box-shadow:var(--shadow);
+    position:relative;overflow:hidden;
+  }
+
+  /* Scroll vertical (N filas visibles) */
+  .scrollY{
+    overflow-y:auto;overflow-x:hidden;
+    -webkit-overflow-scrolling:touch;
+  }
+  .scrollY::-webkit-scrollbar{width:10px}
+  .scrollY::-webkit-scrollbar-track{background:#f1f5f9}
+  .scrollY::-webkit-scrollbar-thumb{
+    background:#cbd5e1;border-radius:6px;border:2px solid #f1f5f9;
+  }
+  .scrollY:hover::-webkit-scrollbar-thumb{background:#94a3b8}
+
+  /* Scroll horizontal solo en móviles */
+  @media (max-width:900px){
+    .scrollY{overflow-x:auto}
+    .scrollY::-webkit-scrollbar{height:10px;width:10px}
+  }
+
+  table{
+    width:100%;min-width:1100px;
+    border-collapse:separate;border-spacing:0;table-layout:fixed;
+  }
+  thead th{
+    position:sticky;top:0;z-index:2;
+    background:var(--turquesa);color:#fff;
+    font-weight:800;letter-spacing:.2px;
+    padding:8px 6px;text-align:center;font-size:12.5px;
+  }
+  tbody td{
+    border-top:1px solid var(--line);border-right:1px solid var(--line);
+    padding:7px;vertical-align:top;
+    font-size:12px;line-height:1.35;text-align:center;
+    word-break:break-word;hyphens:auto;
+  }
+  tbody td:last-child, thead th:last-child{border-right:none}
+  tbody tr:nth-child(odd){background:var(--row-alt)}
+
+  .num{font-variant-numeric:tabular-nums;text-align:center;white-space:nowrap}
+
+  /* Tooltip (azul institucional) */
+  .inv-cell{position:relative;overflow:visible}
+  .ellip-text{
+    display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:center;
+  }
+  .inv-cell[data-tip]::after{
+    content:attr(data-tip);position:absolute;left:50%;bottom:100%;
+    transform:translate(-50%,-6px);
+    background:var(--azul);color:#fff;padding:6px 8px;border-radius:8px;max-width:560px;
+    white-space:normal;line-height:1.25;font-size:11.5px;pointer-events:none;z-index:50;
+    border:1px solid rgba(8,31,28,.35);box-shadow:0 6px 14px rgba(0,0,0,.18);
+    opacity:0;visibility:hidden;transition:opacity .12s ease,visibility .12s ease
+  }
+  .inv-cell[data-tip]::before{
+    content:"";position:absolute;left:50%;bottom:100%;
+    transform:translate(-50%,-2px);
+    border:6px solid transparent;border-top-color:var(--azul);
+    z-index:51;opacity:0;visibility:hidden;transition:opacity .12s ease,visibility .12s ease
+  }
+  .inv-cell:hover::after,.inv-cell:hover::before{opacity:1;visibility:visible}
+
+  a.chipLink{color:var(--rojo);font-weight:900;text-decoration:none;font-size:12px}
+  a.chipLink:hover{text-decoration:underline}
+  .pill{
+    background:#f3f4f6;color:#334155;padding:3px 6px;border-radius:999px;
+    font-weight:800;display:inline-block;font-size:11.5px;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div id="state" class="status">Cargando datos…</div>
+
+  <div class="tableWrap">
+    <div class="scrollY" id="scrollY">
+      <table id="tbl" aria-live="polite">
+        <colgroup>
+          <col class="cui"><col class="inv"><col class="dep"><col class="pro"><col class="dis">
+          <col class="pim"><col class="dev"><col class="det"><col class="pdf">
+        </colgroup>
+        <thead>
+          <tr>
+            <th>CUI</th>
+            <th>Inversión</th>
+            <th>Departamento</th>
+            <th>Provincia</th>
+            <th>Distrito</th>
+            <th>PIM</th>
+            <th>Devengado</th>
+            <th>Detalle proyecto</th>
+            <th>Ayuda memoria</th>
+          </tr>
+        </thead>
+        <tbody id="tbody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<script>
+const FS_URL = "https://pportalgis.vivienda.gob.pe/pfdserver/rest/services/OGEI/Mapa_Inversiones_Coord_MEF/FeatureServer/0";
+const FIELDS = [
+  "producto_proyecto","producto_proyecto_nombre",
+  "departamento","provincia","distrito",
+  "monto_pim","monto_devengado","url_ssp","url_pdf"
+].join(",");
+
+function fmtMoney(n){ return n ? ("S/ " + new Intl.NumberFormat('es-PE',{maximumFractionDigits:2}).format(n)) : "—"; }
+function escHtml(s){ return String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&gt;"}[c]||c)); }
+function esriPOST(url,obj){
+  const body = new URLSearchParams({f:"json",returnGeometry:"false",...obj,__ts:Date.now()});
+  return fetch(url,{method:"POST",headers:{"Content-Type":"application/x-www-form-urlencoded;charset=UTF-8"},body})
+    .then(r=>r.json());
+}
+
+async function loadRows(){
+  const state=document.getElementById("state");
+  state.textContent="Cargando datos…";
+
+  const page=2000; let offset=0; const out=[];
+  while(true){
+    const j=await esriPOST(FS_URL+"/query",{
+      where:"monto_pim>0",
+      outFields:FIELDS,
+      orderByFields:"monto_pim DESC",
+      resultRecordCount:page,resultOffset:offset
+    });
+    (j.features||[]).forEach(f=>{
+      const a=f.attributes||{};
+      out.push({
+        cui:a.producto_proyecto??"",
+        inv:a.producto_proyecto_nombre??"",
+        dep:a.departamento??"",
+        pro:a.provincia??"",
+        dis:a.distrito??"",
+        pim:Number(a.monto_pim)||0,
+        dev:Number(a.monto_devengado)||0,
+        ssp:a.url_ssp??"",
+        pdf:a.url_pdf??""
+      });
+    });
+    if(!j.exceededTransferLimit || (j.features||[]).length<page) break;
+    offset+=page;
+  }
+
+  render(out);
+  state.innerHTML=`<strong>Lista (${out.length.toLocaleString('es-PE')} filas)</strong>`;
+}
+
+function render(rows){
+  const tb=document.getElementById("tbody");
+  tb.innerHTML = rows.map(r=>`
+    <tr>
+      <td class="num">${r.cui||"—"}</td>
+      <td class="inv-cell" data-tip="${escHtml(r.inv)}">
+        <span class="ellip-text" title="${escHtml(r.inv)}">${escHtml(r.inv)}</span>
+      </td>
+      <td>${escHtml(r.dep)||"—"}</td>
+      <td>${escHtml(r.pro)||"—"}</td>
+      <td>${escHtml(r.dis)||"—"}</td>
+      <td class="num">${fmtMoney(r.pim)}</td>
+      <td class="num">${fmtMoney(r.dev)}</td>
+      <td>${r.ssp?`<a class="chipLink" href="${r.ssp}" target="_blank">Ver detalle</a>`:`<span class="pill">—</span>`}</td>
+      <td>${r.pdf?`<a class="chipLink" href="${r.pdf}" target="_blank">Ver PDF</a>`:`<span class="pill">—</span>`}</td>
+    </tr>
+  `).join("");
+
+  /* ÚNICO cambio: limitar a ~10 filas visibles */
+  requestAnimationFrame(()=>{
+    const scrollY=document.getElementById('scrollY');
+    const thead=document.querySelector('#tbl thead');
+    const firstRow=document.querySelector('#tbl tbody tr');
+    if(scrollY && thead && firstRow){
+      const hHead=thead.getBoundingClientRect().height;
+      const hRow=firstRow.getBoundingClientRect().height||26;
+      scrollY.style.maxHeight=(hHead + hRow*10)+'px'; /* ← 10 filas */
+    }
+  });
+}
+
+loadRows();
+</script>
+</body>
+</html>
