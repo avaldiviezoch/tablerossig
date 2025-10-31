@@ -2,605 +2,247 @@
 <html lang="es">
 <head>
 <meta charset="utf-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>MVCS — Rankings y Desempeño por Ejecutora (2025)</title>
-<link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;600;700;800;900&display=swap" rel="stylesheet"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Map Tour — Proyectos de Inversión MVCS</title>
+
+<link rel="stylesheet" href="https://js.arcgis.com/4.29/esri/themes/light/main.css">
+<script src="https://js.arcgis.com/4.29/"></script>
 
 <style>
   :root{
-    --azul:#1e6eb6;
-    --azul-osc:#174f84;
-    --turquesa:#5ebad6;
-    --gap-header:#f3f4f6;
-    --rojo:#d00000;
-    --ink:#0f172a;
-    --muted:#64748b;
-    --card:#ffffff;
-    --plomo:#f3f4f6;
-    --line:#e5e7eb;
-
-    --chip-ok:#16a34a; --chip-mid:#f59e0b; --chip-bad:#ef4444;
-
-    --shadow-card: 0 10px 22px rgba(2,6,23,.06), 0 2px 6px rgba(2,6,23,.05); /* sutil */
+    --brand:#1e6eb6; --ink:#0b2532; --muted:#475569; --line:#e5e7eb; --card:#ffffff;
   }
+  html,body{height:100%;margin:0;background:#eef3f8;color:var(--ink);
+    font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial}
 
-  *{box-sizing:border-box}
-  html,body{
-    margin:0;
-    background:#fff; /* Fondo principal completamente blanco */
-    font-family:'Nunito Sans',system-ui,Segoe UI,Roboto,Arial,sans-serif;
-    color:var(--ink)
+  .layout{
+    display:grid;
+    grid-template-columns:min(820px,58vw) 1fr;
+    gap:18px; min-height:100vh;
   }
+  .story{padding:clamp(12px,2.2vw,24px);}
+  .intro{
+    background:#fff;border:1px solid #dbe3ec;border-radius:16px;
+    padding:16px 18px;margin-bottom:16px;
+  }
+  .intro h1{margin:0 0 6px;font-weight:900;color:var(--brand);}
+  .intro p{margin:0;color:var(--muted);font-weight:600}
+  .mapCol{position:sticky;top:0;height:100vh;border-left:1px solid #e6edf5}
+  #viewDiv2D,#viewDiv3D{height:100%;width:100%}
+  #viewDiv2D{display:none;}
 
-  /* ======= TARJETAS RANKINGS (fondo blanco) ======= */
-  .wrap{max-width:1180px;margin:28px auto;padding:0 16px}
-  .grid{display:grid;grid-template-columns:1fr 1fr;gap:22px}
-  @media(max-width:900px){ .grid{grid-template-columns:1fr;gap:16px} }
-
+  .step{margin:0 0 18px;scroll-margin-top:18px}
   .card{
-    background:#fff;
-    border:1px solid var(--line);
-    border-radius:18px;
-    padding:28px 24px 22px;
-    box-shadow:var(--shadow-card); /* sombra pequeña/sutil */
-    display:flex; flex-direction:column; align-items:center; text-align:center;
+    background:#fff;border:1px solid #dbe3ec;border-radius:16px;
+    box-shadow:0 14px 36px rgba(2,6,23,.14);
+    overflow:hidden;display:grid;grid-auto-rows:auto;
   }
-  .card p.lead{
-    margin:0 0 14px 0; color:#374151; font-size:15px; line-height:1.4; max-width:36ch;
+  .img{height:260px;position:relative;overflow:hidden}
+  .img img{width:100%;height:100%;object-fit:cover}
+  .badge{
+    position:absolute;top:10px;left:10px;width:32px;height:32px;
+    border-radius:999px;background:var(--brand);color:#fff;
+    display:grid;place-items:center;font-weight:900;
+    outline:3px solid #ebf3ff;box-shadow:0 8px 18px rgba(30,110,182,.35);
   }
-  .kpi{ display:flex; align-items:flex-start; gap:8px; margin:4px 0 10px; }
-  .kpi .num{ font-weight:900; font-size:72px; line-height:1; color:var(--azul); }
-  .kpi .suf{ position:relative; top:-16px; font-weight:900; font-size:34px; line-height:1; color:var(--azul); }
-  .labelPuesto{ margin-top:-6px; font-size:40px; font-weight:900; color:var(--azul); }
+  .body{padding:14px 16px 16px}
+  .title{margin:0 0 8px;font-weight:900;letter-spacing:.2px;font-size:1.3rem;line-height:1.15}
+  .meta{margin:0 0 10px;color:#213547;font-weight:800}
+  .links{display:flex;gap:14px;flex-wrap:wrap;margin-top:8px}
+  .a{color:var(--brand);text-decoration:none;font-weight:900;border-bottom:2px solid #cfe3fb}
+  .a:hover{filter:brightness(.96)}
 
-  .actions{display:flex; gap:12px; flex-wrap:wrap; justify-content:center; margin-top:10px}
+  .step.is-active .card{outline:3px solid #e6f2ff}
+
+  .nav{
+    position:fixed;left:16px;bottom:16px;z-index:20;display:flex;gap:8px;
+  }
   .btn{
-    appearance:none; border:2px solid var(--rojo);
-    background:transparent; color:var(--rojo); font-weight:800;
-    padding:10px 14px; border-radius:999px; cursor:pointer;
-    transition:.18s ease; font-size:14px;
+    border:1px solid #dbe3ec;background:#fff;min-width:42px;height:42px;padding:0 10px;
+    border-radius:12px;display:grid;place-items:center;cursor:pointer;font-weight:900;
+    color:#1f2937;box-shadow:0 6px 16px rgba(0,0,0,.14);
   }
-  .btn:hover{filter:brightness(.98)}
+  .btn:hover{background:#f7fafc}
+  .esri-popup,.esri-popup__main-container{display:none!important}
 
-  /* ======= Área de tabla compartida ======= */
-  .tableSection{ max-width:1180px; margin:18px auto 8px; padding:0 16px; }
-  .tableShell{
-    background:#fff; border:1px solid var(--line); border-radius:14px;
-    box-shadow:0 14px 28px rgba(2,6,23,.08); overflow:hidden;
-    max-height:0; transition:max-height .28s ease;
+  @media(max-width:960px){
+    .layout{grid-template-columns:1fr}
+    .mapCol{order:-1;height:60vh}
+    .img{height:220px}
   }
-  .tableShell.open{ max-height:320px; }
-
-  .status{ padding:10px; font-weight:700; color:var(--muted) }
-  .status.error{ color:#b91c1c }
-
-  .scroller{ overflow:auto; max-height:320px; }
-  table{ width:100%; border-collapse:separate; border-spacing:0; table-layout:fixed; font-size:13px }
-  thead th{
-    position:sticky; top:0; z-index:2;
-    background:var(--turquesa); color:#ffffff;
-    font-weight:800; letter-spacing:.2px;
-    padding:12px 10px; text-align:center; border-bottom:2px solid #ffffff00;
-    border-right:6px solid var(--gap-header);
-  }
-  thead th:first-child{ border-top-left-radius:14px; }
-  thead th:last-child{ border-right:none; border-top-right-radius:14px; }
-
-  tbody td{ padding:10px 8px; border-bottom:1px solid var(--line); text-align:center }
-  tbody tr:nth-child(odd){ background:#f9fcfb }
-  td.num{ font-variant-numeric:tabular-nums }
-
-  col.c-rk{width:8%} col.c-sec{width:36%} col.c-pia{width:14%} col.c-pim{width:14%} col.c-dev{width:18%} col.c-avz{width:10%}
-
-  /* ======= BLOQUE DESEMPEÑO (solo esta franja en plomo) ======= */
-  .perf{
-    background:var(--plomo);
-    border-top:1px solid var(--line);
-    padding:48px 16px 54px;
-    margin-top:24px;
-  }
-  .perf .box{max-width:980px;margin:0 auto;text-align:center}
-  .perf h2{
-    font-size:30px; color:var(--azul); font-weight:900; margin:0 0 12px 0;
-    display:inline-block; position:relative;
-  }
-  .perf h2::after{ content:""; position:absolute; left:0; right:0; bottom:-6px; height:4px; background:var(--rojo); }
-  .perf p{max-width:78ch;margin:12px auto 16px;color:#374151}
-  .perf .actions{margin-top:10px}
-
-  /* ======= TABLA POR EJECUTORA (FULL-BLEED, fondo blanco) ======= */
-  .exec-wrap{
-    width:100vw;
-    margin-left:calc(50% - 50vw);
-    margin-right:calc(50% - 50vw);
-    background:#fff;
-  }
-  .card-flat{
-    border-top:1px solid var(--line);
-    border-bottom:1px solid var(--line);
-    border-left:0;border-right:0;
-    border-radius:0;
-    box-shadow:0 14px 28px rgba(2,6,23,.08);
-    overflow:hidden;
-  }
-  .header-flat{padding:12px 16px 8px;text-align:center;background:#fff}
-  .title-flat{margin:0;font-weight:800;font-size:19px;color:var(--ink)}
-  .legend{margin:8px 0 12px 0;display:flex;justify-content:center;gap:14px;font-size:12.5px;color:#111827;font-weight:600}
-  .legend .dot{width:.62rem;height:.62rem;border-radius:999px;display:inline-block;margin-right:.38rem;vertical-align:-.1rem}
-
-  .table-wrap{max-height:70vh;overflow:auto}
-  .table-exec{width:100%;border-collapse:separate;border-spacing:0;table-layout:fixed;font-size:13.5px}
-
-  .table-exec thead th{
-    position:sticky;top:0;z-index:40;
-    background:var(--turquesa);color:#fff;font-weight:800;padding:11px 8px;text-align:center;
-    border-bottom:2px solid #ffffff00;border-right:6px solid var(--gap-header);
-  }
-  .table-exec thead th.sticky-left{left:0;z-index:50;text-align:left;background:var(--turquesa);box-shadow:6px 0 8px -6px rgba(0,0,0,.18)}
-
-  .table-exec th+th,.table-exec td+td{border-left:1px solid var(--line)}
-  .table-exec tbody td,.table-exec tbody th{padding:9px 7px;border-bottom:1px solid var(--line);background:#fff;vertical-align:middle}
-  .table-exec tbody tr:nth-child(odd){background:#f9fcfb}
-  .num{text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
-  .pct{text-align:center;white-space:nowrap;font-variant-numeric:tabular-nums}
-
-  .table-exec tbody td.sticky,
-  .table-exec tbody th.sticky{
-    position:sticky;left:0;z-index:45;background:#fff;box-shadow:6px 0 8px -6px rgba(0,0,0,.18);text-align:left
-  }
-
-  /* Botón expandir con SVG animado */
-  .btn-expand{
-    border:0;background:transparent;font-weight:800;cursor:pointer;
-    padding:4px 0;border-radius:8px;text-align:left;color:var(--ink);
-    display:inline-flex;align-items:flex-start;gap:6px;max-width:100%;
-  }
-  .chev{
-    --chev-color:#ea580c;--chev-glow:rgba(234,88,12,.45);
-    width:1.35rem;height:1.35rem;position:relative;display:grid;place-items:center;flex-shrink:0;
-  }
-  .chev .arrow{
-    position:absolute;width:16px;height:16px;opacity:0;
-    filter:drop-shadow(0 5px 10px var(--chev-glow));
-    animation:chevDrip 1.8s ease-in-out infinite
-  }
-  .chev .arrow:nth-child(2){animation-delay:.22s}
-  .chev .arrow:nth-child(3){animation-delay:.44s}
-  @keyframes chevDrip{
-    0%{transform:translateY(-8px) scale(.95);opacity:0}
-    20%{transform:translateY(-2px) scale(1);opacity:1}
-    60%{transform:translateY(6px) scale(1.04);opacity:.95}
-    100%{transform:translateY(12px) scale(1);opacity:0}
-  }
-  .btn-expand:hover .chev{--chev-color:#ff6b1a;--chev-glow:rgba(255,107,26,.5)}
-  .btn-expand[aria-expanded="true"] .chev{--chev-color:#0ea5e9;--chev-glow:rgba(14,165,233,.45)}
-
-  /* Botón StoryMap */
-  .infoBtn{
-    position:relative;display:inline-flex;align-items:center;justify-content:center;
-    width:34px;height:34px;border-radius:10px;cursor:pointer;text-decoration:none;
-    background:radial-gradient(circle at 30% 30%, #38bdf8 0%, #0284c7 60%, #01497a 100%);
-    border:1.5px solid rgba(255,255,255,0.4);
-    box-shadow:0 0 14px rgba(56,189,248,.7), 0 6px 16px rgba(2,132,199,.4);
-    overflow:hidden;transition:transform .2s ease;
-  }
-  .infoBtn:hover{transform:scale(1.08)}
-  .infoBtn svg{width:20px;height:20px;stroke:#fff;stroke-width:2.2;fill:none}
 </style>
 </head>
 <body>
 
-<!-- ====== TARJETAS DE RANKING ====== -->
-<div class="wrap">
-  <div class="grid" id="cards">
-    <article class="card" data-key="left">
-      <p class="lead">El Ministerio de Vivienda, Construcción y Saneamiento se encuentra en el ranking entre sectores en el:</p>
-      <div class="kpi" aria-live="polite">
-        <span class="num" id="kpi-left">—</span><span class="suf">°</span>
-      </div>
-      <div class="labelPuesto">puesto</div>
-      <div class="actions">
-        <button class="btn" data-action="toggle" data-side="left">Ver tabla</button>
-        <button class="btn" data-action="excel" data-side="left">Exportar a Excel</button>
-      </div>
-    </article>
+<div class="layout">
+  <div class="story" id="story">
+    <section class="intro">
+      <h1>🛰️ Map Tour de Inversiones MVCS</h1>
+      <p>Desliza hacia abajo: el mapa se moverá automáticamente según el proyecto activo. Usa el botón 2D/3D para cambiar la vista.</p>
+    </section>
+  </div>
 
-    <article class="card" data-key="right">
-      <p class="lead">A nivel de inversiones, el ministerio se encuentra en el ranking entre sectores en el:</p>
-      <div class="kpi" aria-live="polite">
-        <span class="num" id="kpi-right">—</span><span class="suf">°</span>
-      </div>
-      <div class="labelPuesto">puesto</div>
-      <div class="actions">
-        <button class="btn" data-action="toggle" data-side="right">Ver tabla</button>
-        <button class="btn" data-action="excel" data-side="right">Exportar a Excel</button>
-      </div>
-    </article>
+  <div class="mapCol">
+    <div id="viewDiv3D"></div>
+    <div id="viewDiv2D"></div>
   </div>
 </div>
 
-<!-- ====== ÁREA DE TABLA COMPARTIDA ====== -->
-<section class="tableSection">
-  <div id="tableShell" class="tableShell" aria-live="polite">
-    <div id="state" class="status" role="status">—</div>
-    <div class="scroller" id="scroller" style="display:none">
-      <table id="tbl">
-        <colgroup>
-          <col class="c-rk"><col class="c-sec"><col class="c-pia"><col class="c-pim"><col class="c-dev"><col class="c-avz">
-        </colgroup>
-        <thead>
-          <tr>
-            <th>RANKING</th>
-            <th>Sector</th>
-            <th>PIA</th>
-            <th>PIM</th>
-            <th>Devengado</th>
-            <th>Avance(%)</th>
-          </tr>
-        </thead>
-        <tbody id="tbody"></tbody>
-      </table>
-    </div>
-  </div>
-</section>
-
-<!-- ====== BLOQUE DESEMPEÑO (franja plomo) ====== -->
-<section class="perf" id="desempeno">
-  <div class="box">
-    <h2>Desempeño financiero por ejecutora</h2>
-    <p>
-      El presupuesto asignado, comprometido y ejecutado, permite identificar avances y
-      desafíos en la gestión de recursos, promoviendo así una gestión eficiente y transparente
-      de los recursos públicos asignados para viviendas, infraestructura urbana y saneamiento.
-    </p>
-    <div class="actions">
-      <button id="btnShowExec" class="btn">Ver tabla</button>
-      <button id="btnExcelExec" class="btn">Exportar a Excel</button>
-    </div>
-  </div>
-</section>
-
-<!-- ====== TABLA POR EJECUTORA (FULL-BLEED, fondo blanco) ====== -->
-<div class="exec-wrap" id="execWrap" style="display:none">
-  <div class="card-flat">
-    <div class="header-flat">
-      <h3 class="title-flat">Ejecución presupuestal — MVCS (2025) por Pliego y Unidad Ejecutora</h3>
-      <div class="legend">
-        <span><span class="dot" style="background:#ef4444"></span><strong>Rojo</strong> &lt; 33%</span>
-        <span><span class="dot" style="background:#f59e0b"></span><strong>Ámbar</strong> 33%–67%</span>
-        <span><span class="dot" style="background:#16a34a"></span><strong>Verde</strong> ≥ 67%</span>
-      </div>
-    </div>
-    <div class="table-wrap">
-      <table class="table-exec" id="tblExec">
-        <colgroup>
-          <col style="width:320px">
-          <col style="width:130px"><col style="width:130px"><col style="width:110px">
-          <col style="width:130px"><col style="width:130px"><col style="width:110px">
-          <col style="width:130px"><col style="width:130px"><col style="width:110px">
-        </colgroup>
-        <thead>
-          <tr>
-            <th class="sticky-left">PLIEGO/EJECUTORAS</th>
-            <th>PIM ACTIVIDADES<br/>Y PROYECTOS</th>
-            <th>DEVENGADO</th>
-            <th>AVANCE %</th>
-            <th>PIM PROYECTO</th>
-            <th>DEVENGADO<br/>PROYECTO</th>
-            <th>AVANCE<br/>PROYECTO</th>
-            <th>PIM ACTIVIDAD</th>
-            <th>DEVENGADO<br/>ACTIVIDAD</th>
-            <th>AVANCE<br/>ACTIVIDAD</th>
-          </tr>
-        </thead>
-        <tbody id="tbodyExec"></tbody>
-        <tfoot id="tfootExec"></tfoot>
-      </table>
-    </div>
-  </div>
+<div class="nav">
+  <button id="toggleDimBtn" class="btn">2D / 3D</button>
+  <button id="prevBtn" class="btn">‹</button>
+  <button id="nextBtn" class="btn">›</button>
 </div>
 
 <script>
-/* ========= KPIs y tabla compartida ========= */
-const ENDPOINT_LEFT  = "https://pportalgis.vivienda.gob.pe/pfdserver/rest/services/OGEI/Mapa_Inversiones_MEF/MapServer/9";
-const ENDPOINT_RIGHT = "https://pportalgis.vivienda.gob.pe/pfdserver/rest/services/OGEI/Mapa_Inversiones_MEF/MapServer/10";
-const KPI_SECTOR = "VIVIENDA CONSTRUCCION Y SANEAMIENTO";
-
-let currentSide = null;
-let cacheRows   = { left: null, right: null };
-
-function cacheBust(){ return String(Date.now()); }
-function esriPOST(url, obj){
-  const body = new URLSearchParams({ f:"json", returnGeometry:"false", ...obj, __ts:cacheBust() });
-  return fetch(url+"/query", { method:"POST", headers:{ "Content-Type":"application/x-www-form-urlencoded;charset=UTF-8" }, body })
-    .then(r=>{ if(!r.ok) throw new Error("HTTP "+r.status); return r.json(); })
-    .then(j=>{ if(j.error) throw new Error(j.error.message||"ArcGIS"); return j; });
-}
-function fmtMoney(n){ return new Intl.NumberFormat("es-PE",{minimumFractionDigits:2,maximumFractionDigits:2}).format(Number(n)||0); }
-function fmtPct(n){ const v=Number(n); return isFinite(v) ? new Intl.NumberFormat("es-PE",{minimumFractionDigits:2,maximumFractionDigits:2}).format(v) : "—"; }
-function escQuotes(v){ return String(v).replaceAll("'","''"); }
-function escapeHtml(s){ return String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]||c)); }
-
-async function loadKPI(side){
-  const url = side==="left" ? ENDPOINT_LEFT : ENDPOINT_RIGHT;
-  try{
-    const outStatistics = JSON.stringify([{statisticType:"min",onStatisticField:"rankin",outStatisticFieldName:"min_rankin"}]);
-    const where = `sector_nombre='${escQuotes(KPI_SECTOR)}'`;
-    const j = await esriPOST(url, { where, outStatistics, groupByFieldsForStatistics:"" });
-    const num = j.features?.[0]?.attributes?.min_rankin ?? null;
-    document.getElementById("kpi-"+side).textContent = (num!=null) ? Number(num).toLocaleString('es-PE') : "—";
-  }catch(e){
-    document.getElementById("kpi-"+side).textContent = "—";
-    console.error("KPI "+side, e);
+/* =================== DATOS REALES =================== */
+const DATA = [
+  {
+    titulo:"AMPLIACION, RENOVACION Y MEJORAMIENTO DEL SISTEMA DE AGUA POTABLE Y ALCANTARILLADO DE LA LOCALIDAD DE CARAVELI",
+    cui:"2107751", programa:"PNSU",
+    foto:"https://images.unsplash.com/photo-1558980664-10a0ba81a2ff?q=80&w=1600&auto=format&fit=crop",
+    lon:null, lat:null,
+    url_detalle:"https://sspfront.vivienda.gob.pe/Geoportal/Dashboard/Dashboard1/?pIdProyecto=47490",
+    url_pdf:"https://ssp.vivienda.gob.pe/Monitor/Ayuda_Memoria.aspx?id=47029&idtipo=3&t=r"
+  },
+  {
+    titulo:"MEJORAMIENTO Y AMPLIACION DEL SERVICIO DE DRENAJE PLUVIAL EN 4 DISTRITOS DE LA PROVINCIA DE CUSCO - DEPARTAMENTO DE CUSCO",
+    cui:"2459017", programa:"PNSU",
+    foto:"https://images.unsplash.com/photo-1538076542933-a701b98d8a0d?q=80&w=1600&auto=format&fit=crop",
+    lon:null, lat:null,
+    url_detalle:"https://sspfront.vivienda.gob.pe/Geoportal/Dashboard/Dashboard1/?pIdProyecto=47490",
+    url_pdf:"https://ssp.vivienda.gob.pe/Monitor/Ayuda_Memoria.aspx?id=47490&idtipo=3&t=r"
+  },
+  {
+    titulo:"REPARACION DE PTAP EN EL SISTEMA DE AGUA POTABLE DE LA PTAP CURUMUY, DISTRITO DE PIURA",
+    cui:"2668668", programa:"PNSU",
+    foto:"https://images.unsplash.com/photo-1509228468518-180dd4864904?q=80&w=1600&auto=format&fit=crop",
+    lon:null, lat:null,
+    url_detalle:"https://sspfront.vivienda.gob.pe/Geoportal/Dashboard/Dashboard1/?pIdProyecto=47490",
+    url_pdf:"https://ssp.vivienda.gob.pe/Monitor/Ayuda_Memoria.aspx?id=48256&idtipo=3&t=r"
+  },
+  {
+    titulo:"MEJORAMIENTO Y AMPLIACION DE LOS SISTEMAS DE AGUA POTABLE Y ALCANTARILLADO - SECTORES 273, 277, 278, 279, 280, 394, 395 - VENTANILLA, CALLAO",
+    cui:"2309659", programa:"PASLC",
+    foto:"https://images.unsplash.com/photo-1529101091764-c3526daf38fe?q=80&w=1600&auto=format&fit=crop",
+    lon:null, lat:null,
+    url_detalle:"https://sspfront.vivienda.gob.pe/Geoportal/Dashboard/Dashboard1/?pIdProyecto=47534",
+    url_pdf:"https://ssp.vivienda.gob.pe/Monitor/Ayuda_Memoria.aspx?id=47534&idtipo=3&t=r"
+  },
+  {
+    titulo:"INSTALACION DE LOS SISTEMAS DE AGUA POTABLE Y SANEAMIENTO PARA EL CENTRO POBLADO DE KUYUNTZA - ANDOAS, LORETO",
+    cui:"2235563", programa:"PNSR",
+    foto:"https://images.unsplash.com/photo-1563453392212-326f5e854473?q=80&w=1600&auto=format&fit=crop",
+    lon:null, lat:null,
+    url_detalle:"https://sspfront.vivienda.gob.pe/Geoportal/Dashboard/Dashboard1/?pIdProyecto=48177",
+    url_pdf:"https://ssp.vivienda.gob.pe/Monitor/Ayuda_Memoria.aspx?id=48177&idtipo=3&t=r"
+  },
+  {
+    titulo:"MEJORAMIENTO Y AMPLIACION DEL SISTEMA DE ALCANTARILLADO Y TRATAMIENTO DE AGUAS RESIDUALES EN 7 DISTRITOS DE TACNA",
+    cui:"2428087", programa:"PNSU",
+    foto:"https://images.unsplash.com/photo-1509395176047-4a66953fd231?q=80&w=1600&auto=format&fit=crop",
+    lon:null, lat:null,
+    url_detalle:"https://sspfront.vivienda.gob.pe/Geoportal/Dashboard/Dashboard1/?pIdProyecto=47159",
+    url_pdf:"https://ssp.vivienda.gob.pe/Monitor/Ayuda_Memoria.aspx?id=47159&idtipo=3&t=r"
+  },
+  {
+    titulo:"AMPLIACION Y MEJORAMIENTO DE LOS SERVICIOS DE AGUA POTABLE Y ALCANTARILLADO DE LA CIUDAD DE JULIACA - PUNO",
+    cui:"2331661", programa:"PNSU",
+    foto:"https://images.unsplash.com/photo-1505751172876-fa1923c5c528?q=80&w=1600&auto=format&fit=crop",
+    lon:null, lat:null,
+    url_detalle:"https://sspfront.vivienda.gob.pe/Geoportal/Dashboard/Dashboard1/?pIdProyecto=46812",
+    url_pdf:"https://ssp.vivienda.gob.pe/Monitor/Ayuda_Memoria.aspx?id=46812&idtipo=3&t=r"
+  },
+  {
+    titulo:"AMPLIACION DE LA PRODUCCION DE AGUA EN 6 DISTRITOS DE LA PROVINCIA DE CUSCO",
+    cui:"2497598", programa:"PNSU",
+    foto:"https://images.unsplash.com/photo-1518611012118-696072aa579a?q=80&w=1600&auto=format&fit=crop",
+    lon:null, lat:null,
+    url_detalle:"https://sspfront.vivienda.gob.pe/Geoportal/Dashboard/Dashboard1/?pIdProyecto=47395",
+    url_pdf:"https://ssp.vivienda.gob.pe/Monitor/Ayuda_Memoria.aspx?id=47395&idtipo=3&t=r"
+  },
+  {
+    titulo:"MEJORAMIENTO Y AMPLIACION DEL SERVICIO DE ALCANTARILLADO Y TRATAMIENTO DE AGUAS RESIDUALES - NUEVO CHIMBOTE Y CHIMBOTE, ANCASH",
+    cui:"2532566", programa:"PNSU",
+    foto:"https://images.unsplash.com/photo-1492684223066-81342ee5ff30?q=80&w=1600&auto=format&fit=crop",
+    lon:null, lat:null,
+    url_detalle:"https://sspfront.vivienda.gob.pe/Geoportal/Dashboard/Dashboard1/?pIdProyecto=46826",
+    url_pdf:"https://ssp.vivienda.gob.pe/Monitor/Ayuda_Memoria.aspx?id=46826&idtipo=2&t=r"
+  },
+  {
+    titulo:"AMPLIACION Y MEJORAMIENTO DEL SISTEMA DE AGUA POTABLE Y ALCANTARILLADO - PIURA Y CASTILLA, PIURA",
+    cui:"2302373", programa:"PNSU",
+    foto:"https://images.unsplash.com/photo-1545259741-2ea3ebf61fa6?q=80&w=1600&auto=format&fit=crop",
+    lon:null, lat:null,
+    url_detalle:"https://sspfront.vivienda.gob.pe/Geoportal/Dashboard/Dashboard1/?pIdProyecto=46810",
+    url_pdf:"https://ssp.vivienda.gob.pe/Monitor/Ayuda_Memoria.aspx?id=46810&idtipo=3&t=r"
   }
-}
+];
+/* =================================================== */
 
-const OUT_FIELDS = ["rankin","sector_nombre","sum_monto_pia","sum_monto_pim","sum_monto_devengado","avance"].join(",");
-async function fetchRows(side){
-  const url = side==="left" ? ENDPOINT_LEFT : ENDPOINT_RIGHT;
-  const page=2000; let offset=0; const rows=[];
-  while(true){
-    const j = await esriPOST(url, {
-      where:"1=1", outFields:OUT_FIELDS, orderByFields:"rankin ASC",
-      resultRecordCount:page, resultOffset:offset
-    });
-    (j.features||[]).forEach(f=>{
-      const a=f.attributes||{};
-      rows.push({rk:a.rankin??null, sec:a.sector_nombre??"", pia:+a.sum_monto_pia||0, pim:+a.sum_monto_pim||0, dev:+a.sum_monto_devengado||0, avz:+a.avance});
-    });
-    if(!j.exceededTransferLimit || (j.features||[]).length<page) break;
-    offset += page;
-  }
-  return rows;
-}
-function renderTable(rows){
-  const tb = document.getElementById("tbody");
-  tb.innerHTML = rows.map(r=>`
-    <tr>
-      <td class="num">${r.rk ?? "—"}</td>
-      <td>${escapeHtml(r.sec||"—")}</td>
-      <td class="num">${fmtMoney(r.pia)}</td>
-      <td class="num">${fmtMoney(r.pim)}</td>
-      <td class="num">${fmtMoney(r.dev)}</td>
-      <td class="num">${fmtPct(r.avz)}</td>
-    </tr>
-  `).join("");
-}
-async function toggleTable(side){
-  const shell = document.getElementById("tableShell");
-  const scroller = document.getElementById("scroller");
-  const stateEl = document.getElementById("state");
+require([
+  "esri/Map","esri/views/MapView","esri/views/SceneView","esri/layers/GraphicsLayer","esri/Graphic","esri/geometry/Point","esri/widgets/BasemapToggle"
+], (Map,MapView,SceneView,GraphicsLayer,Graphic,Point,BasemapToggle)=>{
 
-  const buttons = document.querySelectorAll('button[data-action="toggle"]');
-  if (shell.classList.contains("open") && currentSide===side){
-    shell.classList.remove("open"); stateEl.textContent = "—"; scroller.style.display = "none"; currentSide = null;
-    buttons.forEach(b=> b.textContent="Ver tabla");
-    return;
-  }
+  const map = new Map({basemap:"satellite"});
+  const layer = new GraphicsLayer(); map.add(layer);
 
-  buttons.forEach(b=> b.textContent = (b.dataset.side===side) ? "Ocultar tabla" : "Ver tabla");
-  shell.classList.add("open"); stateEl.classList.remove("error"); stateEl.textContent = "Cargando datos…"; scroller.style.display = "none";
+  const view2D = new MapView({container:"viewDiv2D",map,center:[-75,-10],zoom:5});
+  const view3D = new SceneView({container:"viewDiv3D",map,center:[-75,-10],zoom:5,tilt:65});
+  view2D.ui.add(new BasemapToggle({view:view2D,nextBasemap:"osm"}),"bottom-right");
+  view3D.ui.add(new BasemapToggle({view:view3D,nextBasemap:"osm"}),"bottom-right");
 
-  try{
-    const rows = cacheRows[side] || await fetchRows(side);
-    cacheRows[side] = rows; renderTable(rows);
-    stateEl.textContent = `Listo (${rows.length.toLocaleString('es-PE')} filas)`;
-    scroller.style.display = "block"; currentSide = side;
-  }catch(e){
-    console.error(e); stateEl.classList.add("error"); stateEl.textContent = "No se pudo cargar la tabla."; scroller.style.display = "none";
-  }
-}
-function toCSV(rows){
-  const sep=";"; const header=["RANKING","Sector","PIA","PIM","Devengado","Avance(%)"];
-  const esc=v=>`"${String(v??"").replace(/"/g,'""')}"`;
-  const lines = rows.map(r=>[r.rk,r.sec,r.pia,r.pim,r.dev,r.avz].map(esc).join(sep));
-  return header.join(sep)+"\n"+lines.join("\n");
-}
-function downloadCSV(side){
-  const rows = cacheRows[side];
-  if(!rows || !rows.length) return;
-  const csv=toCSV(rows);
-  const bom=new Uint8Array([0xEF,0xBB,0xBF]);
-  const blob=new Blob([bom,csv],{type:"text/csv;charset=utf-8"});
-  const a=document.createElement("a");
-  a.href=URL.createObjectURL(blob);
-  a.download = side==="left" ? "ranking_general_sector.csv" : "ranking_inversiones_sector.csv";
-  document.body.appendChild(a); a.click(); a.remove();
-  setTimeout(()=>URL.revokeObjectURL(a.href),1200);
-}
+  let is3D=true; const activeView=()=>is3D?view3D:view2D;
 
-document.querySelectorAll('button[data-action="toggle"]').forEach(btn=> btn.addEventListener('click', ()=> toggleTable(btn.dataset.side)));
-document.querySelectorAll('button[data-action="excel"]').forEach(btn=> btn.addEventListener('click', ()=> {
-  const side = btn.dataset.side;
-  if(!cacheRows[side]){ toggleTable(side).then(()=> downloadCSV(side)); } else{ downloadCSV(side); }
-}));
+  const baseSymbol={type:"simple-marker",size:18,color:[24,160,251,0.9],outline:{color:"white",width:2}};
+  const dimSymbol={type:"simple-marker",size:12,color:[24,160,251,0.4],outline:{color:"white",width:1.5}};
+  const hotSymbol={type:"simple-marker",size:26,color:[30,110,182,1],outline:{color:"white",width:3}};
 
-loadKPI("left"); loadKPI("right");
+  const graphics=DATA.map((d,i)=>new Graphic({
+    geometry:new Point({longitude:d.lon||(-77+i),latitude:d.lat||(-10+i*0.5)}),
+    attributes:{idx:i,...d},symbol:baseSymbol
+  }));
+  layer.addMany(graphics);
 
-
-/* ========= EJECUTORAS ========= */
-const SERVICE="https://pportalgis.vivienda.gob.pe/pfdserver/rest/services/OGEI/Mapa_Inversiones_MEF/FeatureServer/13/query";
-const BASE_WHERE="sector_nombre = 'VIVIENDA CONSTRUCCION Y SANEAMIENTO' AND ano_eje = 2025";
-const INFO_LINKS={ "MINISTERIO DE VIVIENDA, CONSTRUCCION Y SANEAMIENTO": "https://pportalgis.vivienda.gob.pe/pportal/apps/storymaps/stories/750c7c6b13bf477287b8db07c865f1b1" };
-
-const nf=new Intl.NumberFormat('es-PE');
-const pctStr=(r)=>isFinite(r)?(r*100).toFixed(2)+' %':'0.00 %';
-
-function buildParams(extra){
-  return new URLSearchParams({
-    where:`${BASE_WHERE}${extra? ' AND '+extra:''}`,
-    groupByFieldsForStatistics:"pliego_nombre,ejecutora_nombre",
-    outStatistics:JSON.stringify([
-      {statisticType:"sum",onStatisticField:"monto_pim",outStatisticFieldName:"sum_pim"},
-      {statisticType:"sum",onStatisticField:"monto_devengado",outStatisticFieldName:"sum_dev"}
-    ]),
-    returnGeometry:"false", f:"json"
-  }).toString();
-}
-async function queryStats(extra){
-  const res=await fetch(`${SERVICE}?${buildParams(extra)}`,{cache:'no-store'});
-  if(!res.ok) throw new Error('HTTP '+res.status);
-  const json=await res.json();
-  if(json.error) throw new Error(json.error.message||'Error servicio');
-  return (json.features||[]).map(f=>{
-    const a=f.attributes||{};
-    return { pliego:String(a.pliego_nombre||'').trim()||'(Sin pliego)', ejecutora:String(a.ejecutora_nombre||'').trim()||'(Sin ejecutora)', pim:Number(a.sum_pim||0), dev:Number(a.sum_dev||0) };
+  const story=document.getElementById("story");
+  DATA.forEach((d,i)=>{
+    story.insertAdjacentHTML("beforeend",`
+    <article class="step" data-idx="${i}">
+      <div class="card">
+        <div class="img"><span class="badge">${i+1}</span><img src="${d.foto}" alt=""></div>
+        <div class="body">
+          <h2 class="title">${d.titulo}</h2>
+          <p class="meta">CUI: ${d.cui}<br>PROGRAMA: ${d.programa}</p>
+          <div class="links">
+            <a class="a" href="${d.url_detalle}" target="_blank">Detalle Proyecto</a>
+            <a class="a" href="${d.url_pdf}" target="_blank">Ayuda Memoria</a>
+          </div>
+        </div>
+      </div>
+    </article>`);
   });
-}
-function mergeStats(total,proy,act){
-  const key=r=>`${r.pliego}|||${r.ejecutora}`;
-  const it=new Map(), ip=new Map(), ia=new Map();
-  total.forEach(r=>it.set(key(r),r)); proy.forEach(r=>ip.set(key(r),r)); act.forEach(r=>ia.set(key(r),r));
-  const rows=[...new Set([...it.keys(),...ip.keys(),...ia.keys()])].map(k=>{
-    const t=it.get(k)||{}, p=ip.get(k)||{}, a=ia.get(k)||{};
-    return { pliego:t.pliego||p.pliego||a.pliego||'', ejecutora:t.ejecutora||p.ejecutora||a.ejecutora||'', pim:t.pim||0, dev:t.dev||0, pim_proy:p.pim||0, dev_proy:p.dev||0, pim_act:a.pim||0, dev_act:a.dev||0 };
-  });
-  const byP=new Map();
-  for(const r of rows){ if(!byP.has(r.pliego)) byP.set(r.pliego,[]); byP.get(r.pliego).push(r); }
-  for(const arr of byP.values()){ arr.sort((x,y)=>x.ejecutora.localeCompare(y.ejecutora,'es')); }
-  return new Map([...byP.entries()].sort((a,b)=>a[0].localeCompare(b[0],'es')));
-}
 
-function renderExec(grouped){
-  const tbody=document.getElementById('tbodyExec'); tbody.innerHTML='';
-  let tot={pim:0,dev:0,pim_proy:0,dev_proy:0,pim_act:0,dev_act:0};
+  let active=0;
+  function applySymbols(idx){graphics.forEach((g,i)=>g.symbol=i===idx?hotSymbol:dimSymbol);}
+  function flyTo(idx){const g=graphics[idx];if(!g)return;activeView().goTo({target:g.geometry,zoom:17,tilt:is3D?65:0},{duration:900});}
+  function setActive(idx){active=idx;document.querySelectorAll(".step").forEach(s=>s.classList.remove("is-active"));
+    document.querySelector(`.step[data-idx="${idx}"]`)?.classList.add("is-active");
+    applySymbols(idx);flyTo(idx);}
+  const obs=new IntersectionObserver(entries=>{entries.forEach(e=>{if(e.isIntersecting){setActive(Number(e.target.dataset.idx));}})},{threshold:0.55});
+  document.querySelectorAll(".step").forEach(s=>obs.observe(s));
 
-  for(const [pliego,items] of grouped.entries()){
-    const s=items.reduce((a,r)=>({
-      pim:a.pim+r.pim, dev:a.dev+r.dev,
-      pim_proy:a.pim_proy+r.pim_proy, dev_proy:a.dev_proy+r.dev_proy,
-      pim_act:a.pim_act+r.pim_act, dev_act:a.dev_act+r.dev_act
-    }),{pim:0,dev:0,pim_proy:0,dev_proy:0,pim_act:0,dev_act:0});
-
-    Object.keys(tot).forEach(k=>tot[k]+=s[k]);
-
-    const av = s.pim>0 ? s.dev/s.pim : 0;
-    const avp = s.pim_proy>0 ? s.dev_proy/s.pim_proy : 0;
-    const ava = s.pim_act>0 ? s.dev_act/s.pim_act : 0;
-
-    const gid = 'g_' + Math.random().toString(36).slice(2,9);
-    const story = (pliego.toUpperCase().includes("MINISTERIO DE VIVIENDA")) ?
-      `<a class="infoBtn" href="${INFO_LINKS['MINISTERIO DE VIVIENDA, CONSTRUCCION Y SANEAMIENTO']}" target="_blank" rel="noopener" title="Ver StoryMap">
-         <svg viewBox="0 0 24 24"><path d="M14 3h7v7"/><path d="M10 14 21 3"/><path d="M21 14v7h-7"/><path d="M3 10 14 21"/></svg>
-       </a>` : '';
-
-    const groupHTML = `<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;">
-      <button class="btn-expand" aria-expanded="false" aria-controls="${gid}">
-        <span class="chev">
-          <svg class="arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 4v12"></path><path d="M8 12l4 4 4-4"></path></svg>
-          <svg class="arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 4v12"></path><path d="M8 12l4 4 4-4"></path></svg>
-          <svg class="arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 4v12"></path><path d="M8 12l4 4 4-4"></path></svg>
-        </span>
-        <span style="white-space:normal;word-break:break-word;">${pliego}</span>
-      </button>
-      ${story}
-    </div>`;
-
-    const dot = v => `<span class="dot" style="background:${v<0.33?'#ef4444':v<0.67?'#f59e0b':'#16a34a'}"></span>`;
-    const addRow=(cells,isHead=false)=>{
-      const tr=document.createElement('tr');
-      tr.className=isHead?'group':'';
-      cells.forEach(c=>{
-        const el=document.createElement(isHead?'th':'td');
-        if(c.cls) el.className=c.cls;
-        el.innerHTML=c.html; tr.appendChild(el);
-      });
-      tbody.appendChild(tr);
-    };
-
-    addRow([
-      {html:groupHTML, cls:'sticky'},
-      {html:nf.format(s.pim),cls:'num'},{html:nf.format(s.dev),cls:'num'},
-      {html:`${dot(av)}${pctStr(av)}`,cls:'pct'},
-      {html:nf.format(s.pim_proy),cls:'num'},{html:nf.format(s.dev_proy),cls:'num'},
-      {html:`${dot(avp)}${pctStr(avp)}`,cls:'pct'},   /* AVANCE PROYECTO con punto */
-      {html:nf.format(s.pim_act),cls:'num'},{html:nf.format(s.dev_act),cls:'num'},
-      {html:`${dot(ava)}${pctStr(ava)}`,cls:'pct'}
-    ],true);
-
-    for(const r of items){
-      const av2 = r.pim>0 ? r.dev/r.pim : 0;
-      const avp2 = r.pim_proy>0 ? r.dev_proy/r.pim_proy : 0;
-      const ava2 = r.pim_act>0 ? r.dev_act/r.pim_act : 0;
-      const tr=document.createElement('tr');
-      tr.className='item'; tr.setAttribute('data-parent',gid); tr.style.display='none';
-      tr.innerHTML=`
-        <td class="sticky" style="padding-left:24px;white-space:normal;word-break:break-word;">${r.ejecutora}</td>
-        <td class="num">${nf.format(r.pim)}</td><td class="num">${nf.format(r.dev)}</td>
-        <td class="pct">${dot(av2)}${pctStr(av2)}</td>
-        <td class="num">${nf.format(r.pim_proy)}</td><td class="num">${nf.format(r.dev_proy)}</td>
-        <td class="pct">${dot(avp2)}${pctStr(avp2)}</td>
-        <td class="num">${nf.format(r.pim_act)}</td><td class="num">${nf.format(r.dev_act)}</td>
-        <td class="pct">${dot(ava2)}${pctStr(ava2)}</td>`;
-      tbody.appendChild(tr);
-    }
-  }
-
-  const tfoot=document.getElementById('tfootExec');
-  const tav = tot.pim>0 ? tot.dev/tot.pim : 0;
-  const tavp = tot.pim_proy>0 ? tot.dev_proy/tot.pim_proy : 0;
-  const tava = tot.pim_act>0 ? tot.dev_act/tot.pim_act : 0;
-  const dot = v => `<span class="dot" style="background:${v<0.33?'#ef4444':v<0.67?'#f59e0b':'#16a34a'}"></span>`;
-  tfoot.innerHTML=`<tr>
-    <td class="sticky" style="font-weight:900;text-align:left">Total</td>
-    <td class="num">${nf.format(tot.pim)}</td><td class="num">${nf.format(tot.dev)}</td>
-    <td class="pct">${dot(tav)}${pctStr(tav)}</td>
-    <td class="num">${nf.format(tot.pim_proy)}</td><td class="num">${nf.format(tot.dev_proy)}</td>
-    <td class="pct">${dot(tavp)}${pctStr(tavp)}</td>
-    <td class="num">${nf.format(tot.pim_act)}</td><td class="num">${nf.format(tot.dev_act)}</td>
-    <td class="pct">${dot(tava)}${pctStr(tava)}</td>
-  </tr>`;
-
-  /* expandir/colapsar ejecutoras */
-  tbody.querySelectorAll('.btn-expand').forEach(btn=>{
-    btn.addEventListener('click',()=>{
-      const id=btn.getAttribute('aria-controls');
-      const open=btn.getAttribute('aria-expanded')==='true';
-      btn.setAttribute('aria-expanded',String(!open));
-      tbody.querySelectorAll(`tr.item[data-parent="${id}"]`).forEach(tr=> tr.style.display=open?'none':'');
-    });
-  });
-}
-
-async function loadExecutors(){
-  try{
-    const [all,proy,act]=await Promise.all([
-      queryStats("1=1"),
-      queryStats("tipo_act_proy_nombre = 'PROYECTO'"),
-      queryStats("tipo_act_proy_nombre = 'ACTIVIDAD'")
-    ]);
-    renderExec(mergeStats(all,proy,act));
-  }catch(err){
-    console.error(err);
-    document.getElementById('tbodyExec').innerHTML=`<tr><td colspan="10" style="text-align:center;color:#b91c1c;padding:18px">Error al cargar datos</td></tr>`;
-  }
-}
-
-function exportTableToExcel(){
-  const table=document.getElementById('tblExec'); if(!table) return;
-  const clone=table.cloneNode(true);
-  clone.querySelectorAll('td.num, th.num').forEach(td=> td.setAttribute('style',(td.getAttribute('style')||'')+'; mso-number-format:"\\#\\,\\#\\#0";'));
-  const html=`<!DOCTYPE html><html><head><meta charset="utf-8">
-  <style>table{border-collapse:collapse}th,td{border:1px solid #d1d5db;padding:6px 8px;white-space:nowrap}
-  th{background:#5ebad6;color:#fff;font-weight:800}</style>
-  </head><body>${clone.outerHTML}</body></html>`;
-  const blob=new Blob([html],{type:'application/vnd.ms-excel;charset=utf-8;'});
-  const a=document.createElement('a');
-  a.href=URL.createObjectURL(blob);
-  a.download='ejecutoras_mvcs_2025.xls';
-  document.body.appendChild(a); a.click(); a.remove();
-}
-
-/* Toggle de desempeño con texto “Ver/Ocultar tabla” */
-const btnShowExec = document.getElementById('btnShowExec');
-btnShowExec.addEventListener('click',()=>{
-  const wrap=document.getElementById('execWrap');
-  const isHidden = wrap.style.display==='none';
-  if(isHidden){ wrap.style.display='block'; loadExecutors(); btnShowExec.textContent='Ocultar tabla'; }
-  else{ wrap.style.display='none'; btnShowExec.textContent='Ver tabla'; }
+  document.getElementById("toggleDimBtn").onclick=()=>{
+    const from=activeView();const to=is3D?view2D:view3D;
+    to.goTo(from.viewpoint,{duration:0});
+    document.getElementById("viewDiv3D").style.display=is3D?"none":"block";
+    document.getElementById("viewDiv2D").style.display=is3D?"block":"none";
+    is3D=!is3D;setActive(active);
+  };
+  document.getElementById("prevBtn").onclick=()=>{const i=(active-1+DATA.length)%DATA.length;
+    document.querySelector(`.step[data-idx="${i}"]`)?.scrollIntoView({behavior:"smooth",block:"center"});}
+  document.getElementById("nextBtn").onclick=()=>{const i=(active+1)%DATA.length;
+    document.querySelector(`.step[data-idx="${i}"]`)?.scrollIntoView({behavior:"smooth",block:"center"});}
 });
-
-document.getElementById('btnExcelExec').addEventListener('click',exportTableToExcel);
 </script>
 </body>
 </html>
