@@ -2,476 +2,570 @@
 <html lang="es">
 <head>
 <meta charset="utf-8"/>
-<meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>Map Tour + Indicadores + Swipes — MVCS</title>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Grandes proyectos + City Tour + Imágenes multitemporales — MVCS</title>
 
-<!-- ArcGIS -->
-<link rel="stylesheet" href="https://js.arcgis.com/4.29/esri/themes/light/main.css">
+<link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@600;700;800;900&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="https://js.arcgis.com/4.29/esri/themes/light/main.css"/>
 <script src="https://js.arcgis.com/4.29/"></script>
 
-<!-- Fuente institucional (para el módulo Swipe) -->
-<link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@600;700;800;900&display=swap" rel="stylesheet"/>
-
 <style>
-/* ================== VARIABLES GLOBALES ================== */
-:root{
-  --brand:#1e6eb6; --ink:#0b2532; --muted:#475569; --line:#e5e7eb; --card:#ffffff;
-  --bg:#eef3f8; --accent:#e50914;
-}
+  /* ===== Design tokens (únicos para toda la página) ===== */
+  :root{
+    --ink:#0b2532;
+    --muted:#64748b;
+    --brand:#1e6eb6;
+    --accent:#e50914;
+    --line:#e5e7eb;
+    --card:#ffffff;
+    --glass:rgba(255,255,255,.86);
+    --shadow:0 12px 30px rgba(2,20,33,.22);
+  }
 
-/* ================== BASE ================== */
-html,body{
-  height:100%; margin:0; background:var(--bg); color:var(--ink);
-  font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial;
-}
+  html,body{
+    margin:0; background:#fff; color:var(--ink);
+    font-family:"Nunito Sans",system-ui,-apple-system,Segoe UI,Roboto,Arial;
+  }
 
-/* ================== MAP TOUR ================== */
-.layout{
-  display:grid;
-  grid-template-columns:min(820px,58vw) 1fr;
-  gap:18px; min-height:100vh;
-}
-.story{padding:clamp(12px,2.2vw,24px);}
-.intro{
-  background:#fff;border:1px solid #dbe3ec;border-radius:16px;
-  padding:16px 18px;margin-bottom:16px;
-}
-.intro h1{margin:0 0 6px;font-weight:900;color:var(--brand);}
-.intro p{margin:0;color:var(--muted);font-weight:600}
-.mapCol{position:sticky;top:0;height:100vh;border-left:1px solid #e6edf5}
-#viewDiv2D,#viewDiv3D{height:100%;width:100%}
-#viewDiv2D{display:none;} /* inicia en 3D */
+  /* ===== Cabecera de sección (estilo homogéneo + subrayado animado) ===== */
+  .wrap{max-width:1100px;margin:0 auto;padding:22px 16px}
+  .section-head{ text-align:center; margin:8px auto 6px }
+  .section-title{
+    margin:0; display:inline-block; font-weight:900; color:var(--brand);
+    font-size:clamp(22px,3.4vw,32px); line-height:1.1; position:relative;
+  }
+  .section-title::after{
+    content:""; position:absolute; left:0; right:0; bottom:-8px; height:4px;
+    background:var(--accent); border-radius:999px; transform:scaleX(0);
+    transform-origin:left center; box-shadow:0 0 0 1px rgba(0,0,0,.06) inset;
+  }
+  .section-head.animate .section-title::after{ animation:underlineDraw 2.6s ease-out forwards; }
+  @keyframes underlineDraw{ from{transform:scaleX(0)} to{transform:scaleX(1)} }
 
-/* Tarjetas */
-.step{margin:0 0 18px;scroll-margin-top:18px}
-.card{
-  background:#fff;border:1px solid #dbe3ec;border-radius:16px;
-  box-shadow:0 14px 36px rgba(2,6,23,.14);
-  overflow:hidden;display:grid;grid-auto-rows:auto;
-}
-.img{height:260px;position:relative;overflow:hidden}
-.img img{width:100%;height:100%;object-fit:cover}
-.badge{
-  position:absolute;top:10px;left:10px;width:32px;height:32px;border-radius:999px;
-  background:var(--brand);color:#fff;display:grid;place-items:center;font-weight:900;
-  outline:3px solid #ebf3ff;box-shadow:0 8px 18px rgba(30,110,182,.35);
-}
-.body{padding:14px 16px 16px}
-.title{margin:0 0 8px;font-weight:900;letter-spacing:.2px;font-size:1.3rem;line-height:1.15}
-.meta{margin:0 0 10px;color:#213547;font-weight:800}
-.links{display:flex;gap:14px;flex-wrap:wrap;margin-top:8px}
-.a{color:var(--brand);text-decoration:none;font-weight:900;border-bottom:2px solid #cfe3fb}
-.a:hover{filter:brightness(.96)}
-.step.is-active .card{outline:3px solid #e6f2ff}
+  .lead{
+    max-width:940px; margin:14px auto 10px; text-align:center; color:var(--muted);
+    font-weight:700; line-height:1.45; font-size:clamp(13px,1.6vw,16px)
+  }
+  .cta{
+    color:var(--brand); font-weight:900; text-align:center;
+    margin:10px 0 0; font-size:clamp(13px,1.6vw,16px);
+  }
 
-/* Controles */
-.nav{
-  position:fixed;left:16px;bottom:16px;z-index:20;display:flex;gap:8px;
-}
-.btn{
-  border:1px solid #dbe3ec;background:#fff;min-width:42px;height:42px;padding:0 10px;
-  border-radius:12px;display:grid;place-items:center;cursor:pointer;font-weight:900;
-  color:#1f2937;box-shadow:0 6px 16px rgba(0,0,0,.14);
-}
-.btn:hover{background:#f7fafc}
-.esri-popup,.esri-popup__main-container{display:none!important}
+  /* ====== City Tour — app frame (casi full-bleed) ====== */
+  .app-frame{
+    position:relative;
+    margin: 10mm auto;                 /* ~1 cm de borde blanco alrededor */
+    width: calc(100vw - 20mm);         /* casi full-bleed */
+    height: min(98vh, calc(92vh + 170px)); /* un poco más alto */
+    min-height: 940px;                 /* ~3 cm más respecto a lo anterior */
+    border-radius:18px; overflow:hidden; background:#000; box-shadow:0 18px 40px rgba(2,6,23,.10);
+  }
+  #viewDiv{position:relative; height:100%; width:100%}
 
-@media(max-width:960px){
-  .layout{grid-template-columns:1fr}
-  .mapCol{order:-1;height:60vh}
-  .img{height:220px}
-}
+  /* Overlays */
+  .overlay, .nav, .ctrl-box, .inset-wrap{ position:absolute; z-index:2000; }
+  .overlay *,.nav *,.ctrl-box *{ pointer-events:auto; }
 
-/* ================== INDICADORES (debajo del tour) ================== */
-.section{
-  max-width:1200px;margin:40px auto 24px;padding:24px;background:#fff;border:1px solid var(--line);
-  border-radius:16px;box-shadow:0 18px 40px rgba(2,6,23,.08);
-}
-.section h2{margin:0 0 14px;color:var(--brand);font-weight:900}
-.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:24px}
-.kpi{background:#f8fafc;padding:20px;border-radius:12px;text-align:center;border:1px solid #eef2f7}
-.kpi h3{margin:0;font-size:2rem;color:#0b2532}
-.kpi p{margin:6px 0 0;color:#475569}
+  /* Tarjeta */
+  .overlay{left:20px;bottom:112px;width:min(92vw,440px);box-shadow:var(--shadow);border-radius:16px;overflow:hidden;background:#fff}
+  .overlay img{display:block;width:100%;height:260px;object-fit:cover;background:#eef2f7}
+  .overlay .body{padding:14px 16px 16px}
+  .badge{display:inline-grid;place-items:center;width:28px;height:28px;border-radius:999px;background:var(--brand);color:#fff;font-weight:800;margin-right:8px}
+  .title{margin:8px 0 4px;font-size:1.35rem;font-weight:900;color:var(--brand)}
+  .meta{margin:0;color:var(--muted);line-height:1.35}
 
-/* ================== SWIPE (tu módulo) ================== */
-/* Usamos Nunito Sans SOLO en esta sección para respetar tu estilo sin alterar el resto */
-.swipe-scope{font-family:"Nunito Sans", system-ui, -apple-system, Segoe UI, Roboto, Arial;}
-.wrap{
-  max-width:1200px;
-  margin:clamp(16px,3vw,28px) auto;
-  background:var(--card);
-  border:1px solid var(--line);
-  border-radius:20px;
-  padding:clamp(16px,3vw,28px);
-  box-shadow:0 18px 40px rgba(2,6,23,.08);
-}
-.title{
-  text-align:center;font-weight:900;color:var(--brand);
-  font-size:clamp(22px,3.6vw,34px);line-height:1.15;margin:0 0 8px 0;position:relative;display:inline-block;
-}
-.title-underline{position:relative;height:4px;background:transparent;overflow:hidden;margin:8px auto 0}
-.title-underline::before{
-  content:"";display:block;height:4px;width:0%;background:var(--accent);border-radius:999px;
-  box-shadow:0 0 0 1px rgba(0,0,0,.06) inset;transform-origin:left center;
-}
-.animate .title-underline::before{animation:underline 700ms ease-out forwards}
-@keyframes underline{from{width:0%}to{width:100%}}
-.intro{
-  max-width:940px;margin:8px auto 18px;text-align:center;color:var(--muted);
-  font-weight:700;line-height:1.45;font-size:clamp(13px,1.6vw,16px);
-}
-.swipe-block{ margin:26px auto 18px; }
-.swipe{
-  position:relative;width:100%;height:min(66vh,620px);border:1px solid var(--line);
-  border-radius:14px;overflow:hidden;background:#000;user-select:none;touch-action:none;--pos:50%;
-}
-.swipe img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center;display:block}
-.swipe .top{clip-path: inset(0 calc(100% - var(--pos)) 0 0);will-change: clip-path;}
-.divider{position:absolute;inset:0 0 0 auto;left:var(--pos);transform:translateX(-50%);z-index:3;pointer-events:none}
-.divider::before{content:"";position:absolute;top:0;bottom:0;left:50%;width:2px;background:#ffffffcc;outline:1px solid rgba(0,0,0,.18)}
-.knob{
-  position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
-  width:46px;height:46px;border-radius:50%;background:#fff;border:2px solid #fff;outline:2px solid rgba(0,0,0,.18);
-  display:grid;place-items:center;box-shadow:0 8px 18px rgba(0,0,0,.18);
-}
-.knob svg{ width:22px; height:22px; fill:var(--brand) }
-.hit{position:absolute;inset:0;cursor:ew-resize;z-index:4;background:transparent}
+  /* Enlaces (iconos) */
+  .icon-links{display:flex;gap:8px;margin-top:12px}
+  .icon-round{
+    width:40px;height:40px;border-radius:999px;display:grid;place-items:center;
+    background:#fff;border:1px solid #d1e4f6;color:var(--brand);
+    box-shadow:0 6px 14px rgba(30,110,182,.2); text-decoration:none
+  }
+  .icon-round svg{width:20px;height:20px}
 
-.caption{
-  display:grid;grid-template-columns: 1fr auto;gap:12px;align-items:center;margin-top:10px;
-}
-.cap-title{margin:0;font-weight:900;font-size:clamp(14px,2vw,18px);line-height:1.35}
-.meta{color:var(--brand);font-weight:900;font-size:clamp(12px,1.7vw,14px)}
-.year{margin-top:4px;color:#6b7280;font-weight:700;font-size:12px}
-.cui{
-  justify-self:end;background:var(--brand);color:#fff;border:0;padding:8px 12px;border-radius:999px;
-  font-weight:900;font-size:13px;letter-spacing:.2px;box-shadow:0 6px 14px rgba(30,110,182,.28);
-}
-@media (max-width:720px){
-  .swipe{ height:min(58vh,520px) }
-  .caption{ grid-template-columns: 1fr; gap:8px; }
-  .cui{ justify-self:start; }
-}
+  /* Prev / Next */
+  .nav{left:20px;bottom:20px;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+  .btn{
+    appearance:none;border:0;background:var(--brand);color:#fff;padding:10px 14px;border-radius:12px;
+    font-weight:800;cursor:pointer;box-shadow:0 8px 20px rgba(30,110,182,.35)
+  }
+  .btn:disabled{opacity:.55;cursor:not-allowed}
+  .ghost{background:#fff;color:var(--brand);border:1px solid #d1e4f6}
+
+  /* Controles derecha */
+  .ctrl-box{right:16px;bottom:16px;display:flex;flex-direction:column;gap:8px}
+  .icon-btn{
+    width:44px;height:44px;border-radius:12px;border:0;cursor:pointer;
+    box-shadow:var(--shadow);background:#fff;color:#1e6eb6;display:grid;place-items:center
+  }
+  .icon-btn svg{width:22px;height:22px}
+
+  /* Mini-mapa (inset) — compacto */
+  .inset-wrap{right:16px; top:16px; width:200px; height:136px; border-radius:14px; overflow:hidden;
+    background:var(--glass); backdrop-filter:blur(6px); box-shadow:var(--shadow); border:1px solid var(--line);}
+  #insetView{width:100%; height:100%}
+
+  /* Bloqueo SOLO dentro del app (pantallas pequeñas) */
+  .small-blocker{
+    position:absolute; inset:0; z-index:1990;
+    display:none; align-items:center; justify-content:center;
+    background:linear-gradient(180deg, rgba(2,18,30,.85), rgba(2,18,30,.92));
+    color:#fff; text-align:center; padding:24px; backdrop-filter: blur(4px);
+  }
+  .small-card{width:min(92%,760px); background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.18); box-shadow:0 10px 40px rgba(0,0,0,.35); border-radius:18px; padding:22px 20px;}
+  .small-title{font-size:1.35rem; font-weight:900; margin:0 0 10px}
+  .small-text{color:#e5e7eb; margin:0 0 14px}
+  .small-list{margin:0; padding-left:16px; color:#e5e7eb; text-align:left}
+  .small-badges{display:flex; gap:8px; justify-content:center; flex-wrap:wrap; margin-top:12px}
+  .chip{font-weight:800; font-size:.85rem; border-radius:999px; padding:6px 10px; background:#1e293b; border:1px solid #324458; color:#dbeafe}
+  @media (max-width: 1024px){ .small-blocker{ display:flex; } }
+  @media (max-width:880px){
+    .overlay{left:12px;right:12px;width:auto;bottom:122px}
+    .nav{left:12px}
+    .overlay img{height:210px}
+  }
+  .esri-expand__content{max-height:60vh;overflow:auto}
+
+  /* ====== Sección “Imágenes multitemporales” (estilo homogéneo) ====== */
+  .wrap-card{
+    max-width:1200px; margin:clamp(16px,3vw,28px) auto;
+    background:var(--card); border:1px solid var(--line);
+    border-radius:20px; padding:clamp(16px,3vw,28px);
+    box-shadow:0 18px 40px rgba(2,6,23,.08);
+  }
+  .intro{ max-width:940px; margin:12px auto 18px; text-align:center; color:var(--muted); font-weight:700; line-height:1.45; font-size:clamp(13px,1.6vw,16px) }
+
+  .swipe-block{margin:26px auto 22px;}
+  .swipe{
+    position:relative; width:100%; height:min(66vh,620px);
+    border:1px solid var(--line); border-radius:14px; overflow:hidden; background:#000;
+    user-select:none; touch-action:none; --pos:50%;
+  }
+  .swipe img{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; object-position:center; display:block; }
+  .swipe .top{ clip-path:inset(0 calc(100% - var(--pos)) 0 0); will-change:clip-path; }
+  .divider{ position:absolute; inset:0 0 0 auto; left:var(--pos); transform:translateX(-50%); z-index:3; pointer-events:none; }
+  .divider::before{ content:""; position:absolute; top:0; bottom:0; left:50%; width:2px; background:#ffffffcc; outline:1px solid rgba(0,0,0,.18); }
+  .knob{ position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); width:46px; height:46px; border-radius:50%; background:#fff; border:2px solid #fff; outline:2px solid rgba(0,0,0,.18); display:grid; place-items:center; box-shadow:0 8px 18px rgba(0,0,0,.18); }
+  .knob svg{ width:22px; height:22px; fill:var(--brand); }
+  .hit{ position:absolute; inset:0; cursor:ew-resize; z-index:4; background:transparent; }
+
+  .caption{ display:grid; grid-template-columns:1fr auto; gap:12px; align-items:center; margin-top:10px; }
+  .cap-title{ margin:0; font-weight:900; font-size:clamp(14px,2vw,18px); line-height:1.35; }
+  .cui{ justify-self:end; background:var(--brand); color:#fff; border:0; padding:8px 12px; border-radius:999px; font-weight:900; font-size:13px; letter-spacing:.2px; box-shadow:0 6px 14px rgba(30,110,182,.28); }
+
+  @media (max-width:720px){
+    .swipe{height:min(58vh,520px)}
+    .caption{grid-template-columns:1fr; gap:8px}
+    .cui{justify-self:start}
+  }
 </style>
 </head>
 <body>
 
-<!-- ================== MAP TOUR ================== -->
-<div class="layout">
-  <div class="story" id="story">
-    <section class="intro">
-      <h1>🛰️ Map Tour de Inversiones MVCS</h1>
-      <p>Desliza hacia abajo: el mapa se moverá automáticamente según el proyecto activo. Usa el botón 2D/3D para cambiar la vista.</p>
-    </section>
-  </div>
+<!-- ===== Bloque superior ===== -->
+<section class="wrap">
+  <div class="section-head" id="hdr-proyectos" tabindex="-1"><h1 class="section-title">Grandes proyectos</h1></div>
+  <p class="lead">
+    Buscan transformar la calidad de vida de millones de peruanos mediante obras de alto impacto en agua,
+    saneamiento, vivienda e infraestructura urbana. Estas inversiones, por su impacto, complejidad técnica y presupuesto,
+    son estratégicas para el desarrollo urbano sostenible y la reducción de las brechas en servicios básicos.
+  </p>
+  <p class="lead">
+    En esta sección, presentamos las inversiones priorizadas, su alcance, inversión y estado de avance (ver detalle de
+    proyecto y/o ayuda memoria), con mapas detallados que permiten ubicarlos a nivel nacional.
+  </p>
+  <p class="cta">Estos proyectos son clave para el desarrollo sostenible del país.</p>
+  <p class="cta">Explora el mapa interactivo para ver su ubicación exacta y sigue su evolución.</p>
+</section>
 
-  <div class="mapCol">
-    <div id="viewDiv3D" aria-label="Escena 3D del tour"></div>
-    <div id="viewDiv2D" aria-label="Mapa 2D del tour"></div>
-  </div>
-</div>
+<!-- ===== City Tour (app) ===== -->
+<section class="app-frame">
+  <div id="viewDiv">
 
-<!-- Controles Tour -->
-<div class="nav">
-  <button id="toggleDimBtn" class="btn" title="Cambiar entre 2D/3D">2D / 3D</button>
-  <button id="prevBtn" class="btn" title="Anterior">‹</button>
-  <button id="nextBtn" class="btn" title="Siguiente">›</button>
-</div>
+    <!-- Mini-Mapa (inset) -->
+    <div class="inset-wrap"><div id="insetView" title="Vista de contexto"></div></div>
 
-<!-- ================== INDICADORES DEBAJO DEL TOUR ================== -->
-<section class="section" id="indicadores">
-  <h2>Indicadores de Avance</h2>
-  <div class="kpis">
-    <div class="kpi">
-      <h3>75%</h3>
-      <p>Ejecución Física</p>
+    <!-- Tarjeta -->
+    <div class="overlay">
+      <img id="photo" alt="Imagen del proyecto"/>
+      <div class="body">
+        <div><span class="badge" id="badge-num">1</span>Parada</div>
+        <h2 class="title" id="title">Proyecto</h2>
+        <p class="meta" id="meta1">CUI: —</p>
+        <p class="meta" id="meta2">Programa: —</p>
+        <div class="icon-links" id="links"></div>
+      </div>
     </div>
-    <div class="kpi">
-      <h3>68%</h3>
-      <p>Avance Financiero</p>
+
+    <!-- Prev / Next -->
+    <div class="nav">
+      <button class="btn ghost" id="prev">⟵ Anterior</button>
+      <button class="btn" id="next">Siguiente ⟶</button>
     </div>
+
+    <!-- Controles derecha -->
+    <div class="ctrl-box">
+      <button class="icon-btn" id="rotLeft" title="Girar cámara a la izquierda (3D)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 9-9"></path><path d="M3 4v8h8"></path></svg>
+      </button>
+      <button class="icon-btn" id="rotRight" title="Girar cámara a la derecha (3D)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-9-9"></path><path d="M21 4v8h-8"></path></svg>
+      </button>
+      <button class="icon-btn" id="toggleDim" title="Alternar 2D / 3D">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2 3 7l9 5 9-5-9-5z"></path><path d="M3 7v10l9 5 9-5V7"></path><path d="M12 12v10"></path></svg>
+      </button>
+      <button class="icon-btn" id="zoomIn" title="Acercar">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4a7 7 0 1 0 4.9 12.1L21 21"></path><path d="M11 8v6M8 11h6"></path></svg>
+      </button>
+      <button class="icon-btn" id="zoomOut" title="Alejar">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4a7 7 0 1 0 4.9 12.1L21 21"></path><path d="M8 11h6"></path></svg>
+      </button>
+    </div>
+
+    <!-- Bloqueo SOLO del app -->
+    <div class="small-blocker" aria-live="polite">
+      <div class="small-card">
+        <h3 class="small-title">Vista disponible en <u>pantalla grande</u></h3>
+        <p class="small-text">
+          Este recorrido usa <b>imágenes satelitales</b> y <b>escenas 3D</b> de alta definición.
+          Para apreciarlo, ábrelo en un monitor con <b>≥ 1024 px</b> de ancho.
+        </p>
+        <ul class="small-list">
+          <li>En móvil, intenta <b>horizontal</b> o usa <b>laptop/PC</b>.</li>
+          <li>En escritorio, prueba <b>2D/3D</b> y los controles de <b>rotación</b>.</li>
+        </ul>
+        <div class="small-badges">
+          <span class="chip">Calidad satelital</span><span class="chip">Detalle 3D</span><span class="chip">Mejor en Desktop</span>
+        </div>
+      </div>
+    </div>
+
   </div>
 </section>
 
-<!-- ================== SWIPES MULTITEMPORALES (TU MÓDULO) ================== -->
-<section class="wrap swipe-scope" id="swipe-section">
-  <div style="text-align:center">
-    <h1 class="title">Imágenes multitemporales</h1>
-    <div class="title-underline" aria-hidden="true" style="width:280px"></div>
-  </div>
+<!-- ===== Imágenes multitemporales ===== -->
+<section class="wrap-card" id="swipe-section">
+  <div class="section-head" id="hdr-swipes"><h1 class="section-title">Imágenes multitemporales</h1></div>
   <p class="intro">
-    Visualiza el antes y después de las intervenciones del ministerio y conoce el impacto tangible en el territorio.
-    Esta herramienta permite monitorear visualmente el avance de las obras y apoyar la toma de decisiones basada en evidencia.
+    Visualiza el antes y después de las intervenciones del ministerio y conoce el impacto tangible de las
+    obras en el territorio. Es posible observar los cambios y avances físicos generados por las intervenciones
+    del sector en diferentes periodos de tiempo. Esta herramienta permite monitorear visualmente el impacto real
+    de las inversiones, facilitando la toma de decisiones basadas en evidencia territorial.
   </p>
 
-  <!-- ========= COMPARADOR 1 ========= -->
+  <!-- === 1 === -->
   <div class="swipe-block">
-    <div class="swipe" data-start="50" aria-label="Swipe 1 — Antes/Después">
-      <!-- Abajo -->
-      <img class="bottom" src="https://lh3.googleusercontent.com/d/1CG38GplqcLrceuh0PejAkqp5uUvGaCy5=w1600" alt="Antes — base">
-      <!-- Arriba -->
-      <img class="top" src="https://lh3.googleusercontent.com/d/1PokQrkV-y98cDZyFBD-vcn9Y52fanDwa=w1600" alt="Después — superior">
-
-      <div class="divider" aria-hidden="true">
-        <div class="knob" title="Arrastra para comparar">
-          <svg viewBox="0 0 24 24" aria-hidden="true">
-            <path d="M8.5 12l4-4-1.4-1.4L6 11.7l5.1 5.1L12.5 15l-4-4zM15.5 12l-4 4 1.4 1.4L18 12.3l-5.1-5.1L11.5 9l4 4z"/>
-          </svg>
-        </div>
-      </div>
-      <button class="hit" aria-label="Arrastra para mover el divisor"></button>
+    <div class="swipe" data-start="50">
+      <img class="bottom" src="https://lh3.googleusercontent.com/d/15XQnR6s4kuOBa1HSMAu4YbB-ZjRyJXQS=w1000" alt="Antes Olmos">
+      <img class="top"    src="https://lh3.googleusercontent.com/d/1VBRK-CPl5K4L4n9gJSMf-xTAQSN0xIFD=w1000" alt="Después Olmos">
+      <div class="divider"><div class="knob">
+        <svg viewBox="0 0 24 24"><path d="M8.5 12l4-4-1.4-1.4L6 11.7l5.1 5.1L12.5 15l-4-4zM15.5 12l-4 4 1.4 1.4L18 12.3l-5.1-5.1L11.5 9l4 4z"/></svg>
+      </div></div><button class="hit" aria-label="Deslizar comparación"></button>
     </div>
-
     <div class="caption">
-      <div>
-        <p class="cap-title">
-          CUI 2256322 — INSTALACION DE LOS SERVICIOS DE AGUA POTABLE Y ALCANTARILLADO SANITARIO EN LA NUEVA CIUDAD DE OLMOS,
-          DISTRITO DE OLMOS — PROVINCIA DE LAMBAYEQUE — REGIÓN LAMBAYEQUE
-        </p>
-        <div class="meta">Olmos | Lambayeque | Lambayeque</div>
-        <div class="year">Imágenes año 2018 y 2025</div>
-      </div>
-      <span class="cui">CUI 2256322</span>
+      <p class="cap-title">Instalación de los servicios de vialidad urbana y agua potable en la nueva ciudad de Olmos. Imágenes 2018–2025.</p>
+      <span class="cui">CUI 2300167</span>
     </div>
   </div>
 
-  <!-- ========= COMPARADOR 2 ========= -->
+  <!-- === 2 === -->
   <div class="swipe-block">
-    <div class="swipe" data-start="50" aria-label="Swipe 2 — Antes/Después">
-      <!-- Abajo -->
-      <img class="bottom" src="https://lh3.googleusercontent.com/d/1jnAuQ1jPjfEgEVCUSjpfvlWLCHl1rPbg=w1600" alt="Antes — base">
-      <!-- Arriba -->
-      <img class="top" src="https://lh3.googleusercontent.com/d/1QsL3PnQTQ1elA4i2SRkf0nG297zAFsXe=w1600" alt="Después — superior">
-
-      <div class="divider" aria-hidden="true">
-        <div class="knob" title="Arrastra para comparar">
-          <svg viewBox="0 0 24 24" aria-hidden="true">
-            <path d="M8.5 12l4-4-1.4-1.4L6 11.7l5.1 5.1L12.5 15l-4-4zM15.5 12l-4 4 1.4 1.4L18 12.3l-5.1-5.1L11.5 9l4 4z"/>
-          </svg>
-        </div>
-      </div>
-      <button class="hit" aria-label="Arrastra para mover el divisor"></button>
+    <div class="swipe" data-start="50">
+      <img class="bottom" src="https://lh3.googleusercontent.com/d/1S6LPnV1nHl4pWoR5JORW4OXq3tZ53p3x=w1000" alt="Antes Belén Varillalito">
+      <img class="top"    src="https://lh3.googleusercontent.com/d/1xQugBImR3R1bcOwyQ3vN2MufARez3koh=w1000" alt="Después Belén Varillalito">
+      <div class="divider"><div class="knob">
+        <svg viewBox="0 0 24 24"><path d="M8.5 12l4-4-1.4-1.4L6 11.7l5.1 5.1L12.5 15l-4-4zM15.5 12l-4 4 1.4 1.4L18 12.3l-5.1-5.1L11.5 9l4 4z"/></svg>
+      </div></div><button class="hit" aria-label="Deslizar comparación"></button>
     </div>
-
     <div class="caption">
-      <div>
-        <p class="cap-title">
-          CUI 2266697 — INSTALACION DE LOS SERVICIOS DE VIALIDAD URBANA PARA LA NUEVA CIUDAD DE OLMOS,
-          DISTRITO DE OLMOS, PROVINCIA DE LAMBAYEQUE — DEPARTAMENTO LAMBAYEQUE
-        </p>
-        <div class="meta">Olmos | Lambayeque | Lambayeque</div>
-        <div class="year">Imágenes año 2018 y 2025</div>
-      </div>
+      <p class="cap-title">Creación de los servicios de vialidad de la nueva ciudad de Belén–Varillalito (San Juan Bautista, Loreto). Imágenes 2018–2024.</p>
+      <span class="cui">CUI 2317154</span>
+    </div>
+  </div>
+
+  <!-- === 3 === -->
+  <div class="swipe-block">
+    <div class="swipe" data-start="50">
+      <img class="bottom" src="https://lh3.googleusercontent.com/d/1B2U7F_CWgoK7UXaJQPvCcfii3-o14bRY=w1000" alt="Antes Aguas Verdes">
+      <img class="top"    src="https://lh3.googleusercontent.com/d/1jSkfswGoGJ5qFM1wsGtELsPpSEx5Oi0w=w1000" alt="Después Aguas Verdes">
+      <div class="divider"><div class="knob">
+        <svg viewBox="0 0 24 24"><path d="M8.5 12l4-4-1.4-1.4L6 11.7l5.1 5.1L12.5 15l-4-4zM15.5 12l-4 4 1.4 1.4L18 12.3l-5.1-5.1L11.5 9l4 4z"/></svg>
+      </div></div><button class="hit" aria-label="Deslizar comparación"></button>
+    </div>
+    <div class="caption">
+      <p class="cap-title">Creación de la Plaza de la Hermandad en la frontera Perú–Ecuador (Aguas Verdes, Tumbes). Imágenes 2022–2025.</p>
+      <span class="cui">CUI 2331093</span>
+    </div>
+  </div>
+
+  <!-- === 4 === -->
+  <div class="swipe-block">
+    <div class="swipe" data-start="50">
+      <img class="bottom" src="https://lh3.googleusercontent.com/d/1b6KeMaxDEfF83Uf1GegP0vCTEP0qcvOs=w1000" alt="Antes Paraíso Alto">
+      <img class="top"    src="https://lh3.googleusercontent.com/d/11OAR_uAiUwU5xTxghIiEwzT6pGbYYNgW=w1000" alt="Después Paraíso Alto">
+      <div class="divider"><div class="knob">
+        <svg viewBox="0 0 24 24"><path d="M8.5 12l4-4-1.4-1.4L6 11.7l5.1 5.1L12.5 15l-4-4zM15.5 12l-4 4 1.4 1.4L18 12.3l-5.1-5.1L11.5 9l4 4z"/></svg>
+      </div></div><button class="hit" aria-label="Deslizar comparación"></button>
+    </div>
+    <div class="caption">
+      <p class="cap-title">Ampliación de los sistemas de agua potable y alcantarillado del sector Paraíso Alto (VMT, Lima). Imágenes 2020–2025.</p>
+      <span class="cui">CUI 2395187</span>
+    </div>
+  </div>
+
+  <!-- === 5 === -->
+  <div class="swipe-block">
+    <div class="swipe" data-start="50">
+      <img class="bottom" src="https://lh3.googleusercontent.com/d/16gUqKXdifmPQeKlmb49av7pHxQNAvQnf=w1000" alt="Antes Cerro Colorado">
+      <img class="top"    src="https://lh3.googleusercontent.com/d/1QYtdylddHYiSAyww9M-Kezu6qrSNpTLd=w1000" alt="Después Cerro Colorado">
+      <div class="divider"><div class="knob">
+        <svg viewBox="0 0 24 24"><path d="M8.5 12l4-4-1.4-1.4L6 11.7l5.1 5.1L12.5 15l-4-4zM15.5 12l-4 4 1.4 1.4L18 12.3l-5.1-5.1L11.5 9l4 4z"/></svg>
+      </div></div><button class="hit" aria-label="Deslizar comparación"></button>
+    </div>
+    <div class="caption">
+      <p class="cap-title">Sistemas de agua potable dependientes del reservorio N-39 y alcantarillado sanitario (Cerro Colorado, Arequipa). Imágenes 2021–2024.</p>
+      <span class="cui">CUI 2532566</span>
+    </div>
+  </div>
+
+  <!-- === 6 === -->
+  <div class="swipe-block">
+    <div class="swipe" data-start="50">
+      <img class="bottom" src="https://lh3.googleusercontent.com/d/1MLVjddBSRE6tYacX-87IRVyr1ai-wrWi=w1000" alt="Antes Carabayllo">
+      <img class="top"    src="https://lh3.googleusercontent.com/d/1hA2HLopKgbRKeduk5Nrs8ptVhP2-8z9l=w1000" alt="Después Carabayllo">
+      <div class="divider"><div class="knob">
+        <svg viewBox="0 0 24 24"><path d="M8.5 12l4-4-1.4-1.4L6 11.7l5.1 5.1L12.5 15l-4-4zM15.5 12l-4 4 1.4 1.4L18 12.3l-5.1-5.1L11.5 9l4 4z"/></svg>
+      </div></div><button class="hit" aria-label="Deslizar comparación"></button>
+    </div>
+    <div class="caption">
+      <p class="cap-title">Mejoramiento y ampliación del sistema de agua potable y alcantarillado de los sectores 359 y 360 (Carabayllo, Lima). Imágenes 2020–2025.</p>
+      <span class="cui">CUI 2302373</span>
+    </div>
+  </div>
+
+  <!-- === 7 === -->
+  <div class="swipe-block">
+    <div class="swipe" data-start="50">
+      <img class="bottom" src="https://lh3.googleusercontent.com/d/1XsVWj32nruBBeGtW9Wp1hMb02c8DEDef=w1000" alt="Antes Nuevo Chimbote">
+      <img class="top"    src="https://lh3.googleusercontent.com/d/1qTcpF2jiXzOboV23ws6YsEEI-yvR7tZA=w1000" alt="Después Nuevo Chimbote">
+      <div class="divider"><div class="knob">
+        <svg viewBox="0 0 24 24"><path d="M8.5 12l4-4-1.4-1.4L6 11.7l5.1 5.1L12.5 15l-4-4zM15.5 12l-4 4 1.4 1.4L18 12.3l-5.1-5.1L11.5 9l4 4z"/></svg>
+      </div></div><button class="hit" aria-label="Deslizar comparación"></button>
+    </div>
+    <div class="caption">
+      <p class="cap-title">Mejoramiento y ampliación del servicio de alcantarillado y tratamiento de aguas residuales (Nuevo Chimbote y Chimbote, Áncash). Imágenes 2021–2024.</p>
+      <span class="cui">CUI 2414594</span>
+    </div>
+  </div>
+
+  <!-- === 8 === -->
+  <div class="swipe-block">
+    <div class="swipe" data-start="50">
+      <img class="bottom" src="https://lh3.googleusercontent.com/d/1LMRMDmTglaZ2p37LwDymHl5Wf2dR80Kl=w1000" alt="Antes Piura-Castilla">
+      <img class="top"    src="https://lh3.googleusercontent.com/d/1swzHcAprqTYA0nx642zlpd1ARsi-7B-4=w1000" alt="Después Piura-Castilla">
+      <div class="divider"><div class="knob">
+        <svg viewBox="0 0 24 24"><path d="M8.5 12l4-4-1.4-1.4L6 11.7l5.1 5.1L12.5 15l-4-4zM15.5 12l-4 4 1.4 1.4L18 12.3l-5.1-5.1L11.5 9l4 4z"/></svg>
+      </div></div><button class="hit" aria-label="Deslizar comparación"></button>
+    </div>
+    <div class="caption">
+      <p class="cap-title">Ampliación y mejoramiento del sistema de agua potable y alcantarillado en los asentamientos humanos de Piura y Castilla (Piura). Imágenes 2020–2025.</p>
       <span class="cui">CUI 2266697</span>
     </div>
   </div>
 </section>
 
 <script>
-/* =================== DATA (10 primeros) =================== */
-const DATA = [
-  {
-    titulo:"AMPLIACION, RENOVACION Y MEJORAMIENTO DEL SISTEMA DE AGUA POTABLE Y ALCANTARILLADO DE LA LOCALIDAD DE CARAVELI",
-    cui:"2107751", programa:"PNSU",
-    foto:"https://images.unsplash.com/photo-1558980664-10a0ba81a2ff?q=80&w=1600&auto=format&fit=crop",
-    lon:null, lat:null,
-    url_detalle:"https://sspfront.vivienda.gob.pe/Geoportal/Dashboard/Dashboard1/?pIdProyecto=47490",
-    url_pdf:"https://ssp.vivienda.gob.pe/Monitor/Ayuda_Memoria.aspx?id=47029&idtipo=3&t=r"
-  },
-  {
-    titulo:"MEJORAMIENTO Y AMPLIACION DEL SERVICIO DE DRENAJE PLUVIAL EN 4 DISTRITOS DE LA PROVINCIA DE CUSCO - DEPARTAMENTO DE CUSCO",
-    cui:"2459017", programa:"PNSU",
-    foto:"https://images.unsplash.com/photo-1538076542933-a701b98d8a0d?q=80&w=1600&auto=format&fit=crop",
-    lon:null, lat:null,
-    url_detalle:"https://sspfront.vivienda.gob.pe/Geoportal/Dashboard/Dashboard1/?pIdProyecto=47490",
-    url_pdf:"https://ssp.vivienda.gob.pe/Monitor/Ayuda_Memoria.aspx?id=47490&idtipo=3&t=r"
-  },
-  {
-    titulo:"REPARACION DE PTAP EN EL SISTEMA DE AGUA POTABLE DE LA PTAP CURUMUY, DISTRITO DE PIURA",
-    cui:"2668668", programa:"PNSU",
-    foto:"https://images.unsplash.com/photo-1509228468518-180dd4864904?q=80&w=1600&auto=format&fit=crop",
-    lon:null, lat:null,
-    url_detalle:"https://sspfront.vivienda.gob.pe/Geoportal/Dashboard/Dashboard1/?pIdProyecto=47490",
-    url_pdf:"https://ssp.vivienda.gob.pe/Monitor/Ayuda_Memoria.aspx?id=48256&idtipo=3&t=r"
-  },
-  {
-    titulo:"MEJORAMIENTO Y AMPLIACION DE LOS SISTEMAS DE AGUA POTABLE Y ALCANTARILLADO - SECTORES 273, 277, 278, 279, 280, 394, 395 - VENTANILLA, CALLAO",
-    cui:"2309659", programa:"PASLC",
-    foto:"https://images.unsplash.com/photo-1529101091764-c3526daf38fe?q=80&w=1600&auto=format&fit=crop",
-    lon:null, lat:null,
-    url_detalle:"https://sspfront.vivienda.gob.pe/Geoportal/Dashboard/Dashboard1/?pIdProyecto=47534",
-    url_pdf:"https://ssp.vivienda.gob.pe/Monitor/Ayuda_Memoria.aspx?id=47534&idtipo=3&t=r"
-  },
-  {
-    titulo:"INSTALACION DE LOS SISTEMAS DE AGUA POTABLE Y SANEAMIENTO PARA EL CENTRO POBLADO DE KUYUNTZA - ANDOAS, LORETO",
-    cui:"2235563", programa:"PNSR",
-    foto:"https://images.unsplash.com/photo-1563453392212-326f5e854473?q=80&w=1600&auto=format&fit=crop",
-    lon:null, lat:null,
-    url_detalle:"https://sspfront.vivienda.gob.pe/Geoportal/Dashboard/Dashboard1/?pIdProyecto=48177",
-    url_pdf:"https://ssp.vivienda.gob.pe/Monitor/Ayuda_Memoria.aspx?id=48177&idtipo=3&t=r"
-  },
-  {
-    titulo:"MEJORAMIENTO Y AMPLIACION DEL SISTEMA DE ALCANTARILLADO Y TRATAMIENTO DE AGUAS RESIDUALES EN 7 DISTRITOS DE TACNA",
-    cui:"2428087", programa:"PNSU",
-    foto:"https://images.unsplash.com/photo-1509395176047-4a66953fd231?q=80&w=1600&auto=format&fit=crop",
-    lon:null, lat:null,
-    url_detalle:"https://sspfront.vivienda.gob.pe/Geoportal/Dashboard/Dashboard1/?pIdProyecto=47159",
-    url_pdf:"https://ssp.vivienda.gob.pe/Monitor/Ayuda_Memoria.aspx?id=47159&idtipo=3&t=r"
-  },
-  {
-    titulo:"AMPLIACION Y MEJORAMIENTO DE LOS SERVICIOS DE AGUA POTABLE Y ALCANTARILLADO DE LA CIUDAD DE JULIACA - PUNO",
-    cui:"2331661", programa:"PNSU",
-    foto:"https://images.unsplash.com/photo-1505751172876-fa1923c5c528?q=80&w=1600&auto=format&fit=crop",
-    lon:null, lat:null,
-    url_detalle:"https://sspfront.vivienda.gob.pe/Geoportal/Dashboard/Dashboard1/?pIdProyecto=46812",
-    url_pdf:"https://ssp.vivienda.gob.pe/Monitor/Ayuda_Memoria.aspx?id=46812&idtipo=3&t=r"
-  },
-  {
-    titulo:"AMPLIACION DE LA PRODUCCION DE AGUA EN 6 DISTRITOS DE LA PROVINCIA DE CUSCO",
-    cui:"2497598", programa:"PNSU",
-    foto:"https://images.unsplash.com/photo-1518611012118-696072aa579a?q=80&w=1600&auto=format&fit=crop",
-    lon:null, lat:null,
-    url_detalle:"https://sspfront.vivienda.gob.pe/Geoportal/Dashboard/Dashboard1/?pIdProyecto=47395",
-    url_pdf:"https://ssp.vivienda.gob.pe/Monitor/Ayuda_Memoria.aspx?id=47395&idtipo=3&t=r"
-  },
-  {
-    titulo:"MEJORAMIENTO Y AMPLIACION DEL SERVICIO DE ALCANTARILLADO Y TRATAMIENTO DE AGUAS RESIDUALES - NUEVO CHIMBOTE Y CHIMBOTE, ANCASH",
-    cui:"2532566", programa:"PNSU",
-    foto:"https://images.unsplash.com/photo-1492684223066-81342ee5ff30?q=80&w=1600&auto=format&fit=crop",
-    lon:null, lat:null,
-    url_detalle:"https://sspfront.vivienda.gob.pe/Geoportal/Dashboard/Dashboard1/?pIdProyecto=46826",
-    url_pdf:"https://ssp.vivienda.gob.pe/Monitor/Ayuda_Memoria.aspx?id=46826&idtipo=2&t=r"
-  },
-  {
-    titulo:"AMPLIACION Y MEJORAMIENTO DEL SISTEMA DE AGUA POTABLE Y ALCANTARILLADO - PIURA Y CASTILLA, PIURA",
-    cui:"2302373", programa:"PNSU",
-    foto:"https://images.unsplash.com/photo-1545259741-2ea3ebf61fa6?q=80&w=1600&auto=format&fit=crop",
-    lon:null, lat:null,
-    url_detalle:"https://sspfront.vivienda.gob.pe/Geoportal/Dashboard/Dashboard1/?pIdProyecto=46810",
-    url_pdf:"https://ssp.vivienda.gob.pe/Monitor/Ayuda_Memoria.aspx?id=46810&idtipo=3&t=r"
-  }
-];
-
-/* =================== MAP TOUR (ArcGIS JS) =================== */
-require([
-  "esri/Map","esri/views/MapView","esri/views/SceneView","esri/layers/GraphicsLayer","esri/Graphic","esri/geometry/Point","esri/widgets/BasemapToggle"
-], (Map,MapView,SceneView,GraphicsLayer,Graphic,Point,BasemapToggle)=>{
-
-  const map = new Map({basemap:"satellite"});
-  const layer = new GraphicsLayer(); map.add(layer);
-
-  const view2D = new MapView({container:"viewDiv2D",map,center:[-75,-10],zoom:5,highlightOptions:{color:[30,110,182],haloOpacity:0.8,fillOpacity:0.2}});
-  const view3D = new SceneView({container:"viewDiv3D",map,center:[-75,-10],zoom:5,tilt:65,highlightOptions:{color:[30,110,182],haloOpacity:0.8,fillOpacity:0.2}});
-  view2D.ui.add(new BasemapToggle({view:view2D,nextBasemap:"osm"}),"bottom-right");
-  view3D.ui.add(new BasemapToggle({view:view3D,nextBasemap:"osm"}),"bottom-right");
-
-  let is3D=true; const activeView=()=>is3D?view3D:view2D;
-
-  const baseSymbol={type:"simple-marker",size:18,color:[24,160,251,0.9],outline:{color:"white",width:2}};
-  const dimSymbol={type:"simple-marker",size:12,color:[24,160,251,0.4],outline:{color:"white",width:1.5}};
-  const hotSymbol={type:"simple-marker",size:26,color:[30,110,182,1],outline:{color:"white",width:3}};
-
-  // Si lon/lat son null, ponemos posiciones “placeholder” para que funcione el tour
-  const graphics=DATA.map((d,i)=>new Graphic({
-    geometry:new Point({longitude:(d.lon!=null?d.lon:(-81 + (i%5)*2)), latitude:(d.lat!=null?d.lat:(-5 - (i*2)%10))}),
-    attributes:{idx:i,...d},symbol:baseSymbol
-  }));
-  layer.addMany(graphics);
-
-  // Construir tarjetas
-  const story=document.getElementById("story");
-  DATA.forEach((d,i)=>{
-    story.insertAdjacentHTML("beforeend",`
-    <article class="step" data-idx="${i}">
-      <div class="card">
-        <div class="img"><span class="badge">${i+1}</span><img src="${d.foto}" alt=""></div>
-        <div class="body">
-          <h2 class="title">${d.titulo}</h2>
-          <p class="meta">CUI: ${d.cui}<br>PROGRAMA: ${d.programa}</p>
-          <div class="links">
-            <a class="a" href="${d.url_detalle}" target="_blank" rel="noopener">Detalle Proyecto</a>
-            <a class="a" href="${d.url_pdf}" target="_blank" rel="noopener">Ayuda Memoria</a>
-          </div>
-        </div>
-      </div>
-    </article>`);
-  });
-
-  // Sync scroll ↔ mapa
-  let active=0;
-  function applySymbols(idx){graphics.forEach((g,i)=>g.symbol=i===idx?hotSymbol:dimSymbol);}
-  function flyTo(idx){
-    const g=graphics[idx]; if(!g) return;
-    activeView().goTo({target:g.geometry,zoom:17,tilt:is3D?65:0,heading:(idx*37)%360},{duration:900,easing:"ease"}).catch(()=>{});
-  }
-  function setActive(idx){
-    active=idx;
-    document.querySelectorAll(".step").forEach(s=>s.classList.remove("is-active"));
-    document.querySelector(`.step[data-idx="${idx}"]`)?.classList.add("is-active");
-    applySymbols(idx); flyTo(idx);
-  }
-
-  const obs=new IntersectionObserver(entries=>{
-    entries.forEach(e=>{ if(e.isIntersecting){ setActive(Number(e.target.dataset.idx)); } });
-  },{threshold:0.55});
-  document.querySelectorAll(".step").forEach(s=>obs.observe(s));
-
-  // Click en mapa salta a tarjeta
-  function wireClick(v){
-    v.on("click", async (e)=>{
-      const hit = await v.hitTest(e);
-      const g = hit.results.find(r=>r.graphic && r.graphic.layer===layer)?.graphic;
-      if(g){
-        const idx = g.attributes.idx;
-        document.querySelector(`.step[data-idx="${idx}"]`)?.scrollIntoView({behavior:"smooth",block:"center"});
-        setActive(idx);
-      }
-    });
-  }
-  wireClick(view2D); wireClick(view3D);
-
-  // Controles
-  document.getElementById("toggleDimBtn").onclick=()=>{
-    const from=activeView();const to=is3D?view2D:view3D;
-    try{ if(from.viewpoint) to.goTo(from.viewpoint,{duration:0}); }catch(e){}
-    document.getElementById("viewDiv3D").style.display=is3D?"none":"block";
-    document.getElementById("viewDiv2D").style.display=is3D?"block":"none";
-    is3D=!is3D; setActive(active);
-  };
-  document.getElementById("prevBtn").onclick=()=>{const i=(active-1+DATA.length)%DATA.length;
-    document.querySelector(`.step[data-idx="${i}"]`)?.scrollIntoView({behavior:"smooth",block:"center"});}
-  document.getElementById("nextBtn").onclick=()=>{const i=(active+1)%DATA.length;
-    document.querySelector(`.step[data-idx="${i}"]`)?.scrollIntoView({behavior:"smooth",block:"center"});}
-});
-
-/* ===== Subrayado animado del título de Swipes al entrar en vista ===== */
+/* ===== Subrayado: se activa SOLO si el usuario interactúa + el título es visible ===== */
 (function(){
-  const section = document.getElementById('swipe-section');
-  const observer = new IntersectionObserver((entries)=>{
-    for(const e of entries){
-      if(e.isIntersecting){
-        section.classList.add('animate');
-        observer.disconnect();
-        break;
-      }
-    }
-  }, {threshold:.4});
-  observer.observe(section);
+  function animateOnInteract(headEl){
+    let interacted=false, done=false;
+    const io = new IntersectionObserver((entries)=>{
+      entries.forEach(e=>{
+        if(done) return;
+        if(interacted && e.isIntersecting){ headEl.classList.add('animate'); done=true; io.disconnect(); }
+      });
+    }, {threshold:.6});
+    io.observe(headEl);
+    const mark=()=>{ interacted=true; window.removeEventListener('scroll',mark); window.removeEventListener('pointerdown',mark); window.removeEventListener('keydown',mark); };
+    window.addEventListener('scroll',mark,{once:true,passive:true});
+    window.addEventListener('pointerdown',mark,{once:true});
+    window.addEventListener('keydown',mark,{once:true});
+  }
+  animateOnInteract(document.getElementById('hdr-proyectos'));
+  animateOnInteract(document.getElementById('hdr-swipes'));
 })();
 
-/* ===== Swipe: superposición tipo Esri ===== */
+/* ====== City Tour (ArcGIS) ====== */
+const SERVICE_URL='https://devportalgis.vivienda.gob.pe/servergis/rest/services/Mapa/FeatureServer/0';
+const LIMITES_URL='https://devportalgis.vivienda.gob.pe/servergis/rest/services/Mapa/FeatureServer/1';
+const F_ITEM='item', F_PROY='proyecto', F_CUI='cui', F_PROG='programa', F_SSP='ssp', F_AYUD='ayuda_memoria', F_IMG='url_imagen';
+const ENABLE_AUTO_REFRESH=true, AUTO_REFRESH_MS=60000;
+const ZOOM_2D=17.2, ZOOM_3D=18.2, TILT_3D=65, ROT_CLICK=12;
+
+require([
+  "esri/Map","esri/views/MapView","esri/views/SceneView",
+  "esri/widgets/BasemapGallery","esri/widgets/Expand",
+  "esri/layers/GraphicsLayer","esri/Graphic","esri/layers/FeatureLayer",
+  "esri/geometry/Point"
+], function(Map,MapView,SceneView,BasemapGallery,Expand,GraphicsLayer,Graphic,FeatureLayer,Point){
+
+  const map = new Map({ basemap:"hybrid", ground:"world-elevation" });
+  const gfx = new GraphicsLayer({ title:"Paradas", elevationInfo:{mode:"relative-to-ground", offset:25} }); map.add(gfx);
+
+  const mapView = new MapView({ container:"viewDiv", map, center:[-77.03,-12.05], zoom:12, constraints:{minZoom:2}, ui:{components:[]} });
+  let sceneView=null;
+
+  const gallery = new BasemapGallery({ view: mapView });
+  const galleryExpand = new Expand({ view: mapView, content: gallery, expanded:false, expandTooltip:"Mapas base" });
+  mapView.ui.add(galleryExpand,"top-right");
+
+  /* Inset */
+  const insetMap = new Map({ basemap:"gray-vector" });
+  const limitesFL = new FeatureLayer({
+    url: LIMITES_URL,
+    renderer:{ type:"simple", symbol:{ type:"simple-fill", color:[0,0,0,0], outline:{ color:"#0b2532", width:1.3 } } },
+    labelingInfo:[{ labelExpressionInfo:{expression:"$feature.nom_dep"}, labelPlacement:"center-center",
+      symbol:{ type:"text", color:"#0b2532", haloColor:"#fff", haloSize:1.5, font:{ family:"Nunito Sans", size:10, weight:"bold" } } }]
+  });
+  insetMap.add(limitesFL);
+  const insetPointLayer = new GraphicsLayer(); insetMap.add(insetPointLayer);
+  const redMarker = new Graphic({ geometry:null, symbol:{ type:"simple-marker", style:"circle", color:"#e50914", size:11, outline:{color:"#fff",width:1.8} } });
+  insetPointLayer.add(redMarker);
+  const insetView = new MapView({ container:"insetView", map: insetMap, center:[-75,-9.2], zoom:5, constraints:{rotationEnabled:false,minZoom:3,maxZoom:12,snapToZoom:false}, ui:{components:[]} });
+  ["drag","mouse-wheel","double-click","key-down"].forEach(ev=> insetView.on(ev,(e)=>e.stopPropagation()));
+
+  const $=id=>document.getElementById(id);
+  let STOPS=[], idx=0;
+  const getView=()=> (sceneView && sceneView.container) ? sceneView : mapView;
+  const tZoom=v=> v.type==="3d" ? ZOOM_3D : ZOOM_2D;
+
+  async function ensure3D(){
+    const from=getView(); if(from.type==="3d") return;
+    const vp=from.viewpoint?.clone();
+    if(!sceneView){ sceneView=new SceneView({ container:"viewDiv", map, qualityProfile:"high", ui:{components:[]} }); await sceneView.when(); }
+    else { sceneView.container="viewDiv"; }
+    if(vp) sceneView.viewpoint=vp; mapView.container=null; gallery.view=sceneView; galleryExpand.view=sceneView;
+  }
+
+  async function updateInset(lat,lng){
+    redMarker.geometry=new Point({ latitude:lat, longitude:lng, spatialReference:{wkid:4326} });
+    try{
+      const q=limitesFL.createQuery(); q.geometry=redMarker.geometry; q.spatialRelationship="intersects"; q.returnGeometry=true;
+      const r=await limitesFL.queryFeatures(q);
+      if(r.features?.length){ const ext=r.features[0].geometry.extent.expand(1.08); await insetView.goTo(ext,{duration:500}); }
+      else{ await insetView.goTo({center:[-75,-9.2],zoom:5},{duration:400}); }
+    }catch{ insetView.goTo({center:[-75,-9.2],zoom:5},{duration:400}); }
+  }
+
+  function setLinks(p){
+    const linksDiv=$("links"); linksDiv.innerHTML="";
+    if(p.ssp){
+      const a=document.createElement("a"); a.className="icon-round"; a.href=p.ssp; a.target="_blank"; a.rel="noopener"; a.title="Detalle Proyecto";
+      a.innerHTML=`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><path d="M14 2v6h6"></path><path d="M16 13H8M16 17H8M10 9H8"></path></svg>`;
+      linksDiv.appendChild(a);
+    }
+    if(p.ayuda){
+      const a2=document.createElement("a"); a2.className="icon-round"; a2.href=p.ayuda; a2.target="_blank"; a2.rel="noopener"; a2.title="Ayuda Memoria";
+      a2.innerHTML=`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><path d="M12 16v-4"></path><path d="M12 8h.01"></path></svg>`;
+      linksDiv.appendChild(a2);
+    }
+  }
+
+  function renderCard(i){
+    const p=STOPS[i]; if(!p) return;
+    $("badge-num").textContent=p.item ?? (i+1);
+    $("title").textContent=p.proyecto || "—";
+    $("meta1").textContent="CUI: " + (p.cui ?? "—");
+    $("meta2").textContent="Programa: " + (p.programa ?? "—");
+    $("photo").src=p.foto || ""; setLinks(p);
+    updateInset(p.lat,p.lng);
+
+    const v=getView(), opts={duration:750};
+    if(v.type==="3d"){ v.goTo({center:[p.lng,p.lat], zoom:tZoom(v), tilt:TILT_3D}, opts); }
+    else{ v.goTo({center:[p.lng,p.lat], zoom:tZoom(v)}, opts); }
+
+    idx=i; $("prev").disabled=(idx===0); $("next").disabled=(idx===STOPS.length-1);
+  }
+
+  const goTo=i=>renderCard(i);
+  $("prev").onclick=e=>{e.stopPropagation(); goTo(Math.max(0,idx-1));};
+  $("next").onclick=e=>{e.stopPropagation(); goTo(Math.min(STOPS.length-1,idx+1));};
+  window.addEventListener('keydown',e=>{ if(e.key==="ArrowRight")$("next").click(); if(e.key==="ArrowLeft")$("prev").click(); });
+
+  function drawMarkers(){
+    gfx.removeAll();
+    STOPS.forEach((p,i)=>{
+      const circle=new Graphic({ geometry:{type:"point",longitude:p.lng,latitude:p.lat},
+        symbol:{type:"simple-marker",color:"#ffffff",size:"18px",outline:{color:"#1e6eb6",width:2.5}}, attributes:{idx:i}});
+      const num=new Graphic({ geometry:{type:"point",longitude:p.lng,latitude:p.lat},
+        symbol:{type:"text",color:"#1e6eb6",text:String(p.item??(i+1)),haloColor:"#ffffff",haloSize:"1.5px",font:{family:"Nunito Sans",size:10,weight:"bold"}}, attributes:{idx:i}});
+      gfx.addMany([circle,num]);
+    });
+    [mapView,sceneView].forEach(v=>{
+      if(!v) return;
+      v.on("click",async ev=>{
+        const hit=await v.hitTest(ev);
+        const g=hit?.results?.find(r=>r.graphic?.attributes?.idx!==undefined)?.graphic;
+        if(g) goTo(g.attributes.idx);
+      });
+    });
+    const v=getView();
+    if(STOPS.length){ v.goTo({target:STOPS.map(p=>({longitude:p.lng,latitude:p.lat})), zoom:12}); renderCard(0); }
+  }
+
+  async function rotateAroundCurrent(delta){
+    if(!STOPS.length) return; const p=STOPS[idx]; if(!p) return;
+    await ensure3D(); const v=getView(); const h=((v.camera.heading+delta)%360+360)%360;
+    await v.goTo({center:[p.lng,p.lat], tilt:TILT_3D, heading:h, zoom:tZoom(v)}, {duration:180});
+  }
+  document.getElementById("rotLeft").onclick = ()=> rotateAroundCurrent(-ROT_CLICK);
+  document.getElementById("rotRight").onclick= ()=> rotateAroundCurrent( ROT_CLICK);
+  document.getElementById("zoomIn").onclick  = ()=> getView().goTo({ zoom:getView().zoom+1 });
+  document.getElementById("zoomOut").onclick = ()=> getView().goTo({ zoom:getView().zoom-1 });
+  document.getElementById("toggleDim").onclick = async ()=>{
+    const p=STOPS[idx]; const from=getView(); const vp=from.viewpoint?.clone(); const exp=galleryExpand.expanded;
+    if(from.type==="2d"){ await ensure3D(); if(p) sceneView.goTo({center:[p.lng,p.lat], zoom:ZOOM_3D, tilt:TILT_3D},{duration:500}); }
+    else{ mapView.container="viewDiv"; if(p) mapView.goTo({center:[p.lng,p.lat], zoom:ZOOM_2D},{duration:500}); if(vp && !p) mapView.viewpoint=vp; sceneView.container=null; gallery.view=mapView; galleryExpand.view=mapView; }
+    galleryExpand.expanded=exp;
+  };
+
+  async function fetchStops(){
+    const fl=new FeatureLayer({ url:SERVICE_URL, outFields:[F_ITEM,F_PROY,F_CUI,F_PROG,F_SSP,F_AYUD,F_IMG] });
+    await fl.load(); const q=fl.createQuery(); q.where="1=1"; q.outFields=fl.outFields; q.returnGeometry=true; q.orderByFields=[F_ITEM];
+    const r=await fl.queryFeatures(q);
+    return r.features.map(f=>{
+      const a=f.attributes||{}, g=f.geometry, lng=g?.longitude??a.coordx??null, lat=g?.latitude??a.coordy??null;
+      return { item:a[F_ITEM], proyecto:a[F_PROY], cui:a[F_CUI], programa:a[F_PROG], ssp:a[F_SSP], ayuda:a[F_AYUD], foto:a[F_IMG], lng, lat };
+    }).filter(p=>p.lng!=null && p.lat!=null);
+  }
+  function merge(current,incoming){
+    const byItem=new Map(incoming.map(s=>[s.item,s])); const merged=[]; const seen=new Set();
+    current.forEach(c=>{ const n=byItem.get(c.item); if(n){ merged.push(n); seen.add(c.item);} });
+    incoming.forEach(n=>{ if(!seen.has(n.item)) merged.push(n); });
+    merged.sort((x,y)=>(x.item??0)-(y.item??0)); return merged;
+  }
+
+  async function initial(){ try{ STOPS=await fetchStops(); }catch(e){ console.warn("FS error:",e); STOPS=[]; } drawMarkers(); }
+  async function refresh(){
+    try{
+      const incoming=await fetchStops(); const mergedRes=merge(STOPS,incoming);
+      const changed=JSON.stringify(mergedRes)!==JSON.stringify(STOPS);
+      if(changed){ const currentItem=STOPS[idx]?.item; STOPS=mergedRes; drawMarkers(); const newIdx=STOPS.findIndex(s=>s.item===currentItem); if(newIdx>=0) idx=newIdx; }
+    }catch(e){ console.warn("Auto-refresh falló:",e); }
+  }
+  (async ()=>{ await initial(); if(ENABLE_AUTO_REFRESH) setInterval(refresh,AUTO_REFRESH_MS); })();
+});
+
+/* ===== Swipes (interactivo accesible) ===== */
 (function(){
   function setupSwipe(el){
-    const start = Number(el.getAttribute('data-start') || 50);
+    const start = Number(el.getAttribute('data-start')||50);
     setPos(start);
-    function setPos(pct){
-      pct = Math.max(0, Math.min(100, pct));
-      el.style.setProperty('--pos', pct + '%');
-    }
+    function setPos(pct){ pct=Math.max(0,Math.min(100,pct)); el.style.setProperty('--pos',pct+'%'); }
     function pctFromEvent(e){
-      const r = el.getBoundingClientRect();
-      const clientX = (e.clientX ?? (e.touches && e.touches[0]?.clientX) ?? r.left);
-      return ((clientX - r.left) / r.width) * 100;
+      const r=el.getBoundingClientRect();
+      const x=(e.clientX ?? (e.touches && e.touches[0]?.clientX) ?? r.left);
+      return ((x - r.left) / r.width) * 100;
     }
     let dragging=false;
     const down=(e)=>{ dragging=true; setPos(pctFromEvent(e)); e.preventDefault(); };
@@ -479,27 +573,23 @@ require([
     const up=()=> dragging=false;
 
     const hit=el.querySelector('.hit');
-    hit.addEventListener('pointerdown', down);
-    window.addEventListener('pointermove', move);
-    window.addEventListener('pointerup', up);
+    hit.addEventListener('pointerdown',down);
+    window.addEventListener('pointermove',move);
+    window.addEventListener('pointerup',up);
+    hit.addEventListener('touchstart',down,{passive:false});
+    window.addEventListener('touchmove',move,{passive:false});
+    window.addEventListener('touchend',up);
 
-    hit.addEventListener('touchstart', down, {passive:false});
-    window.addEventListener('touchmove', move, {passive:false});
-    window.addEventListener('touchend', up);
-
-    // Accesible por teclado
     hit.setAttribute('tabindex','0');
-    hit.addEventListener('keydown', (e)=>{
-      const step = e.shiftKey ? 5 : 1;
-      const css = getComputedStyle(el).getPropertyValue('--pos');
-      let cur = Number(css.replace('%','')) || 50;
-      if(e.key === 'ArrowLeft')  setPos(cur - step);
-      if(e.key === 'ArrowRight') setPos(cur + step);
+    hit.addEventListener('keydown',(e)=>{
+      const step=e.shiftKey?5:1; const css=getComputedStyle(el).getPropertyValue('--pos');
+      let cur=Number(css.replace('%',''))||50;
+      if(e.key==='ArrowLeft')  setPos(cur-step);
+      if(e.key==='ArrowRight') setPos(cur+step);
     });
   }
   document.querySelectorAll('.swipe').forEach(setupSwipe);
 })();
 </script>
-
 </body>
 </html>
