@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>City Tour — MVCS (2D/3D + rotación manual)</title>
+<title>City Tour — MVCS (Inset por departamento + 2D/3D)</title>
 
 <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@600;700;800;900&display=swap" rel="stylesheet"/>
 <link rel="stylesheet" href="https://js.arcgis.com/4.29/esri/themes/light/main.css"/>
@@ -22,7 +22,7 @@
   .title{margin:8px 0 4px;font-size:1.35rem;font-weight:900;color:var(--ink)}
   .meta{margin:0;color:var(--muted);line-height:1.35}
 
-  /* Iconos Detalle/Ayuda */
+  /* Enlaces como iconos */
   .icon-links{display:flex;gap:8px;margin-top:12px}
   .icon-round{
     width:40px;height:40px;border-radius:999px;display:grid;place-items:center;
@@ -45,17 +45,32 @@
   }
   .icon-btn svg{width:22px;height:22px}
 
+  /* Mini-mapa (inset) arriba a la derecha — MÁS GRANDE */
+  .inset-wrap{
+    position:absolute; right:16px; top:16px; z-index:6;
+    width:340px; height:220px; border-radius:14px; overflow:hidden;
+    background:var(--glass); backdrop-filter:blur(6px); box-shadow:var(--shadow);
+    border:1px solid #e5e7eb;
+  }
+  #insetView{width:100%; height:100%}
+
   .esri-expand__content{max-height:60vh;overflow:auto}
 
   @media (max-width:880px){
     .overlay{left:12px;right:12px;width:auto;bottom:122px}
     .nav{left:12px}
     .overlay img{height:210px}
+    .inset-wrap{right:12px; top:12px; width:260px; height:180px}
   }
 </style>
 </head>
 <body>
 <div id="viewDiv">
+
+  <!-- Mini-Mapa (inset) -->
+  <div class="inset-wrap">
+    <div id="insetView" title="Vista de contexto"></div>
+  </div>
 
   <!-- Tarjeta -->
   <div class="overlay">
@@ -75,70 +90,50 @@
     <button class="btn" id="next">Siguiente ⟶</button>
   </div>
 
-  <!-- Controles derecha: Rotar izq/der (manual), 2D/3D, Zoom -->
+  <!-- Controles derecha: rotar izq/der, 2D/3D, zoom -->
   <div class="ctrl-box">
-    <!-- Rotar izquierda -->
     <button class="icon-btn" id="rotLeft" title="Girar cámara a la izquierda (3D)">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <path d="M3 12a9 9 0 1 0 9-9"></path>
-        <path d="M3 4v8h8"></path>
-      </svg>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 9-9"></path><path d="M3 4v8h8"></path></svg>
     </button>
-
-    <!-- Rotar derecha -->
     <button class="icon-btn" id="rotRight" title="Girar cámara a la derecha (3D)">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <path d="M21 12a9 9 0 1 1-9-9"></path>
-        <path d="M21 4v8h-8"></path>
-      </svg>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-9-9"></path><path d="M21 4v8h-8"></path></svg>
     </button>
-
-    <!-- 2D / 3D -->
     <button class="icon-btn" id="toggleDim" title="Alternar 2D / 3D">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <path d="M12 2 3 7l9 5 9-5-9-5z"></path>
-        <path d="M3 7v10l9 5 9-5V7"></path>
-        <path d="M12 12v10"></path>
-      </svg>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2 3 7l9 5 9-5-9-5z"></path><path d="M3 7v10l9 5 9-5V7"></path><path d="M12 12v10"></path></svg>
     </button>
-
-    <!-- Zoom + -->
     <button class="icon-btn" id="zoomIn" title="Acercar">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <path d="M11 4a7 7 0 1 0 4.9 12.1L21 21"></path>
-        <path d="M11 8v6M8 11h6"></path>
-      </svg>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4a7 7 0 1 0 4.9 12.1L21 21"></path><path d="M11 8v6M8 11h6"></path></svg>
     </button>
-
-    <!-- Zoom - -->
     <button class="icon-btn" id="zoomOut" title="Alejar">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <path d="M11 4a7 7 0 1 0 4.9 12.1L21 21"></path>
-        <path d="M8 11h6"></path>
-      </svg>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4a7 7 0 1 0 4.9 12.1L21 21"></path><path d="M8 11h6"></path></svg>
     </button>
   </div>
 </div>
 
 <script>
-/* ==== Servicio y campos ==== */
-const SERVICE_URL = 'https://devportalgis.vivienda.gob.pe/servergis/rest/services/Mapa/FeatureServer/0';
+/* ===== Config ===== */
+const SERVICE_URL  = 'https://devportalgis.vivienda.gob.pe/servergis/rest/services/Mapa/FeatureServer/0';
+
+/* ⚠️ Ajusta estas URLs a tus capas reales */
+const LIMITES_URL  = 'https://devportalgis.vivienda.gob.pe/servergis/rest/services/Mapa/FeatureServer/1'; // Departamentos con campo nom_dep
+const DIST_URL     = ''; // Opcional: distritos (deja '' si aún no lo tienes)
+
 const F_ITEM='item', F_PROY='proyecto', F_CUI='cui', F_PROG='programa', F_SSP='ssp', F_AYUD='ayuda_memoria', F_IMG='url_imagen';
 
-/* Zoom y cámara */
-const ZOOM_2D = 15.5;
-const ZOOM_3D = 16.5;
-const TILT_3D = 65;
-const ROT_CLICK = 10;        // grados por clic
-const ROT_HOLD_STEP = 2.5;   // grados por “tick” al mantener presionado
-const ROT_HOLD_MS = 30;      // intervalo de hold
+const ENABLE_AUTO_REFRESH = true;
+const AUTO_REFRESH_MS = 60000;
+
+const ZOOM_2D = 15.5, ZOOM_3D = 16.5, TILT_3D = 65;
+const ROT_CLICK = 10, ROT_HOLD_STEP = 2.5, ROT_HOLD_MS = 30;
 
 require([
   "esri/Map","esri/views/MapView","esri/views/SceneView",
   "esri/widgets/BasemapGallery","esri/widgets/Expand",
-  "esri/layers/GraphicsLayer","esri/Graphic","esri/layers/FeatureLayer"
-], function(Map, MapView, SceneView, BasemapGallery, Expand, GraphicsLayer, Graphic, FeatureLayer){
+  "esri/layers/GraphicsLayer","esri/Graphic","esri/layers/FeatureLayer",
+  "esri/geometry/geometryEngine","esri/geometry/Point"
+], function(Map, MapView, SceneView, BasemapGallery, Expand, GraphicsLayer, Graphic, FeatureLayer, geometryEngine, Point){
 
+  /* ===== Mapa principal ===== */
   const map = new Map({ basemap:"hybrid", ground:"world-elevation" });
   const gfx = new GraphicsLayer({ title:"Paradas" }); map.add(gfx);
 
@@ -148,15 +143,88 @@ require([
   });
   let sceneView = null;
 
+  /* Basemap gallery */
   const gallery = new BasemapGallery({ view: mapView });
   const galleryExpand = new Expand({ view: mapView, content: gallery, expanded:false, expandTooltip:"Mapas base" });
   mapView.ui.add(galleryExpand, "top-right");
 
+  /* ===== Mini-mapa (inset) ===== */
+  const insetMap  = new Map({ basemap:"gray-vector" });
+
+  const limitesFL = new FeatureLayer({
+    url: LIMITES_URL,
+    title: "Departamentos",
+    opacity: 1,
+    renderer: {
+      type: "simple",
+      symbol: { type:"simple-fill", color:[0,0,0,0], outline:{ color:"#0b2532", width:1.3 } }
+    },
+    labelingInfo: [{
+      labelExpressionInfo: { expression: "$feature.nom_dep" },
+      labelPlacement: "center-center",
+      symbol: {
+        type: "text",
+        color: "#0b2532",
+        haloColor: "#ffffff",
+        haloSize: 1.5,
+        font: { family: "Nunito Sans", size: 10, weight: "bold" }
+      }
+    }]
+  });
+  insetMap.add(limitesFL);
+
+  let distritosFL = null;
+  if (DIST_URL && DIST_URL.trim() !== "") {
+    distritosFL = new FeatureLayer({
+      url: DIST_URL,
+      title: "Distritos",
+      visible: false, // se controla con el zoom
+      renderer: {
+        type: "simple",
+        symbol: { type:"simple-fill", color:[0,0,0,0], outline:{ color:"#64748b", width:0.8 } }
+      }
+    });
+    insetMap.add(distritosFL);
+  }
+
+  const insetPointLayer = new GraphicsLayer({ title:"Punto actual" });
+  insetMap.add(insetPointLayer); // arriba
+  const redMarker = new Graphic({
+    geometry: null,
+    symbol: { type:"simple-marker", style:"circle", color:"#e50914", size: 11, outline:{ color:"#ffffff", width:1.8 } }
+  });
+  insetPointLayer.add(redMarker);
+
+  const insetView = new MapView({
+    container: "insetView",
+    map: insetMap,
+    center: [-75, -9.2],
+    zoom: 5,
+    constraints: { rotationEnabled:false, minZoom:3, maxZoom:12, snapToZoom:false },
+    ui: { components: [] }
+  });
+
+  // Desactivar interacción del inset
+  ["drag","mouse-wheel","double-click","key-down"].forEach(ev=>{
+    insetView.on(ev, (e)=> e.stopPropagation());
+  });
+
+  // Alterna distritos según escala (visible cuando estás "cerca")
+  const DIST_VIS_THRESHOLD = 800000; // ~1:800k (ajusta si deseas)
+  if (distritosFL){
+    insetView.watch("scale", (s)=>{
+      distritosFL.visible = s < DIST_VIS_THRESHOLD;
+    });
+  }
+
+  /* ===== Utilidades ===== */
   const $ = id => document.getElementById(id);
   let STOPS = [];
   let idx = 0;
 
-  /* ===== Helpers 2D/3D ===== */
+  function getActiveView(){ return (sceneView && sceneView.container) ? sceneView : mapView; }
+  function targetZoom(view){ return view.type === "3d" ? ZOOM_3D : ZOOM_2D; }
+
   async function ensure3D(){
     const from = getActiveView();
     if(from.type === "3d") return;
@@ -171,53 +239,75 @@ require([
     mapView.container = null;
     gallery.view = sceneView; galleryExpand.view = sceneView;
   }
-  function getActiveView(){ return (sceneView && sceneView.container) ? sceneView : mapView; }
-  function targetZoom(view){ return view.type === "3d" ? ZOOM_3D : ZOOM_2D; }
 
-  /* ===== Rotación manual ===== */
+  /* Rotación manual */
   function rotateOnce(delta){
     ensure3D().then(()=>{
-      const v = getActiveView();     // ya será SceneView
+      const v = getActiveView();
       const cam = v.camera.clone();
       cam.tilt = TILT_3D;
       cam.heading = (cam.heading + delta + 360) % 360;
-      v.camera = cam;                 // sin animación pesada
+      v.camera = cam;
     });
   }
-  function holdRotate(buttonEl, deltaPerTick){
-    let t = null;
-    const start = ()=>{ if(t) return; rotateOnce(0); t = setInterval(()=> rotateOnce(deltaPerTick), ROT_HOLD_MS); };
-    const stop  = ()=>{ if(!t) return; clearInterval(t); t=null; };
-    buttonEl.addEventListener('mousedown', start);
-    buttonEl.addEventListener('touchstart', (e)=>{ e.preventDefault(); start(); }, {passive:false});
-    ['mouseup','mouseleave','touchend','touchcancel'].forEach(ev=> buttonEl.addEventListener(ev, stop));
-    // clic único
-    buttonEl.addEventListener('click', ()=> rotateOnce(deltaPerTick>0?ROT_CLICK:-ROT_CLICK));
+  function holdRotate(btn, deltaPerTick){
+    let t=null;
+    const start=()=>{ if(t) return; rotateOnce(0); t=setInterval(()=>rotateOnce(deltaPerTick), ROT_HOLD_MS); };
+    const stop =()=>{ if(!t) return; clearInterval(t); t=null; };
+    btn.addEventListener('mousedown', start);
+    btn.addEventListener('touchstart', (e)=>{ e.preventDefault(); start(); }, {passive:false});
+    ['mouseup','mouseleave','touchend','touchcancel'].forEach(ev=> btn.addEventListener(ev, stop));
+    btn.addEventListener('click', ()=> rotateOnce(deltaPerTick>0?ROT_CLICK:-ROT_CLICK));
   }
-
   holdRotate($("rotLeft"),  -ROT_HOLD_STEP);
   holdRotate($("rotRight"),  ROT_HOLD_STEP);
 
-  /* ===== Tarjeta y navegación ===== */
+  /* Actualiza el punto rojo del inset + enfoca al departamento */
+  async function updateInsetForPoint(lat, lng){
+    // Mueve el punto rojo
+    redMarker.geometry = new Point({ latitude: lat, longitude: lng, spatialReference: { wkid:4326 } });
+
+    try{
+      // Busca el departamento que contiene el punto
+      const q = limitesFL.createQuery();
+      q.geometry = redMarker.geometry;
+      q.spatialRelationship = "intersects"; // contiene/intersects para puntos funciona bien
+      q.returnGeometry = true;
+      q.outFields = ["nom_dep"];
+      const res = await limitesFL.queryFeatures(q);
+      if(res.features?.length){
+        const dep = res.features[0];
+        // Zoomea al extent del departamento, con padding para que entren etiqueta y límites
+        const ext = dep.geometry.extent.expand(1.08);
+        await insetView.goTo(ext, { duration: 500 });
+      }else{
+        // Fallback: vista general del Perú si no encontró depto
+        await insetView.goTo({ center: [-75, -9.2], zoom: 5 }, { duration: 400 });
+      }
+    }catch(e){
+      // Fallback silencioso
+      insetView.goTo({ center: [-75, -9.2], zoom: 5 }, { duration: 400 });
+    }
+  }
+
+  /* Enlaces en tarjeta */
   function setLinks(p){
     const linksDiv = $("links"); linksDiv.innerHTML="";
     if(p.ssp){
       const a=document.createElement("a");
       a.className="icon-round"; a.href=p.ssp; a.target="_blank"; a.rel="noopener"; a.title="Detalle Proyecto";
-      a.innerHTML=`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-        <path d="M14 2v6h6"></path><path d="M16 13H8M16 17H8M10 9H8"></path></svg>`;
+      a.innerHTML=`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><path d="M14 2v6h6"></path><path d="M16 13H8M16 17H8M10 9H8"></path></svg>`;
       linksDiv.appendChild(a);
     }
     if(p.ayuda){
       const a2=document.createElement("a");
       a2.className="icon-round"; a2.href=p.ayuda; a2.target="_blank"; a2.rel="noopener"; a2.title="Ayuda Memoria";
-      a2.innerHTML=`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <circle cx="12" cy="12" r="10"></circle><path d="M12 16v-4"></path><path d="M12 8h.01"></path></svg>`;
+      a2.innerHTML=`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><path d="M12 16v-4"></path><path d="M12 8h.01"></path></svg>`;
       linksDiv.appendChild(a2);
     }
   }
 
+  /* Pintar tarjeta y centrar */
   function renderCard(i){
     const p = STOPS[i]; if(!p) return;
     $("badge-num").textContent = p.item ?? (i+1);
@@ -226,6 +316,9 @@ require([
     $("meta2").textContent = "Programa: " + (p.programa ?? "—");
     $("photo").src = p.foto || "";
     setLinks(p);
+
+    // Inset: punto y zoom a departamento
+    updateInsetForPoint(p.lat, p.lng);
 
     const v = getActiveView();
     const opts = { duration: 800 };
@@ -239,7 +332,7 @@ require([
     $("next").disabled = (idx===STOPS.length-1);
   }
 
-  function goTo(i){ renderCard(i); } // no autoplay que pausar
+  function goTo(i){ renderCard(i); }
 
   $("prev").onclick = ()=> goTo(Math.max(0, idx-1));
   $("next").onclick = ()=> goTo(Math.min(STOPS.length-1, idx+1));
@@ -248,6 +341,7 @@ require([
     if(e.key==="ArrowLeft")  $("prev").click();
   });
 
+  /* Marcadores numerados en mapa principal */
   function drawMarkers(){
     gfx.removeAll();
     STOPS.forEach((p,i)=>{
@@ -284,12 +378,10 @@ require([
   /* Zoom y 2D/3D */
   $("zoomIn").onclick  = ()=> getActiveView().goTo({ zoom: getActiveView().zoom + 1 });
   $("zoomOut").onclick = ()=> getActiveView().goTo({ zoom: getActiveView().zoom - 1 });
-
   $("toggleDim").onclick = async ()=>{
     const from = getActiveView();
     const vp = from.viewpoint?.clone();
     const expanded = galleryExpand.expanded;
-
     if(from.type === "2d"){
       await ensure3D();
     }else{
@@ -301,22 +393,50 @@ require([
     galleryExpand.expanded = expanded;
   };
 
-  /* Carga datos */
-  async function loadFromFeatureServer(){
+  /* Carga y auto-refresh */
+  async function fetchStopsFromFS(){
     const fl = new FeatureLayer({ url: SERVICE_URL, outFields:[F_ITEM,F_PROY,F_CUI,F_PROG,F_SSP,F_AYUD,F_IMG] });
     await fl.load();
-    const q = fl.createQuery();
-    q.where="1=1"; q.outFields=fl.outFields; q.returnGeometry=true; q.orderByFields=[F_ITEM];
+    const q = fl.createQuery(); q.where="1=1"; q.outFields=fl.outFields; q.returnGeometry=true; q.orderByFields=[F_ITEM];
     const res = await fl.queryFeatures(q);
-    STOPS = res.features.map(f=>{
+    return res.features.map(f=>{
       const a=f.attributes||{}, g=f.geometry, lng=g?.longitude??a.coordx??null, lat=g?.latitude??a.coordy??null;
       return { item:a[F_ITEM], proyecto:a[F_PROY], cui:a[F_CUI], programa:a[F_PROG], ssp:a[F_SSP], ayuda:a[F_AYUD], foto:a[F_IMG], lng, lat };
     }).filter(p=>p.lng!=null && p.lat!=null);
   }
 
-  (async ()=>{
-    try{ await loadFromFeatureServer(); }catch(e){ console.warn("No se pudo leer el FeatureServer:", e); STOPS=[]; }
+  function mergeStops(current, incoming){
+    const byItem = new Map(incoming.map(s => [s.item, s]));
+    const merged = []; const seen = new Set();
+    current.forEach(c=>{ const n=byItem.get(c.item); if(n){ merged.push(n); seen.add(c.item);} });
+    incoming.forEach(n=>{ if(!seen.has(n.item)) merged.push(n); });
+    merged.sort((x,y)=> (x.item??0)-(y.item??0));
+    return merged;
+  }
+
+  async function initialLoad(){
+    try{ STOPS = await fetchStopsFromFS(); }catch(e){ console.warn("FS error:", e); STOPS=[]; }
     drawMarkers();
+  }
+
+  async function refreshStops(){
+    try{
+      const incoming = await fetchStopsFromFS();
+      const merged = mergeStops(STOPS, incoming);
+      const changed = JSON.stringify(merged) !== JSON.stringify(STOPS);
+      if(changed){
+        const currentItem = STOPS[idx]?.item;
+        STOPS = merged;
+        drawMarkers();
+        const newIdx = STOPS.findIndex(s => s.item === currentItem);
+        if(newIdx >= 0) idx = newIdx;
+      }
+    }catch(e){ console.warn("Auto-refresh falló:", e); }
+  }
+
+  (async ()=>{
+    await initialLoad();
+    if(ENABLE_AUTO_REFRESH) setInterval(refreshStops, AUTO_REFRESH_MS);
   })();
 });
 </script>
