@@ -83,8 +83,8 @@
     }
     .hero-header img{height:48px;object-fit:contain;}
     nav.hero-nav{display:flex;flex-wrap:wrap;gap:2.2rem;justify-content:center;}
-    nav.hero-nav a{color:var(--txt-main);text-decoration:none;font-weight:600;font-size:0.95rem;transition:.3s;}
-    nav.hero-nav a:hover{color:#ffdddd;}
+    nav.hero-nav a{color:var(--txt-main);text-decoration:none;font-weight:700;font-size:0.9rem;transition:.3s; padding:6px 10px; border-radius:999px; border:1px solid rgba(255,255,255,0.4); background:rgba(255,255,255,0.15);}
+    nav.hero-nav a:hover{color:#ffdddd; background:rgba(255,255,255,0.25);}
 
     .hero-content{
       position:relative;
@@ -756,6 +756,17 @@
     #map-section a.chipLink{ color:var(--rojo);font-weight:900;text-decoration:none;font-size:12px; }
     #map-section a.chipLink:hover{ text-decoration:underline; }
     #map-section .pill{ background:#f3f4f6;color:#334155;padding:3px 6px;border-radius:999px;font-weight:800;display:inline-block;font-size:11.5px; }
+    /* Destaca la primera columna (CUI) en la tabla de detalles */
+    #map-section tbody td:first-child{
+      background:var(--azul);
+      color:#ffffff;
+      font-weight:900;
+    
+      border-right: 2px solid rgba(255,255,255,0.4);
+    }
+    #map-section tbody td:first-child a{
+      color:#ffffff;
+    }
   </style>
 </head>
 <body>
@@ -997,7 +1008,8 @@
   
   <!-- ======================= NUEVO MÓDULO DE INVERSIONES ======================= -->
   <!-- Sección Inversiones (PIM/Devengado) -->
-  <section class="wrap" id="sec-inversiones">
+  <span id="inversiones" class="section-anchor"></span>
+<section class="wrap" id="sec-inversiones">
     <div class="grid">
       <!-- Izquierda: descripción del módulo -->
       <div>
@@ -2672,7 +2684,8 @@
   })();
 })();
 </script>
-<!-- End of inserted charts section -->
+
+
 
 <!-- Start of Grandes proyectos section -->
 <meta charset="utf-8"/>
@@ -2696,6 +2709,7 @@
     --shadow:0 12px 30px rgba(2,20,33,.22);
   }
 
+  html{scroll-behavior:smooth;}
   html,body{
     margin:0; background:#fff; color:var(--ink);
     font-family:"Nunito Sans",system-ui,-apple-system,Segoe UI,Roboto,Arial;
@@ -2835,7 +2849,8 @@
 </style>
 <!-- ===== Bloque superior ===== -->
 <section class="wrap">
-  <div class="section-head" id="hdr-proyectos" tabindex="-1"><h1 class="section-title">Grandes proyectos</h1></div>
+  <span id="proyectos" class="section-anchor"></span>
+<div class="section-head" id="hdr-proyectos" tabindex="-1"><h1 class="section-title">Grandes proyectos</h1></div>
   <p class="lead">
     Buscan transformar la calidad de vida de millones de peruanos mediante obras de alto impacto en agua,
     saneamiento, vivienda e infraestructura urbana. Estas inversiones, por su impacto, complejidad técnica y presupuesto,
@@ -2916,7 +2931,8 @@
 
 <!-- ===== Imágenes multitemporales ===== -->
 <section class="wrap-card" id="swipe-section">
-  <div class="section-head" id="hdr-swipes"><h1 class="section-title">Imágenes multitemporales</h1></div>
+  <span id="multitemporal" class="section-anchor"></span>
+<div class="section-head" id="hdr-swipes"><h1 class="section-title">Imágenes multitemporales</h1></div>
   <p class="intro">
     Visualiza el antes y después de las intervenciones del ministerio y conoce el impacto tangible de las
     obras en el territorio. Es posible observar los cambios y avances físicos generados por las intervenciones
@@ -3263,5 +3279,66 @@ require([
 })();
 </script>
 <!-- End of Grandes proyectos section -->
+
+<script>
+(function(){
+  function animateOnInteract(headEl){
+    let interacted=false, done=false;
+    const io=new IntersectionObserver((entries)=>{
+      entries.forEach(e=>{
+        if(done) return;
+        if(interacted && e.isIntersecting){ headEl.classList.add('animate'); done=true; io.disconnect(); }
+      });
+    }, {threshold:.6});
+    io.observe(headEl);
+    const mark=()=>{ interacted=true; window.removeEventListener('scroll',mark); window.removeEventListener('pointerdown',mark); window.removeEventListener('keydown',mark); };
+    window.addEventListener('scroll',mark,{once:true,passive:true});
+    window.addEventListener('pointerdown',mark,{once:true});
+    window.addEventListener('keydown',mark,{once:true});
+  }
+  document.querySelectorAll('.section-head').forEach(el=> animateOnInteract(el));
+})();
+</script>
+
+
+  <!-- ===== Pie de página (Créditos) ===== -->
+  <style>
+    .credits{
+      text-align:center;
+      font-size:0.85rem;
+      padding:18px 12px 22px;
+      border-top:1px solid var(--line);
+      line-height:1.5;
+      color:var(--muted);
+    }
+    .credits strong{color:var(--ink); font-weight:800;}
+    .credits a{
+      color:var(--brand);
+      text-decoration:none;
+      font-weight:700;
+    }
+    .credits a:hover{ text-decoration:underline; }
+    .credits::before{
+      content:"";
+      display:block;
+      width:80px;
+      height:3px;
+      background:var(--accent);
+      margin:0 auto 10px;
+      border-radius:999px;
+      transform:scaleX(0);
+      animation:lineIn 1.6s ease-out forwards;
+    }
+    @keyframes lineIn{ to{transform:scaleX(1);} }
+  </style>
+  <footer class="credits">
+    <p>
+      <strong>Ministerio de Vivienda, Construcción y Saneamiento (MVCS)</strong><br>
+      Oficina General de Estadística e Informática (OGEI) — Oficina de Estudios Estadísticos y Económicos (OEEE)<br>
+      <a href="mailto:sig@vivienda.gob.pe">sig@vivienda.gob.pe</a> • © <span id="year"></span>
+    </p>
+  </footer>
+  <script>document.getElementById('year').textContent = new Date().getFullYear();</script>
+
 </body>
 </html>
