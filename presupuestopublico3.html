@@ -3,26 +3,70 @@
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>City Tour — MVCS (Inset + 2D/3D + aviso para móvil)</title>
+<title>Grandes proyectos + City Tour — MVCS</title>
 
 <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@600;700;800;900&display=swap" rel="stylesheet"/>
 <link rel="stylesheet" href="https://js.arcgis.com/4.29/esri/themes/light/main.css"/>
 <script src="https://js.arcgis.com/4.29/"></script>
 
 <style>
-  :root{ --ink:#0b2532; --muted:#64748b; --brand:#1e6eb6; --glass:rgba(255,255,255,.86); --shadow:0 12px 30px rgba(2,20,33,.22); }
-  html,body{height:100%;margin:0;background:#000;color:var(--ink);font-family:"Nunito Sans",system-ui,-apple-system,Segoe UI,Roboto,Arial}
-  #viewDiv{position:relative;height:100%;width:100%}
+  :root{
+    --ink:#0b2532; --muted:#64748b; --brand:#1e6eb6; --accent:#e50914;
+    --glass:rgba(255,255,255,.86); --shadow:0 12px 30px rgba(2,20,33,.22);
+  }
+
+  /* ===== Texto (independiente del app) ===== */
+  html,body{margin:0;background:#fff;color:var(--ink);font-family:"Nunito Sans",system-ui,-apple-system,Segoe UI,Roboto,Arial}
+  .wrap{max-width:1100px;margin:0 auto;padding:22px 16px}
+
+  .hero{text-align:center;margin:8px auto 6px}
+  .hero h1{
+    margin:0; display:inline-block; font-weight:900; color:var(--brand);
+    font-size:clamp(22px,3.4vw,32px); line-height:1.1; position:relative;
+  }
+  /* subrayado animado (lento) */
+  .hero h1::after{
+    content:""; position:absolute; left:0; right:0; bottom:-8px; height:4px;
+    background:var(--accent); border-radius:999px; transform:scaleX(0);
+    transform-origin:left center; box-shadow:0 0 0 1px rgba(0,0,0,.06) inset;
+  }
+  .hero.animate h1::after{ animation: underlineDraw 2.6s ease-out forwards; }
+  @keyframes underlineDraw{ from{transform:scaleX(0)} to{transform:scaleX(1)} }
+
+  .lead{max-width:940px;margin:14px auto 10px; text-align:center; color:var(--muted);
+        font-weight:700; line-height:1.45; font-size:clamp(13px,1.6vw,16px)}
+  .cta{
+    color:var(--brand); font-weight:900; text-align:center;
+    margin:10px 0 0; font-size:clamp(13px,1.6vw,16px);
+  }
+
+  /* ===== Contenedor del aplicativo (casi full-bleed) ===== */
+  .app-frame{
+    position:relative;
+    margin: 10mm auto;                 /* ~1 cm de borde blanco alrededor */
+    width: calc(100vw - 20mm);         /* casi full-bleed */
+    height: min(98vh, calc(89vh + 140px)); /* alto ampliado */
+    min-height: 880px;
+    border-radius:18px;
+    overflow:hidden;
+    background:#000;                   /* negro SOLO dentro del app */
+    box-shadow:0 18px 40px rgba(2,6,23,.10);
+  }
+  #viewDiv{position:relative; height:100%; width:100%}
+
+  /* ===== Overlays y controles */
+  .overlay, .nav, .ctrl-box, .inset-wrap{ position:absolute; z-index:2000; }
+  .overlay *,.nav *,.ctrl-box *{ pointer-events:auto; }
 
   /* Tarjeta */
-  .overlay{position:absolute;left:20px;bottom:112px;z-index:5;width:min(92vw,440px);box-shadow:var(--shadow);border-radius:16px;overflow:hidden;background:#fff}
+  .overlay{left:20px;bottom:112px;width:min(92vw,440px);box-shadow:var(--shadow);border-radius:16px;overflow:hidden;background:#fff}
   .overlay img{display:block;width:100%;height:260px;object-fit:cover;background:#eef2f7}
   .overlay .body{padding:14px 16px 16px}
   .badge{display:inline-grid;place-items:center;width:28px;height:28px;border-radius:999px;background:var(--brand);color:#fff;font-weight:800;margin-right:8px}
-  .title{margin:8px 0 4px;font-size:1.35rem;font-weight:900;color:var(--ink)}
+  .title{margin:8px 0 4px;font-size:1.35rem;font-weight:900;color:var(--brand);font-family:"Nunito Sans",system-ui}
   .meta{margin:0;color:var(--muted);line-height:1.35}
 
-  /* Enlaces como iconos */
+  /* Enlaces (iconos) */
   .icon-links{display:flex;gap:8px;margin-top:12px}
   .icon-round{
     width:40px;height:40px;border-radius:999px;display:grid;place-items:center;
@@ -31,149 +75,175 @@
   }
   .icon-round svg{width:20px;height:20px}
 
-  /* Navegación */
-  .nav{position:absolute;left:20px;bottom:20px;z-index:5;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
-  .btn{appearance:none;border:0;background:var(--brand);color:#fff;padding:10px 14px;border-radius:12px;font-weight:800;cursor:pointer;box-shadow:0 8px 20px rgba(30,110,182,.35)}
+  /* Prev / Next */
+  .nav{left:20px;bottom:20px;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+  .btn{
+    appearance:none;border:0;background:var(--brand);color:#fff;padding:10px 14px;border-radius:12px;
+    font-weight:800;cursor:pointer;box-shadow:0 8px 20px rgba(30,110,182,.35)
+  }
   .btn:disabled{opacity:.55;cursor:not-allowed}
   .ghost{background:#fff;color:var(--brand);border:1px solid #d1e4f6}
 
-  /* Controles flotantes derecha */
-  .ctrl-box{position:absolute;right:16px;bottom:16px;z-index:5;display:flex;flex-direction:column;gap:8px}
+  /* Controles derecha */
+  .ctrl-box{right:16px;bottom:16px;display:flex;flex-direction:column;gap:8px}
   .icon-btn{
     width:44px;height:44px;border-radius:12px;border:0;cursor:pointer;
     box-shadow:var(--shadow);background:#fff;color:#1e6eb6;display:grid;place-items:center
   }
   .icon-btn svg{width:22px;height:22px}
 
-  /* Mini-mapa (inset) */
-  .inset-wrap{
-    position:absolute; right:16px; top:16px; z-index:6;
-    width:340px; height:220px; border-radius:14px; overflow:hidden;
-    background:var(--glass); backdrop-filter:blur(6px); box-shadow:var(--shadow);
-    border:1px solid #e5e7eb;
-  }
+  /* Mini-mapa (inset) — más pequeño */
+  .inset-wrap{right:16px; top:16px; width:220px; height:150px; border-radius:14px; overflow:hidden;
+    background:var(--glass); backdrop-filter:blur(6px); box-shadow:var(--shadow); border:1px solid #e5e7eb;}
   #insetView{width:100%; height:100%}
 
-  /* Aviso/ bloqueo para pantallas pequeñas */
+  /* Bloqueo SOLO dentro del app (pantallas pequeñas) */
   .small-blocker{
-    position:fixed; inset:0; z-index:9999;
+    position:absolute; inset:0; z-index:1990;
     display:none; align-items:center; justify-content:center;
     background:linear-gradient(180deg, rgba(2,18,30,.85), rgba(2,18,30,.92));
-    color:#fff; text-align:center; padding:24px;
-    backdrop-filter: blur(4px);
+    color:#fff; text-align:center; padding:24px; backdrop-filter: blur(4px);
   }
-  .small-card{
-    width:min(92vw, 760px);
-    background:rgba(255,255,255,.06);
-    border:1px solid rgba(255,255,255,.18);
-    box-shadow:0 10px 40px rgba(0,0,0,.35);
-    border-radius:18px; padding:22px 20px;
-  }
+  .small-card{width:min(92%,760px); background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.18); box-shadow:0 10px 40px rgba(0,0,0,.35); border-radius:18px; padding:22px 20px;}
   .small-title{font-size:1.35rem; font-weight:900; margin:0 0 10px}
   .small-text{color:#e5e7eb; margin:0 0 14px}
   .small-list{margin:0; padding-left:16px; color:#e5e7eb; text-align:left}
   .small-badges{display:flex; gap:8px; justify-content:center; flex-wrap:wrap; margin-top:12px}
-  .chip{
-    font-weight:800; font-size:.85rem; border-radius:999px; padding:6px 10px;
-    background:#1e293b; border:1px solid #324458; color:#dbeafe;
-  }
+  .chip{font-weight:800; font-size:.85rem; border-radius:999px; padding:6px 10px; background:#1e293b; border:1px solid #324458; color:#dbeafe}
 
-  /* Mostrar bloqueo cuando la pantalla es pequeña */
-  @media (max-width: 1024px){
-    .small-blocker{ display:flex; }
-  }
-
-  .esri-expand__content{max-height:60vh;overflow:auto}
-
+  @media (max-width: 1024px){ .small-blocker{ display:flex; } }
   @media (max-width:880px){
     .overlay{left:12px;right:12px;width:auto;bottom:122px}
     .nav{left:12px}
     .overlay img{height:210px}
-    .inset-wrap{right:12px; top:12px; width:260px; height:180px}
+    .inset-wrap{right:12px; top:12px; width:200px; height:136px}
   }
+
+  .esri-expand__content{max-height:60vh;overflow:auto}
 </style>
 </head>
 <body>
-<div id="viewDiv">
 
-  <!-- Mini-Mapa (inset) -->
-  <div class="inset-wrap">
-    <div id="insetView" title="Vista de contexto"></div>
-  </div>
+<!-- ===== Texto independiente ===== -->
+<section class="wrap">
+  <div class="hero" id="heroHeader" tabindex="-1"><h1>Grandes proyectos</h1></div>
 
-  <!-- Tarjeta -->
-  <div class="overlay">
-    <img id="photo" alt="Imagen del proyecto"/>
-    <div class="body">
-      <div><span class="badge" id="badge-num">1</span>Parada</div>
-      <h2 class="title" id="title">Proyecto</h2>
-      <p class="meta" id="meta1">CUI: —</p>
-      <p class="meta" id="meta2">Programa: —</p>
-      <div class="icon-links" id="links"></div>
+  <p class="lead">
+    Buscan transformar la calidad de vida de millones de peruanos mediante obras de alto impacto en agua,
+    saneamiento, vivienda e infraestructura urbana. Estas inversiones, por su impacto, complejidad técnica y presupuesto,
+    son estratégicas para el desarrollo urbano sostenible y la reducción de las brechas en servicios básicos.
+  </p>
+  <p class="lead">
+    En esta sección, presentamos las inversiones priorizadas, su alcance, inversión y estado de avance (ver detalle de
+    proyecto y/o ayuda memoria), con mapas detallados que permiten ubicarlos a nivel nacional.
+  </p>
+  <p class="cta">Estos proyectos son clave para el desarrollo sostenible del país.</p>
+  <p class="cta">Explora el mapa interactivo para ver su ubicación exacta y sigue su evolución.</p>
+</section>
+
+<!-- ===== Aplicativo (casi full-bleed) ===== -->
+<section class="app-frame">
+  <div id="viewDiv">
+
+    <!-- Mini-Mapa (inset) -->
+    <div class="inset-wrap"><div id="insetView" title="Vista de contexto"></div></div>
+
+    <!-- Tarjeta -->
+    <div class="overlay">
+      <img id="photo" alt="Imagen del proyecto"/>
+      <div class="body">
+        <div><span class="badge" id="badge-num">1</span>Parada</div>
+        <h2 class="title" id="title">Proyecto</h2>
+        <p class="meta" id="meta1">CUI: —</p>
+        <p class="meta" id="meta2">Programa: —</p>
+        <div class="icon-links" id="links"></div>
+      </div>
     </div>
-  </div>
 
-  <!-- Prev / Next -->
-  <div class="nav">
-    <button class="btn ghost" id="prev">⟵ Anterior</button>
-    <button class="btn" id="next">Siguiente ⟶</button>
-  </div>
-
-  <!-- Controles derecha -->
-  <div class="ctrl-box">
-    <button class="icon-btn" id="rotLeft" title="Girar cámara a la izquierda (3D)">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 9-9"></path><path d="M3 4v8h8"></path></svg>
-    </button>
-    <button class="icon-btn" id="rotRight" title="Girar cámara a la derecha (3D)">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-9-9"></path><path d="M21 4v8h-8"></path></svg>
-    </button>
-    <button class="icon-btn" id="toggleDim" title="Alternar 2D / 3D">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2 3 7l9 5 9-5-9-5z"></path><path d="M3 7v10l9 5 9-5V7"></path><path d="M12 12v10"></path></svg>
-    </button>
-    <button class="icon-btn" id="zoomIn" title="Acercar">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4a7 7 0 1 0 4.9 12.1L21 21"></path><path d="M11 8v6M8 11h6"></path></svg>
-    </button>
-    <button class="icon-btn" id="zoomOut" title="Alejar">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4a7 7 0 1 0 4.9 12.1L21 21"></path><path d="M8 11h6"></path></svg>
-    </button>
-  </div>
-</div>
-
-<!-- Bloqueo responsive para pantallas pequeñas -->
-<div class="small-blocker" aria-live="polite">
-  <div class="small-card">
-    <h3 class="small-title">Vista disponible en <u>pantalla grande</u></h3>
-    <p class="small-text">
-      Este recorrido usa <b>imágenes satelitales</b> y <b>escenas 3D</b> de alta definición.<br/>
-      Para apreciar el detalle y el rendimiento, ábrelo en un monitor o pantalla con <b>≥ 1024 px</b> de ancho.
-    </p>
-    <ul class="small-list">
-      <li>En móvil, intenta <b>girar a horizontal</b> o abrirlo desde un <b>laptop/PC</b>.</li>
-      <li>En escritorio, usa los controles de <b>2D/3D</b> y <b>rotación</b> para explorar mejor.</li>
-    </ul>
-    <div class="small-badges">
-      <span class="chip">Calidad satelital</span>
-      <span class="chip">Detalle 3D</span>
-      <span class="chip">Mejor en Desktop</span>
+    <!-- Prev / Next -->
+    <div class="nav">
+      <button class="btn ghost" id="prev">⟵ Anterior</button>
+      <button class="btn" id="next">Siguiente ⟶</button>
     </div>
+
+    <!-- Controles derecha -->
+    <div class="ctrl-box">
+      <button class="icon-btn" id="rotLeft" title="Girar cámara a la izquierda (3D)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 9-9"></path><path d="M3 4v8h8"></path></svg>
+      </button>
+      <button class="icon-btn" id="rotRight" title="Girar cámara a la derecha (3D)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-9-9"></path><path d="M21 4v8h-8"></path></svg>
+      </button>
+      <button class="icon-btn" id="toggleDim" title="Alternar 2D / 3D">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2 3 7l9 5 9-5-9-5z"></path><path d="M3 7v10l9 5 9-5V7"></path><path d="M12 12v10"></path></svg>
+      </button>
+      <button class="icon-btn" id="zoomIn" title="Acercar">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4a7 7 0 1 0 4.9 12.1L21 21"></path><path d="M11 8v6M8 11h6"></path></svg>
+      </button>
+      <button class="icon-btn" id="zoomOut" title="Alejar">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4a7 7 0 1 0 4.9 12.1L21 21"></path><path d="M8 11h6"></path></svg>
+      </button>
+    </div>
+
+    <!-- Bloqueo SOLO del app -->
+    <div class="small-blocker" aria-live="polite">
+      <div class="small-card">
+        <h3 class="small-title">Vista disponible en <u>pantalla grande</u></h3>
+        <p class="small-text">
+          Este recorrido usa <b>imágenes satelitales</b> y <b>escenas 3D</b> de alta definición.
+          Para apreciarlo, ábrelo en un monitor con <b>≥ 1024 px</b> de ancho.
+        </p>
+        <ul class="small-list">
+          <li>En móvil, intenta <b>horizontal</b> o usa <b>laptop/PC</b>.</li>
+          <li>En escritorio, prueba <b>2D/3D</b> y los controles de <b>rotación</b>.</li>
+        </ul>
+        <div class="small-badges">
+          <span class="chip">Calidad satelital</span><span class="chip">Detalle 3D</span><span class="chip">Mejor en Desktop</span>
+        </div>
+      </div>
+    </div>
+
   </div>
-</div>
+</section>
 
 <script>
+/* ===== Animación del subrayado: SOLO con interacción del usuario + visible ===== */
+(function(){
+  const hero = document.getElementById('heroHeader');
+  let userInteracted = false, animated = false;
+
+  const tryAnimate = (entry)=>{
+    if(animated) return;
+    if(!userInteracted) return;
+    if(entry.isIntersecting){ hero.classList.add('animate'); animated = true; io.disconnect(); }
+  };
+
+  const io = new IntersectionObserver((entries)=> entries.forEach(tryAnimate), {threshold:.6});
+
+  const markInteracted = ()=>{ userInteracted = true; };
+  window.addEventListener('scroll', markInteracted, {once:true, passive:true});
+  window.addEventListener('pointerdown', markInteracted, {once:true});
+  window.addEventListener('keydown', markInteracted, {once:true});
+
+  io.observe(hero);
+})();
+
 /* ===== Config ===== */
 const SERVICE_URL  = 'https://devportalgis.vivienda.gob.pe/servergis/rest/services/Mapa/FeatureServer/0';
+const LIMITES_URL  = 'https://devportalgis.vivienda.gob.pe/servergis/rest/services/Mapa/FeatureServer/1';
+const DIST_URL     = ''; // opcional
 
-/* ⚠️ Ajusta estas URLs a tus capas reales */
-const LIMITES_URL  = 'https://devportalgis.vivienda.gob.pe/servergis/rest/services/Mapa/FeatureServer/1'; // Departamentos con campo nom_dep
-const DIST_URL     = ''; // Opcional: distritos
-
+/* Campos */
 const F_ITEM='item', F_PROY='proyecto', F_CUI='cui', F_PROG='programa', F_SSP='ssp', F_AYUD='ayuda_memoria', F_IMG='url_imagen';
 
+/* Auto-refresh */
 const ENABLE_AUTO_REFRESH = true;
 const AUTO_REFRESH_MS = 60000;
 
-const ZOOM_2D = 15.5, ZOOM_3D = 16.5, TILT_3D = 65;
-const ROT_CLICK = 10, ROT_HOLD_STEP = 2.5, ROT_HOLD_MS = 30;
+/* Zoom CIUDAD (cercano) */
+const ZOOM_2D = 17.2, ZOOM_3D = 18.2, TILT_3D = 65;
+/* Rotación */
+const ROT_CLICK = 12;
 
 require([
   "esri/Map","esri/views/MapView","esri/views/SceneView",
@@ -184,7 +254,13 @@ require([
 
   /* ===== Mapa principal ===== */
   const map = new Map({ basemap:"hybrid", ground:"world-elevation" });
-  const gfx = new GraphicsLayer({ title:"Paradas" }); map.add(gfx);
+
+  /* Marcadores con offset para 3D (evita taparse) */
+  const gfx = new GraphicsLayer({
+    title:"Paradas",
+    elevationInfo:{ mode:"relative-to-ground", offset: 25 }
+  });
+  map.add(gfx);
 
   const mapView = new MapView({
     container:"viewDiv", map, center:[-77.03,-12.05], zoom:12,
@@ -199,157 +275,71 @@ require([
 
   /* ===== Mini-mapa (inset) ===== */
   const insetMap  = new Map({ basemap:"gray-vector" });
-
   const limitesFL = new FeatureLayer({
     url: LIMITES_URL,
-    title: "Departamentos",
-    opacity: 1,
-    renderer: {
-      type: "simple",
-      symbol: { type:"simple-fill", color:[0,0,0,0], outline:{ color:"#0b2532", width:1.3 } }
-    },
-    labelingInfo: [{
-      labelExpressionInfo: { expression: "$feature.nom_dep" },
-      labelPlacement: "center-center",
-      symbol: {
-        type: "text",
-        color: "#0b2532",
-        haloColor: "#ffffff",
-        haloSize: 1.5,
-        font: { family: "Nunito Sans", size: 10, weight: "bold" }
-      }
+    renderer:{ type:"simple", symbol:{ type:"simple-fill", color:[0,0,0,0], outline:{ color:"#0b2532", width:1.3 } } },
+    labelingInfo:[{
+      labelExpressionInfo:{ expression:"$feature.nom_dep" }, labelPlacement:"center-center",
+      symbol:{ type:"text", color:"#0b2532", haloColor:"#ffffff", haloSize:1.5, font:{ family:"Nunito Sans", size:10, weight:"bold" } }
     }]
   });
   insetMap.add(limitesFL);
 
-  let distritosFL = null;
-  if (DIST_URL && DIST_URL.trim() !== "") {
-    distritosFL = new FeatureLayer({
-      url: DIST_URL,
-      title: "Distritos",
-      visible: false,
-      renderer: {
-        type: "simple",
-        symbol: { type:"simple-fill", color:[0,0,0,0], outline:{ color:"#64748b", width:0.8 } }
-      }
-    });
-    insetMap.add(distritosFL);
-  }
-
-  const insetPointLayer = new GraphicsLayer({ title:"Punto actual" });
-  insetMap.add(insetPointLayer); // arriba
-  const redMarker = new Graphic({
-    geometry: null,
-    symbol: { type:"simple-marker", style:"circle", color:"#e50914", size: 11, outline:{ color:"#ffffff", width:1.8 } }
-  });
+  const insetPointLayer = new GraphicsLayer(); insetMap.add(insetPointLayer);
+  const redMarker = new Graphic({ geometry:null, symbol:{ type:"simple-marker", style:"circle", color:"#e50914", size:11, outline:{ color:"#fff", width:1.8 } } });
   insetPointLayer.add(redMarker);
 
   const insetView = new MapView({
-    container: "insetView",
-    map: insetMap,
-    center: [-75, -9.2],
-    zoom: 5,
-    constraints: { rotationEnabled:false, minZoom:3, maxZoom:12, snapToZoom:false },
-    ui: { components: [] }
+    container:"insetView", map: insetMap, center:[-75,-9.2], zoom:5,
+    constraints:{ rotationEnabled:false, minZoom:3, maxZoom:12, snapToZoom:false },
+    ui:{components:[]}
   });
+  ["drag","mouse-wheel","double-click","key-down"].forEach(ev=> insetView.on(ev, (e)=> e.stopPropagation()));
 
-  // Desactivar interacción del inset
-  ["drag","mouse-wheel","double-click","key-down"].forEach(ev=>{
-    insetView.on(ev, (e)=> e.stopPropagation());
-  });
-
-  // Alterna distritos según escala
-  const DIST_VIS_THRESHOLD = 800000;
-  if (distritosFL){
-    insetView.watch("scale", (s)=>{
-      distritosFL.visible = s < DIST_VIS_THRESHOLD;
-    });
-  }
-
-  /* ===== Utilidades ===== */
+  /* ===== Estado ===== */
   const $ = id => document.getElementById(id);
-  let STOPS = [];
-  let idx = 0;
+  let STOPS = []; let idx = 0;
 
-  function getActiveView(){ return (sceneView && sceneView.container) ? sceneView : mapView; }
-  function targetZoom(view){ return view.type === "3d" ? ZOOM_3D : ZOOM_2D; }
+  const getActiveView = ()=> (sceneView && sceneView.container) ? sceneView : mapView;
+  const targetZoom   = v  => v.type === "3d" ? ZOOM_3D : ZOOM_2D;
 
   async function ensure3D(){
-    const from = getActiveView();
-    if(from.type === "3d") return;
+    const from = getActiveView(); if(from.type === "3d") return;
     const vp = from.viewpoint?.clone();
     if(!sceneView){
       sceneView = new SceneView({ container:"viewDiv", map, qualityProfile:"high", ui:{components:[]} });
       await sceneView.when();
-    }else{
-      sceneView.container = "viewDiv";
-    }
+    }else{ sceneView.container = "viewDiv"; }
     if(vp) sceneView.viewpoint = vp;
-    mapView.container = null;
-    gallery.view = sceneView; galleryExpand.view = sceneView;
+    mapView.container = null; gallery.view = sceneView; galleryExpand.view = sceneView;
   }
 
-  /* Rotación manual */
-  function rotateOnce(delta){
-    ensure3D().then(()=>{
-      const v = getActiveView();
-      const cam = v.camera.clone();
-      cam.tilt = TILT_3D;
-      cam.heading = (cam.heading + delta + 360) % 360;
-      v.camera = cam;
-    });
-  }
-  function holdRotate(btn, deltaPerTick){
-    let t=null;
-    const start=()=>{ if(t) return; rotateOnce(0); t=setInterval(()=>rotateOnce(deltaPerTick), ROT_HOLD_MS); };
-    const stop =()=>{ if(!t) return; clearInterval(t); t=null; };
-    btn.addEventListener('mousedown', start);
-    btn.addEventListener('touchstart', (e)=>{ e.preventDefault(); start(); }, {passive:false});
-    ['mouseup','mouseleave','touchend','touchcancel'].forEach(ev=> btn.addEventListener(ev, stop));
-    btn.addEventListener('click', ()=> rotateOnce(deltaPerTick>0?ROT_CLICK:-ROT_CLICK));
-  }
-  holdRotate($("rotLeft"),  -ROT_HOLD_STEP);
-  holdRotate($("rotRight"),  ROT_HOLD_STEP);
-
-  /* Inset: punto + zoom al departamento */
+  /* ===== Inset: punto + zoom al departamento ===== */
   async function updateInsetForPoint(lat, lng){
-    redMarker.geometry = new Point({ latitude: lat, longitude: lng, spatialReference: { wkid:4326 } });
+    redMarker.geometry = new Point({ latitude: lat, longitude: lng, spatialReference:{ wkid:4326 } });
     try{
-      const q = limitesFL.createQuery();
-      q.geometry = redMarker.geometry;
-      q.spatialRelationship = "intersects";
-      q.returnGeometry = true;
-      q.outFields = ["nom_dep"];
+      const q = limitesFL.createQuery(); q.geometry = redMarker.geometry; q.spatialRelationship="intersects"; q.returnGeometry=true;
       const res = await limitesFL.queryFeatures(q);
-      if(res.features?.length){
-        const ext = res.features[0].geometry.extent.expand(1.08);
-        await insetView.goTo(ext, { duration: 500 });
-      }else{
-        await insetView.goTo({ center: [-75, -9.2], zoom: 5 }, { duration: 400 });
-      }
-    }catch(e){
-      insetView.goTo({ center: [-75, -9.2], zoom: 5 }, { duration: 400 });
-    }
+      if(res.features?.length){ const ext = res.features[0].geometry.extent.expand(1.08); await insetView.goTo(ext, { duration:500 }); }
+      else { await insetView.goTo({ center:[-75,-9.2], zoom:5 }, { duration:400 }); }
+    }catch{ insetView.goTo({ center:[-75,-9.2], zoom:5 }, { duration:400 }); }
   }
 
-  /* Enlaces en tarjeta */
+  /* ===== Enlaces y tarjeta ===== */
   function setLinks(p){
     const linksDiv = $("links"); linksDiv.innerHTML="";
     if(p.ssp){
-      const a=document.createElement("a");
-      a.className="icon-round"; a.href=p.ssp; a.target="_blank"; a.rel="noopener"; a.title="Detalle Proyecto";
+      const a=document.createElement("a"); a.className="icon-round"; a.href=p.ssp; a.target="_blank"; a.rel="noopener"; a.title="Detalle Proyecto";
       a.innerHTML=`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><path d="M14 2v6h6"></path><path d="M16 13H8M16 17H8M10 9H8"></path></svg>`;
       linksDiv.appendChild(a);
     }
     if(p.ayuda){
-      const a2=document.createElement("a");
-      a2.className="icon-round"; a2.href=p.ayuda; a2.target="_blank"; a2.rel="noopener"; a2.title="Ayuda Memoria";
+      const a2=document.createElement("a"); a2.className="icon-round"; a2.href=p.ayuda; a2.target="_blank"; a2.rel="noopener"; a2.title="Ayuda Memoria";
       a2.innerHTML=`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><path d="M12 16v-4"></path><path d="M12 8h.01"></path></svg>`;
       linksDiv.appendChild(a2);
     }
   }
 
-  /* Pintar tarjeta y centrar */
   function renderCard(i){
     const p = STOPS[i]; if(!p) return;
     $("badge-num").textContent = p.item ?? (i+1);
@@ -361,40 +351,34 @@ require([
 
     updateInsetForPoint(p.lat, p.lng);
 
-    const v = getActiveView();
-    const opts = { duration: 800 };
+    const v = getActiveView(); const opts = { duration: 750 };
     if(v.type === "3d"){
       v.goTo({ center:[p.lng,p.lat], zoom: targetZoom(v), tilt:TILT_3D }, opts);
     }else{
       v.goTo({ center:[p.lng,p.lat], zoom: targetZoom(v) }, opts);
     }
-    idx = i;
-    $("prev").disabled = (idx===0);
-    $("next").disabled = (idx===STOPS.length-1);
+
+    idx = i; $("prev").disabled = (idx===0); $("next").disabled = (idx===STOPS.length-1);
   }
+  const goTo = i => renderCard(i);
 
-  function goTo(i){ renderCard(i); }
+  $("prev").onclick = (e)=>{ e.stopPropagation(); goTo(Math.max(0, idx-1)); };
+  $("next").onclick = (e)=>{ e.stopPropagation(); goTo(Math.min(STOPS.length-1, idx+1)); };
+  window.addEventListener('keydown', e=>{ if(e.key==="ArrowRight") $("next").click(); if(e.key==="ArrowLeft") $("prev").click(); });
 
-  $("prev").onclick = ()=> goTo(Math.max(0, idx-1));
-  $("next").onclick = ()=> goTo(Math.min(STOPS.length-1, idx+1));
-  window.addEventListener('keydown', e=>{
-    if(e.key==="ArrowRight") $("next").click();
-    if(e.key==="ArrowLeft")  $("prev").click();
-  });
-
-  /* Marcadores numerados en mapa principal */
+  /* ===== Marcadores numerados ===== */
   function drawMarkers(){
     gfx.removeAll();
     STOPS.forEach((p,i)=>{
       const circle = new Graphic({
         geometry:{ type:"point", longitude:p.lng, latitude:p.lat },
-        symbol:{ type:"simple-marker", color:"#ffffff", size:"16px", outline:{ color:"#1e6eb6", width:2 } },
+        symbol:{ type:"simple-marker", color:"#ffffff", size:"18px", outline:{ color:"#1e6eb6", width:2.5 } },
         attributes:{ idx:i }
       });
       const num = new Graphic({
         geometry:{ type:"point", longitude:p.lng, latitude:p.lat },
         symbol:{ type:"text", color:"#1e6eb6", text:String(p.item ?? (i+1)),
-                 haloColor:"#ffffff", haloSize:"1px", font:{ family:"Nunito Sans", size:10, weight:"bold" } },
+                 haloColor:"#ffffff", haloSize:"1.5px", font:{ family:"Nunito Sans", size:10, weight:"bold" } },
         attributes:{ idx:i }
       });
       gfx.addMany([circle,num]);
@@ -410,31 +394,42 @@ require([
     });
 
     const v = getActiveView();
-    if(STOPS.length){
-      v.goTo({ target: STOPS.map(p=>({longitude:p.lng, latitude:p.lat})), zoom: 12 });
-      renderCard(0);
-    }
+    if(STOPS.length){ v.goTo({ target: STOPS.map(p=>({longitude:p.lng, latitude:p.lat})), zoom:12 }); renderCard(0); }
   }
 
-  /* Zoom y 2D/3D */
-  $("zoomIn").onclick  = ()=> getActiveView().goTo({ zoom: getActiveView().zoom + 1 });
-  $("zoomOut").onclick = ()=> getActiveView().goTo({ zoom: getActiveView().zoom - 1 });
-  $("toggleDim").onclick = async ()=>{
-    const from = getActiveView();
-    const vp = from.viewpoint?.clone();
-    const expanded = galleryExpand.expanded;
+  /* ===== Rotación anclada al punto actual ===== */
+  async function rotateAroundCurrent(deltaDeg){
+    if(!STOPS.length) return;
+    const p = STOPS[idx]; if(!p) return;
+    await ensure3D();
+    const v = getActiveView();
+    const newHeading = ((v.camera.heading + deltaDeg) % 360 + 360) % 360;
+    await v.goTo({
+      center:[p.lng, p.lat], tilt:TILT_3D, heading:newHeading, zoom: targetZoom(v)
+    }, { duration: 180 });
+  }
+  document.getElementById("rotLeft").onclick  = ()=> rotateAroundCurrent(-ROT_CLICK);
+  document.getElementById("rotRight").onclick = ()=> rotateAroundCurrent( ROT_CLICK);
+
+  /* Zoom y alternar 2D/3D */
+  document.getElementById("zoomIn").onclick  = ()=> getActiveView().goTo({ zoom: getActiveView().zoom + 1 });
+  document.getElementById("zoomOut").onclick = ()=> getActiveView().goTo({ zoom: getActiveView().zoom - 1 });
+  document.getElementById("toggleDim").onclick = async ()=>{
+    const p = STOPS[idx];
+    const from = getActiveView(); const vp = from.viewpoint?.clone(); const expanded = galleryExpand.expanded;
     if(from.type === "2d"){
       await ensure3D();
+      if(p) sceneView.goTo({ center:[p.lng,p.lat], zoom: ZOOM_3D, tilt:TILT_3D }, {duration:500});
     }else{
       mapView.container = "viewDiv";
-      if(vp) mapView.viewpoint = vp;
-      sceneView.container = null;
-      gallery.view = mapView; galleryExpand.view = mapView;
+      if(p) mapView.goTo({ center:[p.lng,p.lat], zoom: ZOOM_2D }, {duration:500});
+      if(vp && !p) mapView.viewpoint = vp;
+      sceneView.container = null; gallery.view = mapView; galleryExpand.view = mapView;
     }
     galleryExpand.expanded = expanded;
   };
 
-  /* Carga y auto-refresh */
+  /* ===== Carga y auto-refresh ===== */
   async function fetchStopsFromFS(){
     const fl = new FeatureLayer({ url: SERVICE_URL, outFields:[F_ITEM,F_PROY,F_CUI,F_PROG,F_SSP,F_AYUD,F_IMG] });
     await fl.load();
@@ -455,11 +450,7 @@ require([
     return merged;
   }
 
-  async function initialLoad(){
-    try{ STOPS = await fetchStopsFromFS(); }catch(e){ console.warn("FS error:", e); STOPS=[]; }
-    drawMarkers();
-  }
-
+  async function initialLoad(){ try{ STOPS = await fetchStopsFromFS(); }catch(e){ console.warn("FS error:", e); STOPS=[]; } drawMarkers(); }
   async function refreshStops(){
     try{
       const incoming = await fetchStopsFromFS();
@@ -467,18 +458,14 @@ require([
       const changed = JSON.stringify(merged) !== JSON.stringify(STOPS);
       if(changed){
         const currentItem = STOPS[idx]?.item;
-        STOPS = merged;
-        drawMarkers();
+        STOPS = merged; drawMarkers();
         const newIdx = STOPS.findIndex(s => s.item === currentItem);
         if(newIdx >= 0) idx = newIdx;
       }
     }catch(e){ console.warn("Auto-refresh falló:", e); }
   }
 
-  (async ()=>{
-    await initialLoad();
-    if(ENABLE_AUTO_REFRESH) setInterval(refreshStops, AUTO_REFRESH_MS);
-  })();
+  (async ()=>{ await initialLoad(); if(ENABLE_AUTO_REFRESH) setInterval(refreshStops, AUTO_REFRESH_MS); })();
 });
 </script>
 </body>
