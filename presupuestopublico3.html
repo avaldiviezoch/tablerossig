@@ -2,507 +2,323 @@
 <html lang="es">
 <head>
 <meta charset="utf-8"/>
-<meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>Inversiones · PIM / Devengado</title>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>City Tour — MVCS (2D/3D + rotación manual)</title>
 
-<!-- Fuente -->
-<link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;600;700;800;900&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@600;700;800;900&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="https://js.arcgis.com/4.29/esri/themes/light/main.css"/>
+<script src="https://js.arcgis.com/4.29/"></script>
 
 <style>
-  :root{
-    --ink:#263645;
-    --muted:#5b6f82;
-    --blue:#1e6eb6;     /* azul MVCS */
-    --sky:#5ebad6;      /* celeste */
-    --danger:#e11d2e;   /* subrayado */
-    --card:#ffffff;
-    --line:#e8edf3;
-    --shadow:0 14px 32px rgba(20,35,52,.08);
-    --radius:18px;
+  :root{ --ink:#0b2532; --muted:#64748b; --brand:#1e6eb6; --glass:rgba(255,255,255,.86); --shadow:0 12px 30px rgba(2,20,33,.22); }
+  html,body{height:100%;margin:0;background:#000;color:var(--ink);font-family:"Nunito Sans",system-ui,-apple-system,Segoe UI,Roboto,Arial}
+  #viewDiv{position:relative;height:100%;width:100%}
+
+  /* Tarjeta */
+  .overlay{position:absolute;left:20px;bottom:112px;z-index:5;width:min(92vw,440px);box-shadow:var(--shadow);border-radius:16px;overflow:hidden;background:#fff}
+  .overlay img{display:block;width:100%;height:260px;object-fit:cover;background:#eef2f7}
+  .overlay .body{padding:14px 16px 16px}
+  .badge{display:inline-grid;place-items:center;width:28px;height:28px;border-radius:999px;background:var(--brand);color:#fff;font-weight:800;margin-right:8px}
+  .title{margin:8px 0 4px;font-size:1.35rem;font-weight:900;color:var(--ink)}
+  .meta{margin:0;color:var(--muted);line-height:1.35}
+
+  /* Iconos Detalle/Ayuda */
+  .icon-links{display:flex;gap:8px;margin-top:12px}
+  .icon-round{
+    width:40px;height:40px;border-radius:999px;display:grid;place-items:center;
+    background:#fff;border:1px solid #d1e4f6;color:var(--brand);
+    box-shadow:0 6px 14px rgba(30,110,182,.2); text-decoration:none
   }
-  html,body{margin:0;background:#fff;color:var(--ink);font-family:"Nunito Sans",system-ui,-apple-system,Segoe UI,Roboto,Arial}
+  .icon-round svg{width:20px;height:20px}
 
-  .wrap{max-width:1100px;margin:28px auto;padding:0 20px}
-  .grid{display:grid;gap:28px;grid-template-columns:1.15fr .85fr;align-items:start}
-  @media (max-width:980px){ .grid{grid-template-columns:1fr} }
+  /* Navegación */
+  .nav{position:absolute;left:20px;bottom:20px;z-index:5;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+  .btn{appearance:none;border:0;background:var(--brand);color:#fff;padding:10px 14px;border-radius:12px;font-weight:800;cursor:pointer;box-shadow:0 8px 20px rgba(30,110,182,.35)}
+  .btn:disabled{opacity:.55;cursor:not-allowed}
+  .ghost{background:#fff;color:var(--brand);border:1px solid #d1e4f6}
 
-  /* Título con subrayado (3s) cuando entra a viewport */
-  .title{
-    width:max-content; position:relative; color:var(--blue);
-    font-weight:900; font-size:clamp(22px,3.2vw,30px); margin:0 0 16px; padding-bottom:12px;
+  /* Controles flotantes derecha */
+  .ctrl-box{position:absolute;right:16px;bottom:16px;z-index:5;display:flex;flex-direction:column;gap:8px}
+  .icon-btn{
+    width:44px;height:44px;border-radius:12px;border:0;cursor:pointer;
+    box-shadow:var(--shadow);background:#fff;color:#1e6eb6;display:grid;place-items:center
   }
-  .title::after{
-    content:""; position:absolute; left:0; bottom:0; height:6px; border-radius:6px;
-    background:linear-gradient(90deg,var(--danger),#ff7b7b);
-    width:100%; transform:scaleX(0); transform-origin:left; transition:transform 3s cubic-bezier(.22,1,.36,1);
-  }
-  .title.inview::after{ transform:scaleX(1); }
+  .icon-btn svg{width:22px;height:22px}
 
-  .lead{font-size:15px; line-height:1.7; color:#2d4458; margin:0 0 12px}
-  .src{color:var(--muted); font-size:13px; line-height:1.6}
-  .src em{display:block;margin-top:6px}
+  .esri-expand__content{max-height:60vh;overflow:auto}
 
-  /* Lado derecho */
-  .topline{ display:flex; align-items:center; gap:12px; }
-  .topline img{ width:40px; height:40px; object-fit:contain }
-  .topline .txt{ color:#334b62; font-weight:800 }
-  .topline .n{ color:var(--blue); font-weight:900; font-size:clamp(30px,4.8vw,44px) }
-
-  .stack{ display:grid; gap:16px; margin-top:12px }
-  .card{
-    background:var(--card);
-    border:1px solid var(--line);
-    border-radius:var(--radius);
-    box-shadow:var(--shadow);
-    padding:18px 20px;
-  }
-  .k-label{ color:#6a7f95; font-weight:800; text-transform:uppercase; letter-spacing:.02em; font-size:13px }
-  .k-value{ color:var(--blue); font-size:clamp(26px,4.6vw,36px); font-weight:900; line-height:1.15 }
-  .k-sub{ color:var(--sky); font-weight:900; font-size:15px; margin-top:6px }
-
-  /* Contadores */
-  .num{ display:inline-block; font-variant-numeric:tabular-nums; letter-spacing:.02em }
-
-  /* ===== Estilos de la sección "Se espera generar" (mismos de tu mock) ===== */
-  .gen-wrap{max-width:1100px;margin:16px auto 36px;padding:0 20px;font-family:"Nunito Sans",system-ui,Segoe UI,Roboto,Arial}
-  .gen-pill{
-    display:block; width:100%;
-    background:var(--sky); color:#fff; font-weight:900;
-    text-align:center; padding:10px 14px; border-radius:999px;
-    margin:4px 0 18px; letter-spacing:.2px;
-  }
-  .gen-grid{
-    display:grid; gap:16px;
-    grid-template-columns:1fr 1fr;
-  }
-  @media (max-width:900px){ .gen-grid{grid-template-columns:1fr} }
-
-  .gen-card{
-    display:grid; grid-template-columns:auto 1fr; gap:12px; align-items:center;
-    background:var(--card); border:1px solid var(--line); border-radius:var(--radius);
-    box-shadow:var(--shadow); padding:16px 18px;
-  }
-  .gen-left img{ width:56px; height:56px; object-fit:contain }
-  .gen-label{ margin:0 0 6px; color:#4a5f74; font-size:15px; font-weight:900 }
-  .gen-value{ color:var(--blue); font-weight:900; font-size:clamp(26px,4.2vw,36px); line-height:1.1 }
-
-  /* Estados: mismo layout con pill azul y 4x2 tarjetas */
-  #sec-estados .gen-pill{ background:var(--blue); }
-  #sec-estados .gen-grid{ grid-template-columns:repeat(4,1fr); }
-  @media (max-width:900px){ #sec-estados .gen-grid{ grid-template-columns:repeat(2,1fr); } }
-
-  /* === CENTRAR TÍTULO Y NÚMERO EN TARJETAS DE ESTADOS === */
-  #sec-estados .gen-card {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    text-align: center;
-    padding: 20px 16px;
-  }
-  #sec-estados .gen-card .gen-label {
-    margin: 0 0 8px;
-    font-size: 14px;
-    line-height: 1.3;
-  }
-  #sec-estados .gen-card .gen-value {
-    font-size: clamp(28px, 4.5vw, 36px);
+  @media (max-width:880px){
+    .overlay{left:12px;right:12px;width:auto;bottom:122px}
+    .nav{left:12px}
+    .overlay img{height:210px}
   }
 </style>
 </head>
 <body>
+<div id="viewDiv">
 
-<!-- ======================= BLOQUE: INVERSIONES ======================= -->
-<section class="wrap" id="sec-inversiones">
-  <div class="grid">
-    <!-- Izquierda: texto -->
-    <div>
-      <h2 class="title">Inversiones</h2>
-      <p class="lead">
-        Las inversiones planificadas para el 2025 reflejan el compromiso del MVCS con el cierre de brechas en
-        infraestructura y brechas de saneamiento. Estas inversiones forman parte de la planificación estratégica del
-        ministerio y responden a las necesidades priorizadas en el territorio, especialmente en sectores vulnerables.
-        La planificación contempla obras en saneamiento y vivienda y urbanismo, en coordinación con los gobiernos
-        regionales y locales.
-      </p>
-      <p class="src">
-        <strong>Fuente:</strong> Ministerio de Economía y Finanzas – MEF<br/>
-        Portal de datos Abiertos – Actualizado al 19 de octubre de 2025
-        <em>Incluye inversiones cuyo PIM sea mayor a 0</em>
-      </p>
-    </div>
-
-    <!-- Derecha: indicadores -->
-    <div>
-      <div class="topline">
-        <img src="https://lh3.googleusercontent.com/d/18tWhc-SzR8dEqrZZs8trBnqa6o9-Y-9P=w1000" alt="Cámara inversiones">
-        <span class="txt">A través de</span>
-        <span class="n num" id="inv-count">0</span>
-        <span class="txt">inversiones</span>
-      </div>
-
-      <div class="stack">
-        <div class="card">
-          <div class="k-label">PIM</div>
-          <div class="k-value">S/ <span class="num" id="pim">0</span></div>
-        </div>
-        <div class="card">
-          <div class="k-label">Devengado</div>
-          <div class="k-value">S/ <span class="num" id="dev">0</span></div>
-          <div class="k-sub"><span class="num" id="pct">0</span>%</div>
-        </div>
-      </div>
+  <!-- Tarjeta -->
+  <div class="overlay">
+    <img id="photo" alt="Imagen del proyecto"/>
+    <div class="body">
+      <div><span class="badge" id="badge-num">1</span>Parada</div>
+      <h2 class="title" id="title">Proyecto</h2>
+      <p class="meta" id="meta1">CUI: —</p>
+      <p class="meta" id="meta2">Programa: —</p>
+      <div class="icon-links" id="links"></div>
     </div>
   </div>
-</section>
 
-<!-- ======================= SE ESPERA GENERAR ======================= -->
-<section class="gen-wrap" id="sec-generar">
-  <div class="gen-pill">Se espera generar</div>
-
-  <div class="gen-grid">
-    <!-- Agua -->
-    <article class="gen-card">
-      <div class="gen-left">
-        <img src="https://lh3.googleusercontent.com/d/1U1bT6XOwlWARi7SMsuyox3dSkHRB6CbO=w1000" alt="Conexiones de agua"/>
-      </div>
-      <div class="gen-right">
-        <h3 class="gen-label">Conexiones nuevas de agua</h3>
-        <div class="gen-value"><span class="num" id="k-agua">0</span></div>
-      </div>
-    </article>
-
-    <!-- Alcantarillado -->
-    <article class="gen-card">
-      <div class="gen-left">
-        <img src="https://lh3.googleusercontent.com/d/1FJzFJZKmLqvnDKHUjMWCKAic6RrP2K6j=w1000" alt="Conexiones de alcantarillado"/>
-      </div>
-      <div class="gen-right">
-        <h3 class="gen-label">Conexiones nuevas de alcantarillado</h3>
-        <div class="gen-value"><span class="num" id="k-alc">0</span></div>
-      </div>
-    </article>
-
-    <!-- Pavimento -->
-    <article class="gen-card">
-      <div class="gen-left">
-        <img src="https://lh3.googleusercontent.com/d/1Nov2kbITwZGC3DUR4kwj-yo9vjQZqVqB=w1000" alt="M2 de pavimento"/>
-      </div>
-      <div class="gen-right">
-        <h3 class="gen-label">M2 de pavimento</h3>
-        <div class="gen-value"><span class="num" id="k-pav">0</span></div>
-      </div>
-    </article>
-
-    <!-- Vereda -->
-    <article class="gen-card">
-      <div class="gen-left">
-        <img src="https://lh3.googleusercontent.com/d/1SKZkQW_boA1HSTxnQHwI17DSFM0wPmp5=w1000" alt="M2 de vereda"/>
-      </div>
-      <div class="gen-right">
-        <h3 class="gen-label">M2 de vereda</h3>
-        <div class="gen-value"><span class="num" id="k-ver">0</span></div>
-      </div>
-    </article>
+  <!-- Prev / Next -->
+  <div class="nav">
+    <button class="btn ghost" id="prev">⟵ Anterior</button>
+    <button class="btn" id="next">Siguiente ⟶</button>
   </div>
-</section>
 
-<!-- ======================= ESTADOS (8 tarjetas) ======================= -->
-<section class="gen-wrap" id="sec-estados">
-  <div class="gen-pill">Estados</div>
+  <!-- Controles derecha: Rotar izq/der (manual), 2D/3D, Zoom -->
+  <div class="ctrl-box">
+    <!-- Rotar izquierda -->
+    <button class="icon-btn" id="rotLeft" title="Girar cámara a la izquierda (3D)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M3 12a9 9 0 1 0 9-9"></path>
+        <path d="M3 4v8h8"></path>
+      </svg>
+    </button>
 
-  <div class="gen-grid">
-    <!-- fila 1 -->
-    <article class="gen-card">
-      <div class="gen-right">
-        <h3 class="gen-label">Obras concluidas</h3>
-        <div class="gen-value"><span class="num" id="est-obras-concluidas">0</span></div>
-      </div>
-    </article>
+    <!-- Rotar derecha -->
+    <button class="icon-btn" id="rotRight" title="Girar cámara a la derecha (3D)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M21 12a9 9 0 1 1-9-9"></path>
+        <path d="M21 4v8h-8"></path>
+      </svg>
+    </button>
 
-    <article class="gen-card">
-      <div class="gen-right">
-        <h3 class="gen-label">Obras en ejecución</h3>
-        <div class="gen-value"><span class="num" id="est-obras-ejec">0</span></div>
-      </div>
-    </article>
+    <!-- 2D / 3D -->
+    <button class="icon-btn" id="toggleDim" title="Alternar 2D / 3D">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M12 2 3 7l9 5 9-5-9-5z"></path>
+        <path d="M3 7v10l9 5 9-5V7"></path>
+        <path d="M12 12v10"></path>
+      </svg>
+    </button>
 
-    <article class="gen-card">
-      <div class="gen-right">
-        <h3 class="gen-label">Obras por iniciar</h3>
-        <div class="gen-value"><span class="num" id="est-obras-iniciar">0</span></div>
-      </div>
-    </article>
+    <!-- Zoom + -->
+    <button class="icon-btn" id="zoomIn" title="Acercar">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M11 4a7 7 0 1 0 4.9 12.1L21 21"></path>
+        <path d="M11 8v6M8 11h6"></path>
+      </svg>
+    </button>
 
-    <article class="gen-card">
-      <div class="gen-right">
-        <h3 class="gen-label">Obras en proceso de selección</h3>
-        <div class="gen-value"><span class="num" id="est-obras-sel">0</span></div>
-      </div>
-    </article>
-
-    <!-- fila 2 -->
-    <article class="gen-card">
-      <div class="gen-right">
-        <h3 class="gen-label">Expedientes concluidos</h3>
-        <div class="gen-value"><span class="num" id="est-exp-concluidos">0</span></div>
-      </div>
-    </article>
-
-    <article class="gen-card">
-      <div class="gen-right">
-        <h3 class="gen-label">Expedientes en elaboración</h3>
-        <div class="gen-value"><span class="num" id="est-exp-elab">0</span></div>
-      </div>
-    </article>
-
-    <article class="gen-card">
-      <div class="gen-right">
-        <h3 class="gen-label">Expedientes en proceso de selección</h3>
-        <div class="gen-value"><span class="num" id="est-exp-sel">0</span></div>
-      </div>
-    </article>
-
-    <article class="gen-card">
-      <div class="gen-right">
-        <h3 class="gen-label">Obras en proceso de selección</h3>
-        <div class="gen-value"><span class="num" id="est-obras-sel2">0</span></div>
-      </div>
-    </article>
+    <!-- Zoom - -->
+    <button class="icon-btn" id="zoomOut" title="Alejar">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M11 4a7 7 0 1 0 4.9 12.1L21 21"></path>
+        <path d="M8 11h6"></path>
+      </svg>
+    </button>
   </div>
-</section>
+</div>
 
 <script>
-/* ========= Servicio base ========= */
-const FS_URL = "https://pportalgis.vivienda.gob.pe/pfdserver/rest/services/OGEI/Mapa_Inversiones_Coord_MEF/FeatureServer/0";
+/* ==== Servicio y campos ==== */
+const SERVICE_URL = 'https://devportalgis.vivienda.gob.pe/servergis/rest/services/Mapa/FeatureServer/0';
+const F_ITEM='item', F_PROY='proyecto', F_CUI='cui', F_PROG='programa', F_SSP='ssp', F_AYUD='ayuda_memoria', F_IMG='url_imagen';
 
-/* ========= Helpers genéricos ========= */
-const fmtInt = new Intl.NumberFormat('es-PE', { maximumFractionDigits: 0 });
-function animateNum(el, to, ms=1400){
-  const start = performance.now(); const from = 0;
-  function step(t){
-    const p = Math.min(1, (t-start)/ms);
-    const e = 1 - Math.pow(1-p, 4); // easeOutQuart
-    el.textContent = fmtInt.format(Math.round(from + (to-from)*e));
-    if(p<1) requestAnimationFrame(step);
-  }
-  requestAnimationFrame(step);
-}
-function esriPOST(url, params){
-  const body = new URLSearchParams({ f:"json", returnGeometry:"false", ...params });
-  return fetch(url, { method:"POST", headers:{ "Content-Type":"application/x-www-form-urlencoded;charset=UTF-8" }, body, cache:"no-store" })
-    .then(r => r.json());
-}
+/* Zoom y cámara */
+const ZOOM_2D = 15.5;
+const ZOOM_3D = 16.5;
+const TILT_3D = 65;
+const ROT_CLICK = 10;        // grados por clic
+const ROT_HOLD_STEP = 2.5;   // grados por “tick” al mantener presionado
+const ROT_HOLD_MS = 30;      // intervalo de hold
 
-/* ========= Inversiones (conteo + PIM/DEV) ========= */
-async function loadInvestmentsCount(where="1=1"){
-  const page = 2000; let offset = 0; const set = new Set();
-  while(true){
-    const j = await esriPOST(FS_URL + "/query", {
-      where, outFields:"producto_proyecto", returnDistinctValues:"true",
-      orderByFields:"producto_proyecto", resultRecordCount:page, resultOffset:offset
-    });
-    const rows = (j.features||[]).map(f => f?.attributes?.producto_proyecto).filter(Boolean);
-    rows.forEach(v => set.add(v));
-    if(!j.exceededTransferLimit || rows.length < page) break;
-    offset += page;
+require([
+  "esri/Map","esri/views/MapView","esri/views/SceneView",
+  "esri/widgets/BasemapGallery","esri/widgets/Expand",
+  "esri/layers/GraphicsLayer","esri/Graphic","esri/layers/FeatureLayer"
+], function(Map, MapView, SceneView, BasemapGallery, Expand, GraphicsLayer, Graphic, FeatureLayer){
+
+  const map = new Map({ basemap:"hybrid", ground:"world-elevation" });
+  const gfx = new GraphicsLayer({ title:"Paradas" }); map.add(gfx);
+
+  const mapView = new MapView({
+    container:"viewDiv", map, center:[-77.03,-12.05], zoom:12,
+    constraints:{ minZoom:2 }, ui:{ components:[] }
+  });
+  let sceneView = null;
+
+  const gallery = new BasemapGallery({ view: mapView });
+  const galleryExpand = new Expand({ view: mapView, content: gallery, expanded:false, expandTooltip:"Mapas base" });
+  mapView.ui.add(galleryExpand, "top-right");
+
+  const $ = id => document.getElementById(id);
+  let STOPS = [];
+  let idx = 0;
+
+  /* ===== Helpers 2D/3D ===== */
+  async function ensure3D(){
+    const from = getActiveView();
+    if(from.type === "3d") return;
+    const vp = from.viewpoint?.clone();
+    if(!sceneView){
+      sceneView = new SceneView({ container:"viewDiv", map, qualityProfile:"high", ui:{components:[]} });
+      await sceneView.when();
+    }else{
+      sceneView.container = "viewDiv";
+    }
+    if(vp) sceneView.viewpoint = vp;
+    mapView.container = null;
+    gallery.view = sceneView; galleryExpand.view = sceneView;
   }
-  return set.size;
-}
-async function loadPIMDev(where="1=1"){
-  // 1) outStatistics
-  try{
-    const j = await esriPOST(FS_URL + "/query", {
-      where,
-      outStatistics: JSON.stringify([
-        { statisticType:"sum", onStatisticField:"monto_pim",        outStatisticFieldName:"sPIM" },
-        { statisticType:"sum", onStatisticField:"monto_devengado",  outStatisticFieldName:"sDEV" }
-      ])
+  function getActiveView(){ return (sceneView && sceneView.container) ? sceneView : mapView; }
+  function targetZoom(view){ return view.type === "3d" ? ZOOM_3D : ZOOM_2D; }
+
+  /* ===== Rotación manual ===== */
+  function rotateOnce(delta){
+    ensure3D().then(()=>{
+      const v = getActiveView();     // ya será SceneView
+      const cam = v.camera.clone();
+      cam.tilt = TILT_3D;
+      cam.heading = (cam.heading + delta + 360) % 360;
+      v.camera = cam;                 // sin animación pesada
     });
-    const a = j.features?.[0]?.attributes || {};
-    const pim = Number(a.sPIM||0), dev = Number(a.sDEV||0);
-    if(pim===0 && dev===0) throw new Error("zeros");
-    return { pim, dev };
-  }catch(_){
-    // 2) fallback por páginas
-    let pim=0, dev=0, offset=0, page=2000;
-    while(true){
-      const j = await esriPOST(FS_URL + "/query", {
-        where, outFields:"monto_pim,monto_devengado", resultRecordCount:page, resultOffset:offset
+  }
+  function holdRotate(buttonEl, deltaPerTick){
+    let t = null;
+    const start = ()=>{ if(t) return; rotateOnce(0); t = setInterval(()=> rotateOnce(deltaPerTick), ROT_HOLD_MS); };
+    const stop  = ()=>{ if(!t) return; clearInterval(t); t=null; };
+    buttonEl.addEventListener('mousedown', start);
+    buttonEl.addEventListener('touchstart', (e)=>{ e.preventDefault(); start(); }, {passive:false});
+    ['mouseup','mouseleave','touchend','touchcancel'].forEach(ev=> buttonEl.addEventListener(ev, stop));
+    // clic único
+    buttonEl.addEventListener('click', ()=> rotateOnce(deltaPerTick>0?ROT_CLICK:-ROT_CLICK));
+  }
+
+  holdRotate($("rotLeft"),  -ROT_HOLD_STEP);
+  holdRotate($("rotRight"),  ROT_HOLD_STEP);
+
+  /* ===== Tarjeta y navegación ===== */
+  function setLinks(p){
+    const linksDiv = $("links"); linksDiv.innerHTML="";
+    if(p.ssp){
+      const a=document.createElement("a");
+      a.className="icon-round"; a.href=p.ssp; a.target="_blank"; a.rel="noopener"; a.title="Detalle Proyecto";
+      a.innerHTML=`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+        <path d="M14 2v6h6"></path><path d="M16 13H8M16 17H8M10 9H8"></path></svg>`;
+      linksDiv.appendChild(a);
+    }
+    if(p.ayuda){
+      const a2=document.createElement("a");
+      a2.className="icon-round"; a2.href=p.ayuda; a2.target="_blank"; a2.rel="noopener"; a2.title="Ayuda Memoria";
+      a2.innerHTML=`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="12" cy="12" r="10"></circle><path d="M12 16v-4"></path><path d="M12 8h.01"></path></svg>`;
+      linksDiv.appendChild(a2);
+    }
+  }
+
+  function renderCard(i){
+    const p = STOPS[i]; if(!p) return;
+    $("badge-num").textContent = p.item ?? (i+1);
+    $("title").textContent = p.proyecto || "—";
+    $("meta1").textContent = "CUI: " + (p.cui ?? "—");
+    $("meta2").textContent = "Programa: " + (p.programa ?? "—");
+    $("photo").src = p.foto || "";
+    setLinks(p);
+
+    const v = getActiveView();
+    const opts = { duration: 800 };
+    if(v.type === "3d"){
+      v.goTo({ center:[p.lng,p.lat], zoom: targetZoom(v), tilt:TILT_3D }, opts);
+    }else{
+      v.goTo({ center:[p.lng,p.lat], zoom: targetZoom(v) }, opts);
+    }
+    idx = i;
+    $("prev").disabled = (idx===0);
+    $("next").disabled = (idx===STOPS.length-1);
+  }
+
+  function goTo(i){ renderCard(i); } // no autoplay que pausar
+
+  $("prev").onclick = ()=> goTo(Math.max(0, idx-1));
+  $("next").onclick = ()=> goTo(Math.min(STOPS.length-1, idx+1));
+  window.addEventListener('keydown', e=>{
+    if(e.key==="ArrowRight") $("next").click();
+    if(e.key==="ArrowLeft")  $("prev").click();
+  });
+
+  function drawMarkers(){
+    gfx.removeAll();
+    STOPS.forEach((p,i)=>{
+      const circle = new Graphic({
+        geometry:{ type:"point", longitude:p.lng, latitude:p.lat },
+        symbol:{ type:"simple-marker", color:"#ffffff", size:"16px", outline:{ color:"#1e6eb6", width:2 } },
+        attributes:{ idx:i }
       });
-      const feats = j.features||[];
-      for(const f of feats){
-        const at = f.attributes || {};
-        pim += Number(at.monto_pim)||0;
-        dev += Number(at.monto_devengado)||0;
-      }
-      if(!j.exceededTransferLimit || feats.length<page) break;
-      offset += page;
-    }
-    return { pim, dev };
-  }
-}
-const section = document.getElementById('sec-inversiones');
-const io = new IntersectionObserver(async (entries)=>{
-  for(const e of entries){
-    if(!e.isIntersecting) continue;
-
-    document.querySelector('#sec-inversiones .title').classList.add('inview');
-
-    const [count, sums] = await Promise.all([
-      loadInvestmentsCount("1=1"),
-      loadPIMDev("1=1")
-    ]);
-
-    const pim = Math.round(sums.pim||0);
-    const dev = Math.round(sums.dev||0);
-    const pct = (pim>0) ? Math.round((dev/pim)*100) : 0;
-
-    animateNum(document.getElementById('inv-count'), count);
-    animateNum(document.getElementById('pim'), pim);
-    animateNum(document.getElementById('dev'), dev);
-    animateNum(document.getElementById('pct'), pct);
-
-    io.disconnect();
-  }
-},{threshold:0.25});
-io.observe(section);
-
-/* ===== Utilidades compartidas para "Se espera generar" ===== */
-(function(){
-  if(!window._INV_UTIL){
-    window._INV_UTIL = {
-      FS_URL,
-      fmt: new Intl.NumberFormat('es-PE', { maximumFractionDigits: 0 }),
-      esriPOST: (url, params) => {
-        const body = new URLSearchParams({ f:"json", returnGeometry:"false", ...params });
-        return fetch(url, { method:"POST", headers:{ "Content-Type":"application/x-www-form-urlencoded;charset=UTF-8" }, body, cache:"no-store"}).then(r=>r.json());
-      },
-      animateNum: (el, to, ms=1200)=>{
-        const start = performance.now(), from = 0;
-        function step(t){
-          const p = Math.min(1,(t-start)/ms);
-          const e = 1 - Math.pow(1-p,4);
-          el.textContent = _INV_UTIL.fmt.format(Math.round(from + (to-from)*e));
-          if(p<1) requestAnimationFrame(step);
-        }
-        requestAnimationFrame(step);
-      }
-    };
-  }
-})();
-
-/* ===== "Se espera generar": suma robusta con fallback ===== */
-async function _sumField(field, where="1=1"){
-  const { FS_URL, esriPOST } = _INV_UTIL;
-  try{
-    const j = await esriPOST(FS_URL + "/query", {
-      where,
-      outStatistics: JSON.stringify([{ statisticType:"sum", onStatisticField: field, outStatisticFieldName:"s" }])
-    });
-    const v = Number(j.features?.[0]?.attributes?.s || 0);
-    if(v>0) return v;
-    throw new Error("zero");
-  }catch(_){
-    let tot=0, offset=0, page=2000;
-    while(true){
-      const j2 = await _INV_UTIL.esriPOST(_INV_UTIL.FS_URL + "/query", {
-        where, outFields: field, resultRecordCount: page, resultOffset: offset
+      const num = new Graphic({
+        geometry:{ type:"point", longitude:p.lng, latitude:p.lat },
+        symbol:{ type:"text", color:"#1e6eb6", text:String(p.item ?? (i+1)),
+                 haloColor:"#ffffff", haloSize:"1px", font:{ family:"Nunito Sans", size:10, weight:"bold" } },
+        attributes:{ idx:i }
       });
-      const feats = j2.features||[];
-      for(const f of feats){ tot += Number(f.attributes?.[field] || 0); }
-      if(!j2.exceededTransferLimit || feats.length < page) break;
-      offset += page;
-    }
-    return tot;
-  }
-}
-/* Disparar al entrar en vista */
-(() => {
-  const sec = document.getElementById('sec-generar');
-  const io2 = new IntersectionObserver(async (ents)=>{
-    for(const e of ents){
-      if(!e.isIntersecting) continue;
-
-      const where = "1=1";
-      const [agua, alc, pav, ver] = await Promise.all([
-        _sumField("cnx_nuevas_agua", where),
-        _sumField("cnx_nuevas_alcantarillado_dse", where),
-        _sumField("final_pavimento_m2_monitoreo", where),
-        _sumField("final_vereda_m2_monitoreo", where)
-      ]);
-
-      _INV_UTIL.animateNum(document.getElementById('k-agua'), Math.round(agua||0));
-      _INV_UTIL.animateNum(document.getElementById('k-alc'),  Math.round(alc||0));
-      _INV_UTIL.animateNum(document.getElementById('k-pav'),  Math.round(pav||0));
-      _INV_UTIL.animateNum(document.getElementById('k-ver'),  Math.round(ver||0));
-
-      io2.disconnect();
-    }
-  }, { threshold: 0.25 });
-  io2.observe(sec);
-})();
-
-/* ===== ESTADOS (8 contadores) – mismo FS y estilo ===== */
-function IN(list){ return list.map(v=>`'${v.replaceAll("'", "''")}'`).join(","); }
-async function countDistinctProductos(where){
-  const page = 2000; let offset = 0; const set = new Set();
-  while(true){
-    const j = await esriPOST(FS_URL + "/query", {
-      where, outFields:"producto_proyecto", returnDistinctValues:"true",
-      orderByFields:"producto_proyecto", resultRecordCount:page, resultOffset:offset
+      gfx.addMany([circle,num]);
     });
-    const rows = (j.features||[]).map(f => f?.attributes?.producto_proyecto).filter(Boolean);
-    rows.forEach(v => set.add(v));
-    if(!j.exceededTransferLimit || rows.length < page) break;
-    offset += page;
+
+    [mapView, sceneView].forEach(v=>{
+      if(!v) return;
+      v.on("click", async (ev)=>{
+        const hit = await v.hitTest(ev);
+        const g = hit?.results?.find(r=>r.graphic?.attributes?.idx !== undefined)?.graphic;
+        if(g) goTo(g.attributes.idx);
+      });
+    });
+
+    const v = getActiveView();
+    if(STOPS.length){
+      v.goTo({ target: STOPS.map(p=>({longitude:p.lng, latitude:p.lat})), zoom: 12 });
+      renderCard(0);
+    }
   }
-  return set.size;
-}
-(async function estados(){
-  // Mismo criterio que tu tablero: combinaciones por etapa/estado/subestado
-  const OBRA = ["OBRA (SALDO)","OBRA"];
-  const EXP  = ["EXPEDIENTE TECNICO (SALDO)","OBRA (Expediente Saldo)","EXPEDIENTE TECNICO"];
-  const W = (...conds)=> ["1=1", ...conds.filter(Boolean)].join(" AND ");
 
-  const q = {
-    obrasConcluidas:  W(`etapa IN (${IN(OBRA)})`, `estado IN ('Transferencia','Post Ejecución','Concluido')`),
-    obrasEjec:        W(`etapa IN (${IN(OBRA)})`, `estado IN ('En Ejecución')`),
-    obrasIniciar:     W(`etapa IN (${IN(OBRA)})`, `estado IN ('Actos Previos')`, `subestado = 'Por Iniciar'`),
-    obrasSel:         W(`etapa IN (${IN(OBRA)})`, `estado IN ('Actos Previos')`, `subestado = 'Proceso de Selección'`),
+  /* Zoom y 2D/3D */
+  $("zoomIn").onclick  = ()=> getActiveView().goTo({ zoom: getActiveView().zoom + 1 });
+  $("zoomOut").onclick = ()=> getActiveView().goTo({ zoom: getActiveView().zoom - 1 });
 
-    expConcluidos:    W(`etapa IN (${IN(EXP)})`,  `estado IN ('Concluido')`),
-    expElab:          W(`etapa IN (${IN(EXP)})`,  `estado IN ('En elaboración')`),
-    expSel:           W(`etapa IN (${IN(EXP)})`,  `estado IN ('Actos Previos')`, `subestado = 'Proceso de Selección'`),
+  $("toggleDim").onclick = async ()=>{
+    const from = getActiveView();
+    const vp = from.viewpoint?.clone();
+    const expanded = galleryExpand.expanded;
 
-    obrasSel2:        W(`etapa IN (${IN(OBRA)})`, `estado IN ('Actos Previos')`, `subestado = 'Proceso de Selección'`)
+    if(from.type === "2d"){
+      await ensure3D();
+    }else{
+      mapView.container = "viewDiv";
+      if(vp) mapView.viewpoint = vp;
+      sceneView.container = null;
+      gallery.view = mapView; galleryExpand.view = mapView;
+    }
+    galleryExpand.expanded = expanded;
   };
 
-  const [
-    nObC, nObE, nObI, nObPS,
-    nExC, nExE, nExPS, nObPS2
-  ] = await Promise.all([
-    countDistinctProductos(q.obrasConcluidas),
-    countDistinctProductos(q.obrasEjec),
-    countDistinctProductos(q.obrasIniciar),
-    countDistinctProductos(q.obrasSel),
+  /* Carga datos */
+  async function loadFromFeatureServer(){
+    const fl = new FeatureLayer({ url: SERVICE_URL, outFields:[F_ITEM,F_PROY,F_CUI,F_PROG,F_SSP,F_AYUD,F_IMG] });
+    await fl.load();
+    const q = fl.createQuery();
+    q.where="1=1"; q.outFields=fl.outFields; q.returnGeometry=true; q.orderByFields=[F_ITEM];
+    const res = await fl.queryFeatures(q);
+    STOPS = res.features.map(f=>{
+      const a=f.attributes||{}, g=f.geometry, lng=g?.longitude??a.coordx??null, lat=g?.latitude??a.coordy??null;
+      return { item:a[F_ITEM], proyecto:a[F_PROY], cui:a[F_CUI], programa:a[F_PROG], ssp:a[F_SSP], ayuda:a[F_AYUD], foto:a[F_IMG], lng, lat };
+    }).filter(p=>p.lng!=null && p.lat!=null);
+  }
 
-    countDistinctProductos(q.expConcluidos),
-    countDistinctProductos(q.expElab),
-    countDistinctProductos(q.expSel),
-    countDistinctProductos(q.obrasSel2)
-  ]);
-
-  animateNum(document.getElementById("est-obras-concluidas"), nObC);
-  animateNum(document.getElementById("est-obras-ejec"),        nObE);
-  animateNum(document.getElementById("est-obras-iniciar"),     nObI);
-  animateNum(document.getElementById("est-obras-sel"),         nObPS);
-
-  animateNum(document.getElementById("est-exp-concluidos"),    nExC);
-  animateNum(document.getElementById("est-exp-elab"),          nExE);
-  animateNum(document.getElementById("est-exp-sel"),           nExPS);
-  animateNum(document.getElementById("est-obras-sel2"),        nObPS2);
-})();
+  (async ()=>{
+    try{ await loadFromFeatureServer(); }catch(e){ console.warn("No se pudo leer el FeatureServer:", e); STOPS=[]; }
+    drawMarkers();
+  })();
+});
 </script>
 </body>
 </html>
