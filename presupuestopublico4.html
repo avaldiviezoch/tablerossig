@@ -1,603 +1,356 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="utf-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <title>Mapa · Inversiones MVCS + Proyectos</title>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Imágenes multitemporales — MVCS</title>
 
-  <!-- Fuente: Nunito Sans -->
-  <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;600;700;800;900&display=swap" rel="stylesheet"/>
+<!-- Fuente institucional -->
+<link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@600;700;800;900&display=swap" rel="stylesheet"/>
 
-  <!-- ArcGIS JS 4.29 -->
-  <link rel="stylesheet" href="https://js.arcgis.com/4.29/esri/themes/light/main.css">
-  <script src="https://js.arcgis.com/4.29/"></script>
+<style>
+:root{
+  --brand:#1e6eb6; --ink:#0b2532; --muted:#475569; --line:#e5e7eb; --card:#ffffff;
+  --bg:#eef3f8; --accent:#e50914;
+}
 
-  <style>
-    :root{
-      --ink:#0b2532; --muted:#6b7280; --line:#e5e7eb;
-      --accent-blue:#1e6eb6; --accent-blue-2:#135a92;
-      --card:#fff; --shadow:0 12px 28px rgba(2,6,23,.08);
-      --underline:#e11d2e; --red:#e11d2e;
+/* Base */
+html,body{margin:0;background:var(--bg);color:var(--ink)}
+.swipe-scope{font-family:"Nunito Sans", system-ui, -apple-system, Segoe UI, Roboto, Arial}
 
-      /* Tabla */
-      --azul:#1e6eb6;
-      --turquesa:#5ebad6;
-      --rojo:#d00000;
-      --row-alt:#f9fcfb;
-      --shadow-table:0 8px 18px rgba(2,6,23,.08);
-      --radius:10px;
-    }
+/* Contenedor */
+.wrap{
+  max-width:1200px;
+  margin:clamp(16px,3vw,28px) auto;
+  background:var(--card);
+  border:1px solid var(--line);
+  border-radius:20px;
+  padding:clamp(16px,3vw,28px);
+  box-shadow:0 18px 40px rgba(2,6,23,.08);
+}
 
-    html,body{
-      height:100%; margin:0; background:#fff; color:var(--ink);
-      font-family:"Nunito Sans",system-ui,-apple-system,Segoe UI,Roboto,Inter,Arial,sans-serif;
-    }
-    a{color:var(--accent-blue);text-decoration:none;font-weight:800}
+/* ===== TÍTULO CON SUBRAYADO ===== */
+.header{text-align:center}
+.title{
+  position:relative;
+  display:inline-block;
+  margin:0;
+  font-weight:900;
+  color:var(--brand);
+  font-size:clamp(22px,3.6vw,34px);
+  line-height:1.15;
+}
+.title::after{
+  content:"";
+  position:absolute;
+  left:0;
+  bottom:-8px;
+  height:4px;
+  background:var(--accent);
+  border-radius:999px;
+  transform:scaleX(0);
+  transform-origin:left center;
+  box-shadow:0 0 0 1px rgba(0,0,0,.06) inset;
+}
+.animate .title::after{
+  animation:underlineDraw 2s ease-out forwards;
+}
+@keyframes underlineDraw{
+  from{transform:scaleX(0)}
+  to{transform:scaleX(1)}
+}
 
-    /* ===== Intro (tal cual tu estilo) ===== */
-    .wrap{ max-width:1200px; margin:0 auto; padding:28px 20px 10px; box-sizing:border-box; }
-    .intro{ text-align:center; margin:0 auto 18px; color:var(--ink); }
-    .intro h2{
-      color: var(--accent-blue);
-      font-weight:900; font-size:clamp(22px,3.2vw,28px);
-      display:inline-block; position:relative; margin:0 0 18px;
-      padding-bottom:10px;
-    }
-    .intro h2::after{
-      content:""; position:absolute; left:0; bottom:0; height:4px; width:100%;
-      background:var(--underline); transform:scaleX(0); transform-origin:left center;
-      transition:transform .7s cubic-bezier(.22,.9,.3,1); border-radius:999px;
-    }
-    .intro h2.in-view::after{ transform:scaleX(1); }
-    .intro p{ margin:0 auto 10px; max-width:900px; line-height:1.55; color:#4b5563; font-size:clamp(14px,1.5vw,16.5px) }
+.intro{
+  max-width:940px;
+  margin:8px auto 18px;
+  text-align:center;
+  color:var(--muted);
+  font-weight:700;
+  line-height:1.45;
+  font-size:clamp(13px,1.6vw,16px);
+}
 
-    /* ===== Mapa (tu estética intacta) ===== */
-    .page{ display:grid; place-items:center; padding:0 20px 0; box-sizing:border-box; } /* sin borde/espacio extra abajo */
-    .map-card{
-      width:min(1200px, 92vw); height:min(72vh, 760px);
-      background:var(--card); border:1px solid var(--line); border-radius:16px;
-      box-shadow:var(--shadow); position:relative; overflow:hidden;
-    }
-    #viewDiv{ position:absolute; inset:0; }
+/* ===== BLOQUES SWIPE ===== */
+.swipe-block{margin:26px auto 22px}
+.swipe{
+  position:relative;
+  width:100%;
+  height:min(66vh,620px);
+  border:1px solid var(--line);
+  border-radius:14px;
+  overflow:hidden;
+  background:#000;
+  user-select:none;
+  touch-action:none;
+  --pos:50%;
+}
+.swipe img{
+  position:absolute;
+  inset:0;
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  object-position:center;
+  display:block;
+}
+.swipe .top{clip-path:inset(0 calc(100% - var(--pos)) 0 0);will-change:clip-path}
+.divider{
+  position:absolute;
+  inset:0 0 0 auto;
+  left:var(--pos);
+  transform:translateX(-50%);
+  z-index:3;
+  pointer-events:none;
+}
+.divider::before{
+  content:"";
+  position:absolute;
+  top:0;bottom:0;left:50%;
+  width:2px;
+  background:#ffffffcc;
+  outline:1px solid rgba(0,0,0,.18);
+}
+.knob{
+  position:absolute;
+  top:50%;left:50%;
+  transform:translate(-50%,-50%);
+  width:46px;height:46px;
+  border-radius:50%;
+  background:#fff;
+  border:2px solid #fff;
+  outline:2px solid rgba(0,0,0,.18);
+  display:grid;
+  place-items:center;
+  box-shadow:0 8px 18px rgba(0,0,0,.18);
+}
+.knob svg{width:22px;height:22px;fill:var(--brand)}
+.hit{
+  position:absolute;
+  inset:0;
+  cursor:ew-resize;
+  z-index:4;
+  background:transparent;
+}
 
-    .search-wrap{ position:absolute; top:14px; right:14px; z-index:6; }
-    .search-fab{
-      width:44px; height:44px; border-radius:999px; cursor:pointer;
-      border:1px solid #e5e7eb; background:#ffffff; display:grid; place-items:center;
-      box-shadow:0 8px 20px rgba(2,6,23,.18);
-    }
-    .search-fab svg{ width:22px; height:22px; display:block }
-    .search-fab .ring{ stroke:#d80000; stroke-width:3; fill:none }
-    .search-fab .handle{ stroke:#d80000; stroke-width:3; stroke-linecap:round }
-    .search-content{
-      display:none; position:absolute; top:100%; right:0; margin-top:8px;
-      background:#fff; border:1px solid var(--line); border-radius:14px;
-      box-shadow:0 10px 24px rgba(2,6,23,.12); padding:10px; width:320px;
-    }
-    .search-content.open{ display:block; }
-    .search-input-wrap{ display:flex; align-items:center; gap:8px; }
-    .search-input{ flex:1; padding:10px; border:1px solid #d1d5db; border-radius:10px; font-weight:700; }
-    .clear-btn{
-      border:none; background:#f3f4f6; border:1px solid #e5e7eb;
-      width:36px; height:36px; border-radius:10px; cursor:pointer; font-size:18px; line-height:0; display:grid; place-items:center;
-    }
-    .suggestions{ list-style:none; padding:6px 0 0; margin:6px 0 0; max-height:240px; overflow-y:auto; }
-    .suggestions li{ padding:8px 10px; cursor:pointer; border-bottom:1px solid #f2f2f2; font-weight:700; color:var(--ink); }
-    .suggestions li:hover{ background:#f0f7f6; }
+/* ===== DESCRIPCIÓN ===== */
+.caption{
+  display:grid;
+  grid-template-columns:1fr auto;
+  gap:12px;
+  align-items:center;
+  margin-top:10px;
+}
+.cap-title{
+  margin:0;
+  font-weight:900;
+  font-size:clamp(14px,2vw,18px);
+  line-height:1.35;
+}
+.meta{color:#6b7280;font-weight:700;font-size:12px}
+.cui{
+  justify-self:end;
+  background:var(--brand);
+  color:#fff;
+  border:0;
+  padding:8px 12px;
+  border-radius:999px;
+  font-weight:900;
+  font-size:13px;
+  letter-spacing:.2px;
+  box-shadow:0 6px 14px rgba(30,110,182,.28);
+}
 
-    .esri-popup__header{ display:none !important; }
-    .esri-popup__main-container{ padding-top:0 !important; border-radius:14px !important; overflow:hidden !important; }
-    .pop-card{
-      background:#ffffff; border:1px solid var(--line); border-radius:14px;
-      box-shadow:0 12px 30px rgba(2,6,23,.12); overflow:hidden; color:var(--ink);
-      font:12.5px/1.4 "Nunito Sans",system-ui,-apple-system,Segoe UI,Roboto,Inter,Arial;
-    }
-    .pop-hdr{ background:#0b3b38; color:#e6fffb; padding:10px 12px; font-weight:900; letter-spacing:.2px; }
-    .pop-grid{ display:grid; grid-template-columns:1fr 1fr; gap:8px 12px; padding:12px; }
-    .pop-grid .lbl{ font-weight:800; color:#47606b; font-size:11.5px }
-    .pop-grid .val{ font-weight:800; color:var(--ink) }
-    .pop-chipwrap{ display:flex; gap:8px; padding:0 12px 10px }
-    .chip{ background:#e8f5f3; color:#0b3b38; border:1px solid #cfe7e3; padding:5px 8px;
-      border-radius:999px; font-weight:900; font-size:11px; }
-    .pop-actions{ display:flex; gap:8px; justify-content:flex-end; padding:10px 12px 12px; border-top:1px solid var(--line); }
-    .pop-btn{
-      border:1px solid #0e4a43; background:#0b3b38; color:#e6fffb; padding:8px 10px; border-radius:10px;
-      font-weight:800; text-decoration:none; display:inline-flex; align-items:center; gap:8px;
-    }
-    .pop-btn:hover{ filter:brightness(1.05) }
-
-    .filter-wrap{ position:absolute; top:14px; left:14px; z-index:6; }
-    .filter-btn{
-      background:#ffffff; color:var(--accent-blue);
-      border:1px solid var(--line); padding:8px 12px; border-radius:10px;
-      font-weight:900; cursor:pointer; box-shadow:0 8px 20px rgba(2,6,23,.12);
-      font-size:14px;
-    }
-    .filter-btn:hover{ border-color:#d5dae1; color:var(--accent-blue-2); }
-    .filter-panel{
-      display:none; position:absolute; top:100%; left:0; margin-top:8px;
-      background:#fff; border:1px solid var(--line); border-radius:14px;
-      box-shadow:0 10px 24px rgba(2,6,23,.12); width:260px; overflow:hidden;
-    }
-    .filter-panel.open{ display:block; }
-    .fp-head{ background:var(--accent-blue); color:#ffffff; padding:8px 10px; font-weight:900; font-size:13px }
-    .fp-body{ padding:8px 10px; max-height:180px; overflow:auto }
-    .fp-body label{ display:flex; align-items:center; gap:8px; padding:4px 0; font-size:12.5px; color:var(--ink); cursor:pointer }
-    .fp-body input[type="checkbox"]{ accent-color: var(--accent-blue) }
-    .fp-body input[type="checkbox"]:checked + span{ color:var(--red); font-weight:900 }
-
-    .reset-wrap{ position:absolute; bottom:14px; left:14px; z-index:6; }
-    .reset-btn{
-      width:44px; height:44px; border-radius:999px; cursor:pointer;
-      border:1px solid #e5e7eb; background:#ffffff; display:grid; place-items:center;
-      box-shadow:0 8px 20px rgba(2,6,23,.18); font-size:20px; color:#e11d2e;
-      transition:transform .2s ease, background .2s ease;
-    }
-    .reset-btn:hover{ background:#fdf2f2; transform:scale(1.08) }
-
-    /* ===== Sección tabla (pegada al mapa, sin “separador”) ===== */
-    .table-section{ padding:12px 20px 28px; } /* margen superior pequeño para “pegarlo” al mapa */
-    .table-wrap{ max-width:1200px; margin:0 auto; }
-
-    .title-row{
-      display:flex; align-items:center; justify-content:center;
-      margin:10px 0 10px 0;
-    }
-    .title-row h3{
-      margin:0; font-weight:900; font-size:clamp(18px,2.8vw,22px); color:var(--accent-blue);
-      letter-spacing:.2px;
-    }
-
-    .status{font-weight:800;color:#334155;margin:8px 0 12px;font-size:13px}
-
-    .tableWrap{
-      background:#fff;border:1px solid var(--line);
-      border-radius:var(--radius);box-shadow:var(--shadow-table);
-      position:relative;overflow:hidden;
-    }
-
-    /* Scroll vertical (10 filas visibles) */
-    .scrollY{ overflow-y:auto; overflow-x:hidden; -webkit-overflow-scrolling:touch; }
-    .scrollY::-webkit-scrollbar{width:10px}
-    .scrollY::-webkit-scrollbar-track{background:#f1f5f9}
-    .scrollY::-webkit-scrollbar-thumb{background:#cbd5e1;border-radius:6px;border:2px solid #f1f5f9}
-    .scrollY:hover::-webkit-scrollbar-thumb{background:#94a3b8}
-
-    /* Scroll horizontal solo en pantallas pequeñas */
-    @media (max-width:900px){
-      .scrollY{overflow-x:auto}
-      .scrollY::-webkit-scrollbar{height:10px;width:10px}
-    }
-
-    table{ width:100%; min-width:1100px; border-collapse:separate; border-spacing:0; table-layout:fixed }
-    thead th{
-      position:sticky; top:0; z-index:2;
-      background:var(--turquesa); color:#fff;
-      font-weight:800; letter-spacing:.2px;
-      padding:8px 6px; text-align:center; font-size:12.5px;
-    }
-    tbody td{
-      border-top:1px solid var(--line); border-right:1px solid var(--line);
-      padding:7px; vertical-align:top;
-      font-size:12px; line-height:1.35; text-align:center;
-      word-break:break-word; hyphens:auto;
-    }
-    tbody td:last-child, thead th:last-child{border-right:none}
-    tbody tr:nth-child(odd){background:var(--row-alt)}
-    .num{font-variant-numeric:tabular-nums;text-align:center;white-space:nowrap}
-
-    /* Tooltip azul institucional */
-    .inv-cell{position:relative;overflow:visible}
-    .ellip-text{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:center}
-    .inv-cell[data-tip]::after{
-      content:attr(data-tip);position:absolute;left:50%;bottom:100%;
-      transform:translate(-50%,-6px);
-      background:var(--azul);color:#fff;padding:6px 8px;border-radius:8px;max-width:560px;
-      white-space:normal;line-height:1.25;font-size:11.5px;pointer-events:none;z-index:50;
-      border:1px solid rgba(8,31,28,.35);box-shadow:0 6px 14px rgba(0,0,0,.18);
-      opacity:0;visibility:hidden;transition:opacity .12s ease,visibility .12s ease
-    }
-    .inv-cell[data-tip]::before{
-      content:"";position:absolute;left:50%;bottom:100%;
-      transform:translate(-50%,-2px);
-      border:6px solid transparent;border-top-color:var(--azul);
-      z-index:51;opacity:0;visibility:hidden;transition:opacity .12s ease,visibility .12s ease
-    }
-    .inv-cell:hover::after,.inv-cell:hover::before{opacity:1;visibility:visible}
-
-    a.chipLink{color:var(--rojo);font-weight:900;text-decoration:none;font-size:12px}
-    a.chipLink:hover{text-decoration:underline}
-    .pill{
-      background:#f3f4f6;color:#334155;padding:3px 6px;border-radius:999px;
-      font-weight:800;display:inline-block;font-size:11.5px;
-    }
-  </style>
+@media (max-width:720px){
+  .swipe{height:min(58vh,520px)}
+  .caption{grid-template-columns:1fr;gap:8px}
+  .cui{justify-self:start}
+}
+</style>
 </head>
 <body>
 
-  <!-- Intro -->
-  <section class="wrap intro">
-    <h2 id="introTitle">¿Dónde se ubican nuestras inversiones?</h2>
-    <p>
-      El mapa interactivo muestra la ubicación geográfica de los proyectos de inversión del ministerio a nivel nacional,
-      clasificados por tipo y estado (en ejecución, concluidos o por iniciar). Puedes filtrar por región, provincia o distrito para
-      identificar las intervenciones en tu localidad. Esta herramienta facilita la rendición de cuentas y la participación
-      ciudadana en el seguimiento de obras públicas.
-    </p>
-    <p>
-      La visualización facilita el análisis territorial, permitiendo detectar posibles brechas de infraestructura, priorizar zonas
-      críticas y garantizar una cobertura equitativa de los servicios de agua y saneamiento en todas las regiones del país.
-    </p>
-    <p>
-      <a href="#viewDiv">¡Explora el mapa y conoce cómo las inversiones del MVCS han mejorado la calidad de vida de tu comunidad!</a>
-    </p>
-  </section>
+<section class="wrap swipe-scope" id="swipe-section">
+  <div class="header">
+    <h1 class="title">Imágenes multitemporales</h1>
+  </div>
+  <p class="intro">
+    Visualiza el antes y después de las intervenciones del ministerio y conoce el impacto
+    tangible en el territorio. Arrastra el control para comparar.
+  </p>
 
-  <!-- MAPA -->
-  <section class="page">
-    <div class="map-card">
-      <div id="viewDiv" aria-label="Mapa con límites y puntos"></div>
-
-      <!-- Filtro -->
-      <div class="filter-wrap">
-        <button class="filter-btn" id="filterBtn">Programas</button>
-        <div class="filter-panel" id="filterPanel">
-          <div class="fp-head"><span>Filtrar por Programa</span></div>
-          <div class="fp-body" id="progList"></div>
-        </div>
-      </div>
-
-      <!-- Buscador -->
-      <div class="search-wrap">
-        <button class="search-fab" id="searchBtn" title="Buscar">
-          <svg viewBox="0 0 24 24" aria-hidden="true"><circle class="ring" cx="10" cy="10" r="6.5"></circle><line class="handle" x1="14.8" y1="14.8" x2="20" y2="20"></line></svg>
-        </button>
-        <div class="search-content" id="searchContent">
-          <div class="search-input-wrap">
-            <input type="text" class="search-input" id="searchInput" placeholder="Buscar por nombre de proyecto…">
-            <button class="clear-btn" id="clearSearch">X</button>
-          </div>
-          <ul class="suggestions" id="suggestions"></ul>
-        </div>
-      </div>
-
-      <!-- Reset -->
-      <div class="reset-wrap">
-        <button class="reset-btn" id="resetBtn" title="Restaurar mapa">↺</button>
-      </div>
+  <!-- ========= 1 ========= -->
+  <div class="swipe-block">
+    <div class="swipe" data-start="50">
+      <img class="bottom" src="https://lh3.googleusercontent.com/d/15XQnR6s4kuOBa1HSMAu4YbB-ZjRyJXQS=w1000" alt="">
+      <img class="top" src="https://lh3.googleusercontent.com/d/1VBRK-CPl5K4L4n9gJSMf-xTAQSN0xIFD=w1000" alt="">
+      <div class="divider"><div class="knob">
+        <svg viewBox="0 0 24 24"><path d="M8.5 12l4-4-1.4-1.4L6 11.7l5.1 5.1L12.5 15l-4-4zM15.5 12l-4 4 1.4 1.4L18 12.3l-5.1-5.1L11.5 9l4 4z"/></svg>
+      </div></div><button class="hit"></button>
     </div>
-  </section>
-
-  <!-- TABLA: pegada al mapa, título “Proyectos” -->
-  <section class="table-section">
-    <div class="table-wrap">
-      <div class="title-row"><h3>Detalles con inversión PIM 2025</h3></div>
-      <div class="wrap" style="padding:0 0 0 0; max-width:unset;"></div> <!-- placeholder para mantener consistencia -->
-      <div class="tableWrap">
-        <div class="scrollY" id="scrollY">
-          <table id="tbl" aria-live="polite">
-            <colgroup>
-              <col class="cui"><col class="inv"><col class="dep"><col class="pro"><col class="dis">
-              <col class="pim"><col class="dev"><col class="det"><col class="pdf">
-            </colgroup>
-            <thead>
-              <tr>
-                <th>CUI</th>
-                <th>Inversión</th>
-                <th>Departamento</th>
-                <th>Provincia</th>
-                <th>Distrito</th>
-                <th>PIM</th>
-                <th>Devengado</th>
-                <th>Detalle proyecto</th>
-                <th>Ayuda memoria</th>
-              </tr>
-            </thead>
-            <tbody id="tbody"></tbody>
-          </table>
-        </div>
-      </div>
-      <div id="state" class="status" style="text-align:center;">Cargando datos…</div>
+    <div class="caption">
+      <p class="cap-title">Instalación de los servicios de vialidad urbana y agua potable en la nueva ciudad de Olmos. Imágenes 2018–2025.</p>
+      <span class="cui">CUI 2300167</span>
     </div>
-  </section>
+  </div>
 
-  <script>
-    /* Subrayado animado al entrar en vista (intro) */
-    (function underlineOnView(){
-      const title = document.getElementById('introTitle');
-      const obs = new IntersectionObserver(e => e.forEach(en => en.isIntersecting && title.classList.add('in-view')), { threshold: 0.35 });
-      obs.observe(title);
-    })();
+  <!-- ========= 2 ========= -->
+  <div class="swipe-block">
+    <div class="swipe" data-start="50">
+      <img class="bottom" src="https://lh3.googleusercontent.com/d/1S6LPnV1nHl4pWoR5JORW4OXq3tZ53p3x=w1000" alt="">
+      <img class="top" src="https://lh3.googleusercontent.com/d/1xQugBImR3R1bcOwyQ3vN2MufARez3koh=w1000" alt="">
+      <div class="divider"><div class="knob">
+        <svg viewBox="0 0 24 24"><path d="M8.5 12l4-4-1.4-1.4L6 11.7l5.1 5.1L12.5 15l-4-4zM15.5 12l-4 4 1.4 1.4L18 12.3l-5.1-5.1L11.5 9l4 4z"/></svg>
+      </div></div><button class="hit"></button>
+    </div>
+    <div class="caption">
+      <p class="cap-title">Creación de los servicios de vialidad de la nueva ciudad de Belén – Varillalito, Loreto. Imágenes 2018–2024.</p>
+      <span class="cui">CUI 2317154</span>
+    </div>
+  </div>
 
-    /* ======= Config común y utilidades ======= */
-    const FS_URL = "https://pportalgis.vivienda.gob.pe/pfdserver/rest/services/OGEI/Mapa_Inversiones_Coord_MEF/FeatureServer/0";
-    const LIMITES_URL = "https://pportalgis.vivienda.gob.pe/pfdserver/rest/services/COES/Limites_Pol%C3%ADticos/MapServer/0";
+  <!-- ========= 3 ========= -->
+  <div class="swipe-block">
+    <div class="swipe" data-start="50">
+      <img class="bottom" src="https://lh3.googleusercontent.com/d/1B2U7F_CWgoK7UXaJQPvCcfii3-o14bRY=w1000" alt="">
+      <img class="top" src="https://lh3.googleusercontent.com/d/1jSkfswGoGJ5qFM1wsGtELsPpSEx5Oi0w=w1000" alt="">
+      <div class="divider"><div class="knob">
+        <svg viewBox="0 0 24 24"><path d="M8.5 12l4-4-1.4-1.4L6 11.7l5.1 5.1L12.5 15l-4-4zM15.5 12l-4 4 1.4 1.4L18 12.3l-5.1-5.1L11.5 9l4 4z"/></svg>
+      </div></div><button class="hit"></button>
+    </div>
+    <div class="caption">
+      <p class="cap-title">Creación de la Plaza de la Hermandad en la frontera Perú–Ecuador (Aguas Verdes, Tumbes). Imágenes 2022–2025.</p>
+      <span class="cui">CUI 2331093</span>
+    </div>
+  </div>
 
-    const moneyFmt = new Intl.NumberFormat("es-PE", { maximumFractionDigits: 0 });
-    function money(n){ return "S/. " + moneyFmt.format(Number(n||0)); }
-    function safe(v){ return (v==null || v==="") ? "—" : String(v); }
-    function esc(v){ return String(v).replaceAll("'", "''"); }
-    function escHtml(s){ return String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&gt;","\"":"&quot;"}[c] || c)); }
+  <!-- ========= 4 ========= -->
+  <div class="swipe-block">
+    <div class="swipe" data-start="50">
+      <img class="bottom" src="https://lh3.googleusercontent.com/d/1b6KeMaxDEfF83Uf1GegP0vCTEP0qcvOs=w1000" alt="">
+      <img class="top" src="https://lh3.googleusercontent.com/d/11OAR_uAiUwU5xTxghIiEwzT6pGbYYNgW=w1000" alt="">
+      <div class="divider"><div class="knob">
+        <svg viewBox="0 0 24 24"><path d="M8.5 12l4-4-1.4-1.4L6 11.7l5.1 5.1L12.5 15l-4-4zM15.5 12l-4 4 1.4 1.4L18 12.3l-5.1-5.1L11.5 9l4 4z"/></svg>
+      </div></div><button class="hit"></button>
+    </div>
+    <div class="caption">
+      <p class="cap-title">Ampliación de los sistemas de agua potable y alcantarillado del sector Paraíso Alto (VMT, Lima). Imágenes 2020–2025.</p>
+      <span class="cui">CUI 2395187</span>
+    </div>
+  </div>
 
-    function esriPOST(url, paramsObj){
-      const body = new URLSearchParams({ f:"json", returnGeometry:"false", ...paramsObj, __ts: Date.now() });
-      return fetch(url, { method:"POST", headers:{ "Content-Type":"application/x-www-form-urlencoded;charset=UTF-8" }, body, cache:"no-store" })
-        .then(r => r.ok ? r.json() : Promise.reject())
-        .catch(() => ({}));
+  <!-- ========= 5 ========= -->
+  <div class="swipe-block">
+    <div class="swipe" data-start="50">
+      <img class="bottom" src="https://lh3.googleusercontent.com/d/16gUqKXdifmPQeKlmb49av7pHxQNAvQnf=w1000" alt="">
+      <img class="top" src="https://lh3.googleusercontent.com/d/1QYtdylddHYiSAyww9M-Kezu6qrSNpTLd=w1000" alt="">
+      <div class="divider"><div class="knob">
+        <svg viewBox="0 0 24 24"><path d="M8.5 12l4-4-1.4-1.4L6 11.7l5.1 5.1L12.5 15l-4-4zM15.5 12l-4 4 1.4 1.4L18 12.3l-5.1-5.1L11.5 9l4 4z"/></svg>
+      </div></div><button class="hit"></button>
+    </div>
+    <div class="caption">
+      <p class="cap-title">Creación de sistemas de agua potable dependientes del reservorio N-39 y alcantarillado sanitario (Cerro Colorado, Arequipa). Imágenes 2021–2024.</p>
+      <span class="cui">CUI 2532566</span>
+    </div>
+  </div>
+
+  <!-- ========= 6 ========= -->
+  <div class="swipe-block">
+    <div class="swipe" data-start="50">
+      <img class="bottom" src="https://lh3.googleusercontent.com/d/1MLVjddBSRE6tYacX-87IRVyr1ai-wrWi=w1000" alt="">
+      <img class="top" src="https://lh3.googleusercontent.com/d/1hA2HLopKgbRKeduk5Nrs8ptVhP2-8z9l=w1000" alt="">
+      <div class="divider"><div class="knob">
+        <svg viewBox="0 0 24 24"><path d="M8.5 12l4-4-1.4-1.4L6 11.7l5.1 5.1L12.5 15l-4-4zM15.5 12l-4 4 1.4 1.4L18 12.3l-5.1-5.1L11.5 9l4 4z"/></svg>
+      </div></div><button class="hit"></button>
+    </div>
+    <div class="caption">
+      <p class="cap-title">Mejoramiento y ampliación del sistema de agua potable y alcantarillado de los sectores 359 y 360 (Carabayllo, Lima). Imágenes 2020–2025.</p>
+      <span class="cui">CUI 2302373</span>
+    </div>
+  </div>
+
+  <!-- ========= 7 ========= -->
+  <div class="swipe-block">
+    <div class="swipe" data-start="50">
+      <img class="bottom" src="https://lh3.googleusercontent.com/d/1XsVWj32nruBBeGtW9Wp1hMb02c8DEDef=w1000" alt="">
+      <img class="top" src="https://lh3.googleusercontent.com/d/1qTcpF2jiXzOboV23ws6YsEEI-yvR7tZA=w1000" alt="">
+      <div class="divider"><div class="knob">
+        <svg viewBox="0 0 24 24"><path d="M8.5 12l4-4-1.4-1.4L6 11.7l5.1 5.1L12.5 15l-4-4zM15.5 12l-4 4 1.4 1.4L18 12.3l-5.1-5.1L11.5 9l4 4z"/></svg>
+      </div></div><button class="hit"></button>
+    </div>
+    <div class="caption">
+      <p class="cap-title">Mejoramiento y ampliación del servicio de alcantarillado y tratamiento de aguas residuales (Nuevo Chimbote, Áncash). Imágenes 2021–2024.</p>
+      <span class="cui">CUI 2414594</span>
+    </div>
+  </div>
+
+  <!-- ========= 8 ========= -->
+  <div class="swipe-block">
+    <div class="swipe" data-start="50">
+      <img class="bottom" src="https://lh3.googleusercontent.com/d/1LMRMDmTglaZ2p37LwDymHl5Wf2dR80Kl=w1000" alt="">
+      <img class="top" src="https://lh3.googleusercontent.com/d/1swzHcAprqTYA0nx642zlpd1ARsi-7B-4=w1000" alt="">
+      <div class="divider"><div class="knob">
+        <svg viewBox="0 0 24 24"><path d="M8.5 12l4-4-1.4-1.4L6 11.7l5.1 5.1L12.5 15l-4-4zM15.5 12l-4 4 1.4 1.4L18 12.3l-5.1-5.1L11.5 9l4 4z"/></svg>
+      </div></div><button class="hit"></button>
+    </div>
+    <div class="caption">
+      <p class="cap-title">Ampliación y mejoramiento del sistema de agua potable y alcantarillado en los asentamientos humanos de Piura y Castilla. Imágenes 2020–2025.</p>
+      <span class="cui">CUI 2266697</span>
+    </div>
+  </div>
+
+</section>
+
+<script>
+/* Animar subrayado solo al entrar en vista */
+(function(){
+  const section=document.getElementById('swipe-section');
+  const io=new IntersectionObserver((entries)=>{
+    for(const e of entries){
+      if(e.isIntersecting){
+        section.classList.add('animate');
+        io.disconnect();
+        break;
+      }
     }
+  },{threshold:.4});
+  io.observe(section);
+})();
 
-    async function loadDistinct(field, where = "1=1"){
-      const page = 2000; let offset = 0; const vals = new Set();
-      while(true){
-        const j = await esriPOST(FS_URL + "/query", {
-          where, outFields: field, orderByFields: field, returnDistinctValues: "true",
-          resultRecordCount: page, resultOffset: offset
-        });
-        const rows = (j.features || []).map(f => (f.attributes || {})[field]).filter(v => v != null && v !== "");
-        rows.forEach(v => vals.add(v));
-        if (!j.exceededTransferLimit || rows.length < page) break;
-        offset += page;
-      }
-      return [...vals];
+/* Swipe interactivo */
+(function(){
+  function setupSwipe(el){
+    const start=Number(el.getAttribute('data-start')||50);
+    setPos(start);
+    function setPos(pct){pct=Math.max(0,Math.min(100,pct));el.style.setProperty('--pos',pct+'%')}
+    function pctFromEvent(e){
+      const r=el.getBoundingClientRect();
+      const clientX=(e.clientX??(e.touches&&e.touches[0]?.clientX)??r.left);
+      return((clientX-r.left)/r.width)*100;
     }
-
-    /* ======= MAPA ======= */
-    require([
-      "esri/Map","esri/views/MapView","esri/layers/FeatureLayer","esri/widgets/BasemapToggle",
-      "esri/widgets/ScaleBar","esri/geometry/Extent","esri/layers/GraphicsLayer","esri/Graphic"
-    ], (Map, MapView, FeatureLayer, BasemapToggle, ScaleBar, Extent, GraphicsLayer, Graphic) => {
-
-      const map = new Map({ basemap: "satellite" }); /* respetando tu código pegado */
-      const view = new MapView({
-        container: "viewDiv", map, center: [-75.2, -9.3], zoom: 5,
-        padding: { left:8, right:8, top:8, bottom:8 }, constraints: { minZoom: 3 }
-      });
-
-      view.ui.add(new BasemapToggle({ view, nextBasemap: "osm" }), "bottom-right");
-      view.ui.add(new ScaleBar({ view, unit: "metric" }), "bottom-left");
-      view.ui.move("zoom", "bottom-right");
-
-      const peruExtent = new Extent({ xmin:-81.6, ymin:-18.5, xmax:-68.5, ymax:-0.03, spatialReference:{ wkid:4326 } });
-      view.when(() => view.goTo({ target: peruExtent.expand(0.96) }));
-
-      const fxLayer = new GraphicsLayer({ listMode: "hide" });
-      map.add(fxLayer);
-
-      const limites = new FeatureLayer({ url: LIMITES_URL, popupEnabled: false, listMode: "hide" });
-      limites.when(() => {
-        limites.renderer = { type: "simple", symbol: { type: "simple-fill", color: [0,0,0,0], outline: { color: [255,255,255,230], width: 1.2 } } };
-      });
-      map.add(limites);
-
-      const layer = new FeatureLayer({
-        url: FS_URL, outFields: ["*"], title: "Proyectos MEF",
-        renderer: { type: "simple", symbol: { type: "simple-marker", color: [255,234,0,0.95], size: 7, outline: { color: [0,0,0,220], width: 0.6 } } },
-        popupTemplate: {
-          title: "", content: e => {
-            const a = e.graphic.attributes || {};
-            const url1 = a.url_ssp?.trim(), url2 = a.url_pdf?.trim();
-            return `
-              <div class="pop-card">
-                <div class="pop-hdr">${safe(a.producto_proyecto_nombre)}</div>
-                <div class="pop-grid">
-                  <div class="lbl">Programa</div><div class="val">${safe(a.programa)}</div>
-                  <div class="lbl">Departamento</div><div class="val">${safe(a.departamento)}</div>
-                  <div class="lbl">Provincia</div><div class="val">${safe(a.provincia)}</div>
-                  <div class="lbl">Distrito</div><div class="val">${safe(a.distrito)}</div>
-                  <div class="lbl">Monto PIM</div><div class="val">${money(a.monto_pim)}</div>
-                  <div class="lbl">Monto Devengado</div><div class="val">${money(a.monto_devengado)}</div>
-                </div>
-                <div class="pop-chipwrap">
-                  <div class="chip">Etapa: ${safe(a.etapa)}</div>
-                  <div class="chip">Estado: ${safe(a.estado)}</div>
-                </div>
-                <div class="pop-actions">
-                  ${url1 ? `<a class="pop-btn" href="${url1}" target="_blank" rel="noopener">Detalle</a>` : ""}
-                  ${url2 ? `<a class="pop-btn" href="${url2}" target="_blank" rel="noopener">PDF</a>` : ""}
-                </div>
-              </div>`;
-          }
-        }
-      });
-      map.add(layer);
-
-      /* Filtro por Programa */
-      const filterBtn = document.getElementById('filterBtn');
-      const filterPanel = document.getElementById('filterPanel');
-      const progList = document.getElementById('progList');
-
-      function buildWherePrograms(){
-        const checked = progList.querySelectorAll('input[type="checkbox"]:checked');
-        const progs = Array.from(checked).map(cb => cb.value.trim()).filter(Boolean);
-        return progs.length === 0 ? "1=1" : `programa IN (${progs.map(p => `'${esc(p)}'`).join(",")})`;
-      }
-
-      async function loadPrograms(){
-        progList.innerHTML = '<div style="padding:6px;font-size:12px;color:#6b7280;">Cargando...</div>';
-        const progs = await loadDistinct("programa");
-        progList.innerHTML = '';
-        progs.forEach(p => {
-          const id = 'p_' + Math.random().toString(36).substr(2, 6);
-          const label = document.createElement('label');
-          label.innerHTML = `<input id="${id}" type="checkbox" value="${p}"> <span>${p}</span>`;
-          label.style.cursor = 'pointer';
-          progList.appendChild(label);
-        });
-        progList.querySelectorAll('input[type="checkbox"]').forEach(cb => {
-          cb.addEventListener('change', () => {
-            layer.definitionExpression = buildWherePrograms();
-            view.whenLayerView(layer).then(lv => lv.queryExtent().then(r => r.count > 0 && view.goTo(r.extent)));
-          });
-        });
-      }
-
-      filterBtn.addEventListener('click', e => {
-        e.stopPropagation();
-        filterPanel.classList.toggle('open');
-        if (filterPanel.classList.contains('open') && progList.children.length === 0) loadPrograms();
-      });
-
-      document.addEventListener('click', e => {
-        if (!document.querySelector('.filter-wrap').contains(e.target)) filterPanel.classList.remove('open');
-      });
-
-      /* Reset */
-      const resetBtn = document.getElementById('resetBtn');
-      resetBtn.addEventListener('click', () => {
-        progList.querySelectorAll('input[type="checkbox"]').forEach(cb => cb.checked = false);
-        layer.definitionExpression = "1=1";
-        view.goTo(peruExtent.expand(0.96));
-        document.getElementById('searchInput').value = '';
-        document.getElementById('suggestions').innerHTML = '';
-        view.popup.close();
-      });
-
-      /* Buscador */
-      const searchBtn = document.getElementById('searchBtn');
-      const searchContent = document.getElementById('searchContent');
-      const searchInput = document.getElementById('searchInput');
-      const clearSearch = document.getElementById('clearSearch');
-      const suggestions = document.getElementById('suggestions');
-      let allProjects = [];
-
-      searchBtn.addEventListener('click', e => { e.stopPropagation(); searchContent.classList.toggle('open'); searchContent.classList.contains('open') && searchInput.focus(); });
-      document.addEventListener('click', e => { !document.querySelector('.search-wrap').contains(e.target) && searchContent.classList.remove('open'); });
-      clearSearch.addEventListener('click', () => { searchInput.value = ''; suggestions.innerHTML = ''; searchInput.focus(); });
-
-      searchInput.addEventListener('input', () => {
-        const val = searchInput.value.toLowerCase().trim();
-        suggestions.innerHTML = '';
-        if (val.length < 2) return;
-        const matches = allProjects.filter(n => n.toLowerCase().includes(val)).slice(0, 20);
-        matches.forEach(name => {
-          const li = document.createElement('li');
-          li.textContent = name;
-          li.onclick = () => { searchInput.value = name; suggestions.innerHTML = ''; searchContent.classList.remove('open'); performSearchExact(name); };
-          suggestions.appendChild(li);
-        });
-      });
-
-      searchInput.addEventListener('keydown', e => {
-        if (e.key === 'Enter' && searchInput.value.trim().length >= 2) {
-          performSearchLike(searchInput.value.trim());
-          searchContent.classList.remove('open');
-        }
-      });
-
-      let layerView = null, currentHighlight = null;
-      view.when(async () => {
-        layerView = await view.whenLayerView(layer);
-        allProjects = (await loadDistinct("producto_proyecto_nombre")).filter(Boolean);
-      });
-
-      function rippleAt(point){
-        [0,160,320].forEach((d) => setTimeout(() => {
-          const g = new Graphic({ geometry: point, symbol: { type:"simple-marker", style:"circle", size:10, color:[255,255,0,0], outline:{ color:[255,255,0,1], width:2 } } });
-          fxLayer.add(g);
-          let s = 0;
-          const iv = setInterval(() => {
-            s++; const o = Math.max(0,1-s/14);
-            g.symbol = { type:"simple-marker", style:"circle", size:10+s*6, color:[255,255,0,0], outline:{ color:[255,255,0,o], width:Math.max(1,2-s*0.08) } };
-            if (s > 14) { clearInterval(iv); fxLayer.remove(g); }
-          }, 40);
-        }, d));
-      }
-
-      function doHighlight(g){ if (currentHighlight) currentHighlight.remove(); currentHighlight = layerView.highlight(g); setTimeout(() => currentHighlight?.remove(), 5000); }
-
-      async function performSearchExact(name){
-        const base = layer.definitionExpression || "1=1";
-        const q = layer.createQuery();
-        q.where = `(${base}) AND producto_proyecto_nombre = '${esc(name)}'`;
-        q.returnGeometry = true; q.outFields = ['*'];
-        const res = await layer.queryFeatures(q);
-        if (res.features.length > 0) {
-          const f = res.features[0];
-          await view.goTo({ target: f.geometry, zoom: 15 });
-          doHighlight(f); rippleAt(f.geometry);
-          view.popup.open({ features: [f], location: f.geometry });
-        }
-      }
-
-      async function performSearchLike(text){
-        const base = layer.definitionExpression || "1=1";
-        const q = layer.createQuery();
-        q.where = `(${base}) AND producto_proyecto_nombre LIKE '%${esc(text)}%'`;
-        q.returnGeometry = true; q.outFields = ['*']; q.num = 1;
-        const res = await layer.queryFeatures(q);
-        if (res.features.length > 0) {
-          const f = res.features[0];
-          await view.goTo({ target: f.geometry, zoom: 15 });
-          doHighlight(f); rippleAt(f.geometry);
-          view.popup.open({ features: [f], location: f.geometry });
-        }
-      }
-
-      /* ======= TABLA (debajo del mapa) ======= */
-      async function loadRows(){
-        const state=document.getElementById("state");
-        const tb=document.getElementById("tbody");
-        state.textContent="Cargando datos…";
-
-        const page=2000; let offset=0; const out=[];
-        while(true){
-          const j=await esriPOST(FS_URL+"/query",{
-            where:"monto_pim>0",
-            outFields:[
-              "producto_proyecto","producto_proyecto_nombre",
-              "departamento","provincia","distrito",
-              "monto_pim","monto_devengado","url_ssp","url_pdf"
-            ].join(","),
-            orderByFields:"monto_pim DESC",
-            resultRecordCount:page,resultOffset:offset
-          });
-          (j.features||[]).forEach(f=>{
-            const a=f.attributes||{};
-            out.push({
-              cui:a.producto_proyecto??"", inv:a.producto_proyecto_nombre??"",
-              dep:a.departamento??"", pro:a.provincia??"", dis:a.distrito??"",
-              pim:Number(a.monto_pim)||0, dev:Number(a.monto_devengado)||0,
-              ssp:(a.url_ssp||"").trim(), pdf:(a.url_pdf||"").trim()
-            });
-          });
-          if(!j.exceededTransferLimit || (j.features||[]).length<page) break;
-          offset+=page;
-        }
-
-        tb.innerHTML = out.map(r=>`
-          <tr>
-            <td class="num">${r.cui||"—"}</td>
-            <td class="inv-cell" data-tip="${escHtml(r.inv)}">
-              <span class="ellip-text" title="${escHtml(r.inv)}">${escHtml(r.inv)}</span>
-            </td>
-            <td>${escHtml(r.dep)||"—"}</td>
-            <td>${escHtml(r.pro)||"—"}</td>
-            <td>${escHtml(r.dis)||"—"}</td>
-            <td class="num">${money(r.pim)}</td>
-            <td class="num">${money(r.dev)}</td>
-            <td>${r.ssp?`<a class="chipLink" href="${r.ssp}" target="_blank" rel="noopener">Ver detalle</a>`:`<span class="pill">—</span>`}</td>
-            <td>${r.pdf?`<a class="chipLink" href="${r.pdf}" target="_blank" rel="noopener">Ver PDF</a>`:`<span class="pill">—</span>`}</td>
-          </tr>
-        `).join("");
-
-        // Limitar visualmente a 10 filas (altura)
-        requestAnimationFrame(()=>{
-          const scrollY=document.getElementById('scrollY');
-          const thead=document.querySelector('#tbl thead');
-          const firstRow=document.querySelector('#tbl tbody tr');
-          if(scrollY && thead && firstRow){
-            const hHead=thead.getBoundingClientRect().height;
-            const hRow=firstRow.getBoundingClientRect().height||26;
-            scrollY.style.maxHeight=(hHead + hRow*10)+'px';
-          }
-        });
-
-        state.innerHTML=`<strong>Lista (${out.length.toLocaleString('es-PE')} filas)</strong>`;
-      }
-
-      // Cargar tabla una vez que el mapa esté listo
-      view.when(loadRows);
+    let dragging=false;
+    const down=(e)=>{dragging=true;setPos(pctFromEvent(e));e.preventDefault()};
+    const move=(e)=>{if(dragging)setPos(pctFromEvent(e))};
+    const up=()=>dragging=false;
+    const hit=el.querySelector('.hit');
+    hit.addEventListener('pointerdown',down);
+    window.addEventListener('pointermove',move);
+    window.addEventListener('pointerup',up);
+    hit.addEventListener('touchstart',down,{passive:false});
+    window.addEventListener('touchmove',move,{passive:false});
+    window.addEventListener('touchend',up);
+    hit.setAttribute('tabindex','0');
+    hit.addEventListener('keydown',(e)=>{
+      const step=e.shiftKey?5:1;
+      const css=getComputedStyle(el).getPropertyValue('--pos');
+      let cur=Number(css.replace('%',''))||50;
+      if(e.key==='ArrowLeft')setPos(cur-step);
+      if(e.key==='ArrowRight')setPos(cur+step);
     });
-  </script>
+  }
+  document.querySelectorAll('.swipe').forEach(setupSwipe);
+})();
+</script>
+
 </body>
 </html>
+
