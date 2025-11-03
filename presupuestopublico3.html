@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>City Tour — MVCS (Inset por departamento + 2D/3D)</title>
+<title>City Tour — MVCS (Inset + 2D/3D + aviso para móvil)</title>
 
 <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@600;700;800;900&display=swap" rel="stylesheet"/>
 <link rel="stylesheet" href="https://js.arcgis.com/4.29/esri/themes/light/main.css"/>
@@ -45,7 +45,7 @@
   }
   .icon-btn svg{width:22px;height:22px}
 
-  /* Mini-mapa (inset) arriba a la derecha — MÁS GRANDE */
+  /* Mini-mapa (inset) */
   .inset-wrap{
     position:absolute; right:16px; top:16px; z-index:6;
     width:340px; height:220px; border-radius:14px; overflow:hidden;
@@ -53,6 +53,35 @@
     border:1px solid #e5e7eb;
   }
   #insetView{width:100%; height:100%}
+
+  /* Aviso/ bloqueo para pantallas pequeñas */
+  .small-blocker{
+    position:fixed; inset:0; z-index:9999;
+    display:none; align-items:center; justify-content:center;
+    background:linear-gradient(180deg, rgba(2,18,30,.85), rgba(2,18,30,.92));
+    color:#fff; text-align:center; padding:24px;
+    backdrop-filter: blur(4px);
+  }
+  .small-card{
+    width:min(92vw, 760px);
+    background:rgba(255,255,255,.06);
+    border:1px solid rgba(255,255,255,.18);
+    box-shadow:0 10px 40px rgba(0,0,0,.35);
+    border-radius:18px; padding:22px 20px;
+  }
+  .small-title{font-size:1.35rem; font-weight:900; margin:0 0 10px}
+  .small-text{color:#e5e7eb; margin:0 0 14px}
+  .small-list{margin:0; padding-left:16px; color:#e5e7eb; text-align:left}
+  .small-badges{display:flex; gap:8px; justify-content:center; flex-wrap:wrap; margin-top:12px}
+  .chip{
+    font-weight:800; font-size:.85rem; border-radius:999px; padding:6px 10px;
+    background:#1e293b; border:1px solid #324458; color:#dbeafe;
+  }
+
+  /* Mostrar bloqueo cuando la pantalla es pequeña */
+  @media (max-width: 1024px){
+    .small-blocker{ display:flex; }
+  }
 
   .esri-expand__content{max-height:60vh;overflow:auto}
 
@@ -90,7 +119,7 @@
     <button class="btn" id="next">Siguiente ⟶</button>
   </div>
 
-  <!-- Controles derecha: rotar izq/der, 2D/3D, zoom -->
+  <!-- Controles derecha -->
   <div class="ctrl-box">
     <button class="icon-btn" id="rotLeft" title="Girar cámara a la izquierda (3D)">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 9-9"></path><path d="M3 4v8h8"></path></svg>
@@ -110,13 +139,33 @@
   </div>
 </div>
 
+<!-- Bloqueo responsive para pantallas pequeñas -->
+<div class="small-blocker" aria-live="polite">
+  <div class="small-card">
+    <h3 class="small-title">Vista disponible en <u>pantalla grande</u></h3>
+    <p class="small-text">
+      Este recorrido usa <b>imágenes satelitales</b> y <b>escenas 3D</b> de alta definición.<br/>
+      Para apreciar el detalle y el rendimiento, ábrelo en un monitor o pantalla con <b>≥ 1024 px</b> de ancho.
+    </p>
+    <ul class="small-list">
+      <li>En móvil, intenta <b>girar a horizontal</b> o abrirlo desde un <b>laptop/PC</b>.</li>
+      <li>En escritorio, usa los controles de <b>2D/3D</b> y <b>rotación</b> para explorar mejor.</li>
+    </ul>
+    <div class="small-badges">
+      <span class="chip">Calidad satelital</span>
+      <span class="chip">Detalle 3D</span>
+      <span class="chip">Mejor en Desktop</span>
+    </div>
+  </div>
+</div>
+
 <script>
 /* ===== Config ===== */
 const SERVICE_URL  = 'https://devportalgis.vivienda.gob.pe/servergis/rest/services/Mapa/FeatureServer/0';
 
 /* ⚠️ Ajusta estas URLs a tus capas reales */
 const LIMITES_URL  = 'https://devportalgis.vivienda.gob.pe/servergis/rest/services/Mapa/FeatureServer/1'; // Departamentos con campo nom_dep
-const DIST_URL     = ''; // Opcional: distritos (deja '' si aún no lo tienes)
+const DIST_URL     = ''; // Opcional: distritos
 
 const F_ITEM='item', F_PROY='proyecto', F_CUI='cui', F_PROG='programa', F_SSP='ssp', F_AYUD='ayuda_memoria', F_IMG='url_imagen';
 
@@ -130,8 +179,8 @@ require([
   "esri/Map","esri/views/MapView","esri/views/SceneView",
   "esri/widgets/BasemapGallery","esri/widgets/Expand",
   "esri/layers/GraphicsLayer","esri/Graphic","esri/layers/FeatureLayer",
-  "esri/geometry/geometryEngine","esri/geometry/Point"
-], function(Map, MapView, SceneView, BasemapGallery, Expand, GraphicsLayer, Graphic, FeatureLayer, geometryEngine, Point){
+  "esri/geometry/Point"
+], function(Map, MapView, SceneView, BasemapGallery, Expand, GraphicsLayer, Graphic, FeatureLayer, Point){
 
   /* ===== Mapa principal ===== */
   const map = new Map({ basemap:"hybrid", ground:"world-elevation" });
@@ -178,7 +227,7 @@ require([
     distritosFL = new FeatureLayer({
       url: DIST_URL,
       title: "Distritos",
-      visible: false, // se controla con el zoom
+      visible: false,
       renderer: {
         type: "simple",
         symbol: { type:"simple-fill", color:[0,0,0,0], outline:{ color:"#64748b", width:0.8 } }
@@ -209,8 +258,8 @@ require([
     insetView.on(ev, (e)=> e.stopPropagation());
   });
 
-  // Alterna distritos según escala (visible cuando estás "cerca")
-  const DIST_VIS_THRESHOLD = 800000; // ~1:800k (ajusta si deseas)
+  // Alterna distritos según escala
+  const DIST_VIS_THRESHOLD = 800000;
   if (distritosFL){
     insetView.watch("scale", (s)=>{
       distritosFL.visible = s < DIST_VIS_THRESHOLD;
@@ -262,30 +311,23 @@ require([
   holdRotate($("rotLeft"),  -ROT_HOLD_STEP);
   holdRotate($("rotRight"),  ROT_HOLD_STEP);
 
-  /* Actualiza el punto rojo del inset + enfoca al departamento */
+  /* Inset: punto + zoom al departamento */
   async function updateInsetForPoint(lat, lng){
-    // Mueve el punto rojo
     redMarker.geometry = new Point({ latitude: lat, longitude: lng, spatialReference: { wkid:4326 } });
-
     try{
-      // Busca el departamento que contiene el punto
       const q = limitesFL.createQuery();
       q.geometry = redMarker.geometry;
-      q.spatialRelationship = "intersects"; // contiene/intersects para puntos funciona bien
+      q.spatialRelationship = "intersects";
       q.returnGeometry = true;
       q.outFields = ["nom_dep"];
       const res = await limitesFL.queryFeatures(q);
       if(res.features?.length){
-        const dep = res.features[0];
-        // Zoomea al extent del departamento, con padding para que entren etiqueta y límites
-        const ext = dep.geometry.extent.expand(1.08);
+        const ext = res.features[0].geometry.extent.expand(1.08);
         await insetView.goTo(ext, { duration: 500 });
       }else{
-        // Fallback: vista general del Perú si no encontró depto
         await insetView.goTo({ center: [-75, -9.2], zoom: 5 }, { duration: 400 });
       }
     }catch(e){
-      // Fallback silencioso
       insetView.goTo({ center: [-75, -9.2], zoom: 5 }, { duration: 400 });
     }
   }
@@ -317,7 +359,6 @@ require([
     $("photo").src = p.foto || "";
     setLinks(p);
 
-    // Inset: punto y zoom a departamento
     updateInsetForPoint(p.lat, p.lng);
 
     const v = getActiveView();
