@@ -5,7 +5,6 @@
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
 <title>Imágenes multitemporales — MVCS</title>
 
-<!-- Fuente institucional -->
 <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@600;700;800;900&display=swap" rel="stylesheet"/>
 
 <style>
@@ -15,8 +14,12 @@
 }
 
 /* Base */
-html,body{margin:0;background:var(--bg);color:var(--ink)}
-.swipe-scope{font-family:"Nunito Sans", system-ui, -apple-system, Segoe UI, Roboto, Arial}
+html,body{
+  margin:0;
+  background:var(--bg);
+  color:var(--ink);
+  font-family:"Nunito Sans", system-ui, -apple-system, Segoe UI, Roboto, Arial;
+}
 
 /* Contenedor */
 .wrap{
@@ -29,8 +32,8 @@ html,body{margin:0;background:var(--bg);color:var(--ink)}
   box-shadow:0 18px 40px rgba(2,6,23,.08);
 }
 
-/* ===== TÍTULO CON SUBRAYADO ===== */
-.header{text-align:center}
+/* ===== Encabezado con subrayado animado ===== */
+.header{ text-align:center; }
 .title{
   position:relative;
   display:inline-block;
@@ -43,26 +46,26 @@ html,body{margin:0;background:var(--bg);color:var(--ink)}
 .title::after{
   content:"";
   position:absolute;
-  left:0;
+  left:0; right:0;          /* cubre TODO el ancho del título */
   bottom:-8px;
   height:4px;
   background:var(--accent);
   border-radius:999px;
-  transform:scaleX(0);
-  transform-origin:left center;
+  transform:scaleX(0);      /* arranca oculto */
+  transform-origin:left center; /* izq -> der */
   box-shadow:0 0 0 1px rgba(0,0,0,.06) inset;
 }
-.animate .title::after{
-  animation:underlineDraw 2s ease-out forwards;
+.header.animate .title::after{
+  animation:underlineDraw 3s ease-out forwards; /* lento 3s */
 }
 @keyframes underlineDraw{
-  from{transform:scaleX(0)}
-  to{transform:scaleX(1)}
+  from{ transform:scaleX(0); }
+  to  { transform:scaleX(1); }
 }
 
 .intro{
   max-width:940px;
-  margin:8px auto 18px;
+  margin:12px auto 18px;
   text-align:center;
   color:var(--muted);
   font-weight:700;
@@ -71,7 +74,7 @@ html,body{margin:0;background:var(--bg);color:var(--ink)}
 }
 
 /* ===== BLOQUES SWIPE ===== */
-.swipe-block{margin:26px auto 22px}
+.swipe-block{margin:26px auto 22px;}
 .swipe{
   position:relative;
   width:100%;
@@ -85,104 +88,63 @@ html,body{margin:0;background:var(--bg);color:var(--ink)}
   --pos:50%;
 }
 .swipe img{
-  position:absolute;
-  inset:0;
-  width:100%;
-  height:100%;
-  object-fit:cover;
-  object-position:center;
-  display:block;
+  position:absolute; inset:0;
+  width:100%; height:100%;
+  object-fit:cover; object-position:center; display:block;
 }
-.swipe .top{clip-path:inset(0 calc(100% - var(--pos)) 0 0);will-change:clip-path}
+.swipe .top{ clip-path:inset(0 calc(100% - var(--pos)) 0 0); will-change:clip-path; }
 .divider{
-  position:absolute;
-  inset:0 0 0 auto;
-  left:var(--pos);
-  transform:translateX(-50%);
-  z-index:3;
-  pointer-events:none;
+  position:absolute; inset:0 0 0 auto; left:var(--pos); transform:translateX(-50%);
+  z-index:3; pointer-events:none;
 }
 .divider::before{
-  content:"";
-  position:absolute;
-  top:0;bottom:0;left:50%;
-  width:2px;
-  background:#ffffffcc;
-  outline:1px solid rgba(0,0,0,.18);
+  content:""; position:absolute; top:0; bottom:0; left:50%;
+  width:2px; background:#ffffffcc; outline:1px solid rgba(0,0,0,.18);
 }
 .knob{
-  position:absolute;
-  top:50%;left:50%;
-  transform:translate(-50%,-50%);
-  width:46px;height:46px;
-  border-radius:50%;
-  background:#fff;
-  border:2px solid #fff;
-  outline:2px solid rgba(0,0,0,.18);
-  display:grid;
-  place-items:center;
-  box-shadow:0 8px 18px rgba(0,0,0,.18);
+  position:absolute; top:50%; left:50%; transform:translate(-50%,-50%);
+  width:46px; height:46px; border-radius:50%; background:#fff;
+  border:2px solid #fff; outline:2px solid rgba(0,0,0,.18);
+  display:grid; place-items:center; box-shadow:0 8px 18px rgba(0,0,0,.18);
 }
-.knob svg{width:22px;height:22px;fill:var(--brand)}
-.hit{
-  position:absolute;
-  inset:0;
-  cursor:ew-resize;
-  z-index:4;
-  background:transparent;
-}
+.knob svg{ width:22px; height:22px; fill:var(--brand); }
+.hit{ position:absolute; inset:0; cursor:ew-resize; z-index:4; background:transparent; }
 
 /* ===== DESCRIPCIÓN ===== */
 .caption{
-  display:grid;
-  grid-template-columns:1fr auto;
-  gap:12px;
-  align-items:center;
-  margin-top:10px;
+  display:grid; grid-template-columns:1fr auto; gap:12px; align-items:center; margin-top:10px;
 }
-.cap-title{
-  margin:0;
-  font-weight:900;
-  font-size:clamp(14px,2vw,18px);
-  line-height:1.35;
-}
-.meta{color:#6b7280;font-weight:700;font-size:12px}
+.cap-title{ margin:0; font-weight:900; font-size:clamp(14px,2vw,18px); line-height:1.35; }
 .cui{
-  justify-self:end;
-  background:var(--brand);
-  color:#fff;
-  border:0;
-  padding:8px 12px;
-  border-radius:999px;
-  font-weight:900;
-  font-size:13px;
-  letter-spacing:.2px;
-  box-shadow:0 6px 14px rgba(30,110,182,.28);
+  justify-self:end; background:var(--brand); color:#fff; border:0; padding:8px 12px; border-radius:999px;
+  font-weight:900; font-size:13px; letter-spacing:.2px; box-shadow:0 6px 14px rgba(30,110,182,.28);
 }
 
 @media (max-width:720px){
   .swipe{height:min(58vh,520px)}
-  .caption{grid-template-columns:1fr;gap:8px}
+  .caption{grid-template-columns:1fr; gap:8px}
   .cui{justify-self:start}
 }
 </style>
 </head>
 <body>
 
-<section class="wrap swipe-scope" id="swipe-section">
-  <div class="header">
+<section class="wrap" id="swipe-section">
+  <div class="header" id="header">
     <h1 class="title">Imágenes multitemporales</h1>
   </div>
   <p class="intro">
-    Visualiza el antes y después de las intervenciones del ministerio y conoce el impacto
-    tangible en el territorio. Arrastra el control para comparar.
+    Visualiza el antes y después de las intervenciones del ministerio y conoce el impacto tangible de las
+    obras en el territorio. Es posible observar los cambios y avances físicos generados por las intervenciones
+    del sector en diferentes periodos de tiempo. Esta herramienta permite monitorear visualmente el impacto real
+    de las inversiones, facilitando la toma de decisiones basadas en evidencia territorial.
   </p>
 
   <!-- ========= 1 ========= -->
   <div class="swipe-block">
     <div class="swipe" data-start="50">
-      <img class="bottom" src="https://lh3.googleusercontent.com/d/15XQnR6s4kuOBa1HSMAu4YbB-ZjRyJXQS=w1000" alt="">
-      <img class="top" src="https://lh3.googleusercontent.com/d/1VBRK-CPl5K4L4n9gJSMf-xTAQSN0xIFD=w1000" alt="">
+      <img class="bottom" src="https://lh3.googleusercontent.com/d/15XQnR6s4kuOBa1HSMAu4YbB-ZjRyJXQS=w1000" alt="Antes Olmos">
+      <img class="top"    src="https://lh3.googleusercontent.com/d/1VBRK-CPl5K4L4n9gJSMf-xTAQSN0xIFD=w1000" alt="Después Olmos">
       <div class="divider"><div class="knob">
         <svg viewBox="0 0 24 24"><path d="M8.5 12l4-4-1.4-1.4L6 11.7l5.1 5.1L12.5 15l-4-4zM15.5 12l-4 4 1.4 1.4L18 12.3l-5.1-5.1L11.5 9l4 4z"/></svg>
       </div></div><button class="hit"></button>
@@ -196,14 +158,14 @@ html,body{margin:0;background:var(--bg);color:var(--ink)}
   <!-- ========= 2 ========= -->
   <div class="swipe-block">
     <div class="swipe" data-start="50">
-      <img class="bottom" src="https://lh3.googleusercontent.com/d/1S6LPnV1nHl4pWoR5JORW4OXq3tZ53p3x=w1000" alt="">
-      <img class="top" src="https://lh3.googleusercontent.com/d/1xQugBImR3R1bcOwyQ3vN2MufARez3koh=w1000" alt="">
+      <img class="bottom" src="https://lh3.googleusercontent.com/d/1S6LPnV1nHl4pWoR5JORW4OXq3tZ53p3x=w1000" alt="Antes Belén Varillalito">
+      <img class="top"    src="https://lh3.googleusercontent.com/d/1xQugBImR3R1bcOwyQ3vN2MufARez3koh=w1000" alt="Después Belén Varillalito">
       <div class="divider"><div class="knob">
         <svg viewBox="0 0 24 24"><path d="M8.5 12l4-4-1.4-1.4L6 11.7l5.1 5.1L12.5 15l-4-4zM15.5 12l-4 4 1.4 1.4L18 12.3l-5.1-5.1L11.5 9l4 4z"/></svg>
       </div></div><button class="hit"></button>
     </div>
     <div class="caption">
-      <p class="cap-title">Creación de los servicios de vialidad de la nueva ciudad de Belén – Varillalito, Loreto. Imágenes 2018–2024.</p>
+      <p class="cap-title">Creación de los servicios de vialidad de la nueva ciudad de Belén–Varillalito (San Juan Bautista, Loreto). Imágenes 2018–2024.</p>
       <span class="cui">CUI 2317154</span>
     </div>
   </div>
@@ -211,8 +173,8 @@ html,body{margin:0;background:var(--bg);color:var(--ink)}
   <!-- ========= 3 ========= -->
   <div class="swipe-block">
     <div class="swipe" data-start="50">
-      <img class="bottom" src="https://lh3.googleusercontent.com/d/1B2U7F_CWgoK7UXaJQPvCcfii3-o14bRY=w1000" alt="">
-      <img class="top" src="https://lh3.googleusercontent.com/d/1jSkfswGoGJ5qFM1wsGtELsPpSEx5Oi0w=w1000" alt="">
+      <img class="bottom" src="https://lh3.googleusercontent.com/d/1B2U7F_CWgoK7UXaJQPvCcfii3-o14bRY=w1000" alt="Antes Aguas Verdes">
+      <img class="top"    src="https://lh3.googleusercontent.com/d/1jSkfswGoGJ5qFM1wsGtELsPpSEx5Oi0w=w1000" alt="Después Aguas Verdes">
       <div class="divider"><div class="knob">
         <svg viewBox="0 0 24 24"><path d="M8.5 12l4-4-1.4-1.4L6 11.7l5.1 5.1L12.5 15l-4-4zM15.5 12l-4 4 1.4 1.4L18 12.3l-5.1-5.1L11.5 9l4 4z"/></svg>
       </div></div><button class="hit"></button>
@@ -226,8 +188,8 @@ html,body{margin:0;background:var(--bg);color:var(--ink)}
   <!-- ========= 4 ========= -->
   <div class="swipe-block">
     <div class="swipe" data-start="50">
-      <img class="bottom" src="https://lh3.googleusercontent.com/d/1b6KeMaxDEfF83Uf1GegP0vCTEP0qcvOs=w1000" alt="">
-      <img class="top" src="https://lh3.googleusercontent.com/d/11OAR_uAiUwU5xTxghIiEwzT6pGbYYNgW=w1000" alt="">
+      <img class="bottom" src="https://lh3.googleusercontent.com/d/1b6KeMaxDEfF83Uf1GegP0vCTEP0qcvOs=w1000" alt="Antes Paraíso Alto">
+      <img class="top"    src="https://lh3.googleusercontent.com/d/11OAR_uAiUwU5xTxghIiEwzT6pGbYYNgW=w1000" alt="Después Paraíso Alto">
       <div class="divider"><div class="knob">
         <svg viewBox="0 0 24 24"><path d="M8.5 12l4-4-1.4-1.4L6 11.7l5.1 5.1L12.5 15l-4-4zM15.5 12l-4 4 1.4 1.4L18 12.3l-5.1-5.1L11.5 9l4 4z"/></svg>
       </div></div><button class="hit"></button>
@@ -241,14 +203,14 @@ html,body{margin:0;background:var(--bg);color:var(--ink)}
   <!-- ========= 5 ========= -->
   <div class="swipe-block">
     <div class="swipe" data-start="50">
-      <img class="bottom" src="https://lh3.googleusercontent.com/d/16gUqKXdifmPQeKlmb49av7pHxQNAvQnf=w1000" alt="">
-      <img class="top" src="https://lh3.googleusercontent.com/d/1QYtdylddHYiSAyww9M-Kezu6qrSNpTLd=w1000" alt="">
+      <img class="bottom" src="https://lh3.googleusercontent.com/d/16gUqKXdifmPQeKlmb49av7pHxQNAvQnf=w1000" alt="Antes Cerro Colorado">
+      <img class="top"    src="https://lh3.googleusercontent.com/d/1QYtdylddHYiSAyww9M-Kezu6qrSNpTLd=w1000" alt="Después Cerro Colorado">
       <div class="divider"><div class="knob">
         <svg viewBox="0 0 24 24"><path d="M8.5 12l4-4-1.4-1.4L6 11.7l5.1 5.1L12.5 15l-4-4zM15.5 12l-4 4 1.4 1.4L18 12.3l-5.1-5.1L11.5 9l4 4z"/></svg>
       </div></div><button class="hit"></button>
     </div>
     <div class="caption">
-      <p class="cap-title">Creación de sistemas de agua potable dependientes del reservorio N-39 y alcantarillado sanitario (Cerro Colorado, Arequipa). Imágenes 2021–2024.</p>
+      <p class="cap-title">Sistemas de agua potable dependientes del reservorio N-39 y alcantarillado sanitario (Cerro Colorado, Arequipa). Imágenes 2021–2024.</p>
       <span class="cui">CUI 2532566</span>
     </div>
   </div>
@@ -256,8 +218,8 @@ html,body{margin:0;background:var(--bg);color:var(--ink)}
   <!-- ========= 6 ========= -->
   <div class="swipe-block">
     <div class="swipe" data-start="50">
-      <img class="bottom" src="https://lh3.googleusercontent.com/d/1MLVjddBSRE6tYacX-87IRVyr1ai-wrWi=w1000" alt="">
-      <img class="top" src="https://lh3.googleusercontent.com/d/1hA2HLopKgbRKeduk5Nrs8ptVhP2-8z9l=w1000" alt="">
+      <img class="bottom" src="https://lh3.googleusercontent.com/d/1MLVjddBSRE6tYacX-87IRVyr1ai-wrWi=w1000" alt="Antes Carabayllo">
+      <img class="top"    src="https://lh3.googleusercontent.com/d/1hA2HLopKgbRKeduk5Nrs8ptVhP2-8z9l=w1000" alt="Después Carabayllo">
       <div class="divider"><div class="knob">
         <svg viewBox="0 0 24 24"><path d="M8.5 12l4-4-1.4-1.4L6 11.7l5.1 5.1L12.5 15l-4-4zM15.5 12l-4 4 1.4 1.4L18 12.3l-5.1-5.1L11.5 9l4 4z"/></svg>
       </div></div><button class="hit"></button>
@@ -271,14 +233,14 @@ html,body{margin:0;background:var(--bg);color:var(--ink)}
   <!-- ========= 7 ========= -->
   <div class="swipe-block">
     <div class="swipe" data-start="50">
-      <img class="bottom" src="https://lh3.googleusercontent.com/d/1XsVWj32nruBBeGtW9Wp1hMb02c8DEDef=w1000" alt="">
-      <img class="top" src="https://lh3.googleusercontent.com/d/1qTcpF2jiXzOboV23ws6YsEEI-yvR7tZA=w1000" alt="">
+      <img class="bottom" src="https://lh3.googleusercontent.com/d/1XsVWj32nruBBeGtW9Wp1hMb02c8DEDef=w1000" alt="Antes Nuevo Chimbote">
+      <img class="top"    src="https://lh3.googleusercontent.com/d/1qTcpF2jiXzOboV23ws6YsEEI-yvR7tZA=w1000" alt="Después Nuevo Chimbote">
       <div class="divider"><div class="knob">
         <svg viewBox="0 0 24 24"><path d="M8.5 12l4-4-1.4-1.4L6 11.7l5.1 5.1L12.5 15l-4-4zM15.5 12l-4 4 1.4 1.4L18 12.3l-5.1-5.1L11.5 9l4 4z"/></svg>
       </div></div><button class="hit"></button>
     </div>
     <div class="caption">
-      <p class="cap-title">Mejoramiento y ampliación del servicio de alcantarillado y tratamiento de aguas residuales (Nuevo Chimbote, Áncash). Imágenes 2021–2024.</p>
+      <p class="cap-title">Mejoramiento y ampliación del servicio de alcantarillado y tratamiento de aguas residuales (Nuevo Chimbote y Chimbote, Áncash). Imágenes 2021–2024.</p>
       <span class="cui">CUI 2414594</span>
     </div>
   </div>
@@ -286,14 +248,14 @@ html,body{margin:0;background:var(--bg);color:var(--ink)}
   <!-- ========= 8 ========= -->
   <div class="swipe-block">
     <div class="swipe" data-start="50">
-      <img class="bottom" src="https://lh3.googleusercontent.com/d/1LMRMDmTglaZ2p37LwDymHl5Wf2dR80Kl=w1000" alt="">
-      <img class="top" src="https://lh3.googleusercontent.com/d/1swzHcAprqTYA0nx642zlpd1ARsi-7B-4=w1000" alt="">
+      <img class="bottom" src="https://lh3.googleusercontent.com/d/1LMRMDmTglaZ2p37LwDymHl5Wf2dR80Kl=w1000" alt="Antes Piura-Castilla">
+      <img class="top"    src="https://lh3.googleusercontent.com/d/1swzHcAprqTYA0nx642zlpd1ARsi-7B-4=w1000" alt="Después Piura-Castilla">
       <div class="divider"><div class="knob">
         <svg viewBox="0 0 24 24"><path d="M8.5 12l4-4-1.4-1.4L6 11.7l5.1 5.1L12.5 15l-4-4zM15.5 12l-4 4 1.4 1.4L18 12.3l-5.1-5.1L11.5 9l4 4z"/></svg>
       </div></div><button class="hit"></button>
     </div>
     <div class="caption">
-      <p class="cap-title">Ampliación y mejoramiento del sistema de agua potable y alcantarillado en los asentamientos humanos de Piura y Castilla. Imágenes 2020–2025.</p>
+      <p class="cap-title">Ampliación y mejoramiento del sistema de agua potable y alcantarillado en los asentamientos humanos de Piura y Castilla (Piura). Imágenes 2020–2025.</p>
       <span class="cui">CUI 2266697</span>
     </div>
   </div>
@@ -301,50 +263,54 @@ html,body{margin:0;background:var(--bg);color:var(--ink)}
 </section>
 
 <script>
-/* Animar subrayado solo al entrar en vista */
+/* Subrayado: activar SOLO cuando el título entra en vista */
 (function(){
-  const section=document.getElementById('swipe-section');
-  const io=new IntersectionObserver((entries)=>{
+  const header = document.getElementById('header');
+  const io = new IntersectionObserver((entries)=>{
     for(const e of entries){
       if(e.isIntersecting){
-        section.classList.add('animate');
-        io.disconnect();
+        header.classList.add('animate');
+        io.disconnect(); // se ejecuta una vez
         break;
       }
     }
-  },{threshold:.4});
-  io.observe(section);
+  }, {threshold:.6}); // espera a que se vea bien
+  io.observe(header);
 })();
 
-/* Swipe interactivo */
+/* Swipe interactivo accesible (mouse/touch/teclado) */
 (function(){
   function setupSwipe(el){
-    const start=Number(el.getAttribute('data-start')||50);
+    const start = Number(el.getAttribute('data-start')||50);
     setPos(start);
-    function setPos(pct){pct=Math.max(0,Math.min(100,pct));el.style.setProperty('--pos',pct+'%')}
+    function setPos(pct){ pct=Math.max(0,Math.min(100,pct)); el.style.setProperty('--pos',pct+'%'); }
     function pctFromEvent(e){
-      const r=el.getBoundingClientRect();
-      const clientX=(e.clientX??(e.touches&&e.touches[0]?.clientX)??r.left);
-      return((clientX-r.left)/r.width)*100;
+      const r = el.getBoundingClientRect();
+      const x = (e.clientX ?? (e.touches && e.touches[0]?.clientX) ?? r.left);
+      return ((x - r.left) / r.width) * 100;
     }
     let dragging=false;
-    const down=(e)=>{dragging=true;setPos(pctFromEvent(e));e.preventDefault()};
-    const move=(e)=>{if(dragging)setPos(pctFromEvent(e))};
-    const up=()=>dragging=false;
+    const down=(e)=>{ dragging=true; setPos(pctFromEvent(e)); e.preventDefault(); };
+    const move=(e)=>{ if(dragging) setPos(pctFromEvent(e)); };
+    const up=()=> dragging=false;
+
     const hit=el.querySelector('.hit');
     hit.addEventListener('pointerdown',down);
     window.addEventListener('pointermove',move);
     window.addEventListener('pointerup',up);
+
     hit.addEventListener('touchstart',down,{passive:false});
     window.addEventListener('touchmove',move,{passive:false});
     window.addEventListener('touchend',up);
+
+    // Accesible por teclado
     hit.setAttribute('tabindex','0');
     hit.addEventListener('keydown',(e)=>{
-      const step=e.shiftKey?5:1;
-      const css=getComputedStyle(el).getPropertyValue('--pos');
-      let cur=Number(css.replace('%',''))||50;
-      if(e.key==='ArrowLeft')setPos(cur-step);
-      if(e.key==='ArrowRight')setPos(cur+step);
+      const step = e.shiftKey ? 5 : 1;
+      const css = getComputedStyle(el).getPropertyValue('--pos');
+      let cur = Number(css.replace('%','')) || 50;
+      if(e.key==='ArrowLeft')  setPos(cur - step);
+      if(e.key==='ArrowRight') setPos(cur + step);
     });
   }
   document.querySelectorAll('.swipe').forEach(setupSwipe);
@@ -353,4 +319,3 @@ html,body{margin:0;background:var(--bg);color:var(--ink)}
 
 </body>
 </html>
-
