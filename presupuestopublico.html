@@ -332,12 +332,13 @@
     .btn:hover{filter:brightness(.98)}
     /* Estilo para el contenedor de tarjetas de ranking con fondo blanco y sombra */
     #ranking-cards{
-      /* Bloque de ranking: contenedor blanco con sombra para agrupar las tarjetas */
-      background:var(--card);
-      border:1px solid var(--line);
-      border-radius:18px;
-      box-shadow:var(--shadow-card);
-      padding:28px 24px;
+      /* Eliminar el contenedor blanco que agrupa ambas tarjetas de ranking.  
+         Cada tarjeta conservará su propio estilo de tarjeta. */
+      background:transparent;
+      border:none;
+      border-radius:0;
+      box-shadow:none;
+      padding:0;
       margin-top:28px;
       margin-bottom:28px;
     }
@@ -392,11 +393,13 @@
       line-height:1.7;
       color:#2d4458;
       margin:0 0 12px;
+      text-align:left;
     }
     #sec-inversiones .src{
       color:var(--muted);
       font-size:13px;
       line-height:1.6;
+      text-align:left;
     }
     #sec-inversiones .src em{display:block;margin-top:6px;}
     /* lado derecho */
@@ -423,11 +426,14 @@
 
     /* contenedor para el lado derecho de inversiones (tarjetas agrupadas) */
     #sec-inversiones .inv-right-card{
-      background:var(--card);
-      border:1px solid var(--line);
-      border-radius:var(--radius);
-      box-shadow:var(--shadow);
-      padding:20px 24px;
+      /* Quitar la tarjeta de fondo que envuelve los indicadores PIM/Devengado.  */
+      background:transparent;
+      border:none;
+      border-radius:0;
+      box-shadow:none;
+      padding:0;
+      /* Mantener un pequeño margen superior para separar de otros bloques */
+      margin-top:0;
     }
     #sec-inversiones .inv-right-card .stack{
       margin-top:16px;
@@ -721,7 +727,8 @@
     #map-section table{ width:100%;min-width:1100px;border-collapse:separate;border-spacing:0;table-layout:fixed; }
     #map-section thead th{
       position:sticky;top:0;z-index:2;
-      background:var(--turquesa);color:#fff;
+      /* Encabezado con color celeste y texto blanco según especificación */
+      background:#5ebad6;color:#ffffff;
       font-weight:800;letter-spacing:.2px;
       padding:8px 6px;text-align:center;font-size:12.5px;
     }
@@ -758,15 +765,107 @@
     #map-section .pill{ background:#f3f4f6;color:#334155;padding:3px 6px;border-radius:999px;font-weight:800;display:inline-block;font-size:11.5px; }
     /* Destaca la primera columna (CUI) en la tabla de detalles */
     #map-section tbody td:first-child{
-      background:var(--azul);
-      color:#ffffff;
-      font-weight:900;
-    
-      border-right: 2px solid rgba(255,255,255,0.4);
+      /* Heredar el mismo estilo de las demás celdas: fondo blanco y texto por defecto */
+      background:#ffffff !important;
+      color:var(--ink) !important;
+      font-weight:normal;
+      border-right:1px solid var(--line);
     }
     #map-section tbody td:first-child a{
-      color:#ffffff;
+      color:inherit;
     }
+
+    /* Evitar que la clase .cui aplicada al <col> pinte de azul toda la columna en la tabla de inversiones */
+    #map-section col.cui{
+      background:transparent !important;
+      color:inherit;
+    }
+
+    /* Enlace para explorar el mapa con color corporativo */
+    #map-section a[href="#map-viewDiv"]{
+      color:#1e6eb6;
+      font-weight:800;
+      text-decoration:underline;
+    }
+
+    /* Ajustar el ancho de columnas en la tabla de detalles del mapa.
+       Reducir la columna PIM lo más posible y ampliar la columna Inversión
+       para que el texto sea más visible. */
+    #map-section col.pim{
+      /* Establecer el ancho mínimo de la columna PIM para ocupar el menor espacio posible */
+      width:80px;
+    }
+    #map-section col.inv{
+      /* Ampliar la columna Inversión para que se lea mejor el texto de la inversión */
+      width:350px;
+    }
+  </style>
+  <!-- Estilos para el filtro de ubicación (Depart–Prov–Dist) del módulo de inversiones -->
+  <style>
+  .inv-filter{
+    position:fixed;
+    left:16px;
+    top:16px;
+    z-index:50;
+    display:none;
+    flex-direction:column;
+    align-items:flex-start;
+  }
+  .inv-filter-btn{
+    background:#1e6eb6;
+    color:#fff;
+    border:none;
+    padding:8px 14px;
+    border-radius:999px;
+    font-weight:800;
+    cursor:pointer;
+    box-shadow:0 6px 12px rgba(0,0,0,.12);
+    transition:transform .18s ease, filter .18s ease;
+  }
+  .inv-filter-btn:active{filter:brightness(1.06); transform:scale(0.97);}
+  .inv-filter-panel{
+    margin-top:6px;
+    background:#fff;
+    border:1px solid #e5e7eb;
+    border-radius:14px;
+    box-shadow:0 12px 24px rgba(2,6,23,.12);
+    padding:12px;
+    min-width:260px;
+    max-width:320px;
+    display:none;
+  }
+  .inv-filter-panel label{
+    font-size:11px;
+    color:#64748b;
+    font-weight:800;
+    display:block;
+    margin:4px 0 2px;
+  }
+  .inv-filter-panel select{
+    width:100%;
+    border-radius:10px;
+    padding:8px 10px;
+    border:1px solid #d1e4f6;
+    background:#fff;
+    color:#0b2532;
+    font-weight:700;
+    font-size:12px;
+    margin-bottom:8px;
+  }
+  .inv-filter-panel select:disabled{opacity:.6;}
+  .inv-filter-panel button{
+    background:#fff;
+    color:#1e6eb6;
+    border:1px solid #d1e4f6;
+    border-radius:10px;
+    padding:7px 10px;
+    font-weight:800;
+    font-size:12px;
+    cursor:pointer;
+    box-shadow:0 6px 12px rgba(2,6,23,.08);
+    width:100%;
+  }
+  .inv-filter-panel button:active{filter:brightness(0.97);}
   </style>
 </head>
 <body>
@@ -800,6 +899,8 @@
         </p>
       </div>
     </div>
+
+    <!-- Eliminado el script de la antigua burbuja flotante -->
   </section>
   <!-- BLOQUE PIM -->
   <section class="pim-block" id="pim">
@@ -1023,7 +1124,7 @@
         </p>
         <p class="src">
           <strong>Fuente:</strong> Ministerio de Economía y Finanzas – MEF<br/>
-          Portal de datos Abiertos – Actualizado al 19 de octubre de 2025
+          Portal de datos Abiertos – <em id="inv-lastUpdate">Actualizado al —</em>
           <em>Incluye inversiones cuyo PIM sea mayor a 0</em>
         </p>
       </div>
@@ -1197,6 +1298,9 @@
       requestAnimationFrame(()=>{valEl.classList.add('ready');curEl.classList.add('ready');});
       animateNumber(valEl,total);
       lastEl.textContent="Actualizado al "+formatEsDate(lastTs);
+      // Reflejar la misma fecha en la sección de Inversiones, si existe
+      const invLast = document.getElementById('inv-lastUpdate');
+      if(invLast) invLast.textContent = lastEl.textContent;
     }catch(e){
       valEl.textContent="—";
       lastEl.textContent="Actualizado al —";
@@ -1858,6 +1962,7 @@
   </script>
   <!-- ========= SECCIÓN MAPA & TABLA DE PROYECTOS ========= -->
   <section id="map-section">
+    <!-- Filtro de ubicación antiguo eliminado; el nuevo filtro se integra dentro de la tarjeta del mapa -->
     <!-- Intro del mapa -->
     <section class="wrap intro">
       <h2 id="map-introTitle">¿Dónde se ubican nuestras inversiones?</h2>
@@ -1880,6 +1985,20 @@
     <section class="page">
       <div class="map-card">
         <div id="map-viewDiv" aria-label="Mapa con límites y puntos"></div>
+        <!-- Filtro de ubicación (burbuja) -->
+        <div id="invFilter" class="inv-filter" aria-live="polite">
+          <button id="invFilterBtn" class="inv-filter-btn" type="button" aria-expanded="false" aria-controls="invFilterPanel">Filtros</button>
+          <div id="invFilterPanel" class="inv-filter-panel" role="dialog" aria-modal="false">
+            <label for="invSelDep">Departamento</label>
+            <select id="invSelDep"><option value="">(Todos)</option></select>
+            <label for="invSelProv">Provincia</label>
+            <select id="invSelProv" disabled><option value="">(Todas)</option></select>
+            <label for="invSelDist">Distrito</label>
+            <select id="invSelDist" disabled><option value="">(Todos)</option></select>
+            <button id="invFilterClear" type="button">Limpiar</button>
+          </div>
+        </div>
+
         <!-- Filtro por programas -->
         <div class="filter-wrap">
           <button class="filter-btn" id="map-filterBtn">Programas</button>
@@ -2229,6 +2348,429 @@
         state.innerHTML = `<strong>Lista (${out.length.toLocaleString('es-PE')} filas)</strong>`;
       }
       view.when(loadRowsMap);
+
+      /* ========== Integración de filtro de "bolita" para el módulo de inversiones ========== */
+      // Campos de nombre en la capa de inversiones (ajusta si tu schema usa los nombres de ejecutora)
+      const MAP_FIELDS = { dep: "departamento", prov: "provincia", dist: "distrito" };
+      // Restricción base: solo registros con PIM mayor a cero (año 2025 incluido en la capa)
+      const BASE_WHERE_MAP = "monto_pim > 0";
+
+      /**
+       * Convierte una expresión WHERE basada en IDs (id_dep, id_prov, id_dist) a una
+       * expresión WHERE por nombres de departamento/provincia/distrito para la
+       * capa de inversiones. Consulta los servicios COES para resolver los IDs.
+       * @param {string} whereIDs Condición original emitida por la bolita
+       * @returns {Promise<string>} Expresión WHERE por nombres o "1=1" si no aplica
+       */
+      async function whereNombresFromCOES(whereIDs){
+        if(!whereIDs || whereIDs.trim()==="1=1") return "1=1";
+        const COES = {
+          dep:  "https://pportalgis.vivienda.gob.pe/pfdserver/rest/services/COES/Limites_Pol%C3%ADticos/MapServer/0",
+          prov: "https://pportalgis.vivienda.gob.pe/pfdserver/rest/services/COES/Limites_Pol%C3%ADticos/MapServer/1",
+          dist: "https://pportalgis.vivienda.gob.pe/pfdserver/rest/services/COES/Limites_Pol%C3%ADticos/MapServer/2"
+        };
+        // Extraer valores de IDs del whereIDs
+        const depMatch = whereIDs.match(/id_dep\s*=\s*'([^']+)'/);
+        const provMatch = whereIDs.match(/id_prov\s*=\s*'([^']+)'/);
+        const distMatch = whereIDs.match(/id_dist\s*=\s*'([^']+)'/);
+        const esc=v=>String(v).replace(/'/g,"''");
+        try{
+          if(distMatch){
+            const idDist = distMatch[1];
+            const j = await esriPOSTMap(COES.dist + '/query', {
+              where: `id_dist='${esc(idDist)}'`,
+              outFields: 'nom_dep,nom_prov,nom_dist',
+              returnGeometry: 'false'
+            });
+            const a = j.features?.[0]?.attributes;
+            if(!a) return '1=0';
+            // Comparar usando UPPER para evitar problemas de mayúsculas/minúsculas o acentos.
+            const upDep  = String(a.nom_dep||'').toUpperCase();
+            const upProv = String(a.nom_prov||'').toUpperCase();
+            const upDist = String(a.nom_dist||'').toUpperCase();
+            // Utilizamos LIKE con comodines para tolerar variaciones en nombres (espacios, guiones, etc.)
+            return `UPPER(${MAP_FIELDS.dep}) LIKE '%${esc(upDep)}%' AND UPPER(${MAP_FIELDS.prov}) LIKE '%${esc(upProv)}%' AND UPPER(${MAP_FIELDS.dist}) LIKE '%${esc(upDist)}%'`;
+          }
+          if(provMatch){
+            const idProv = provMatch[1];
+            const j = await esriPOSTMap(COES.prov + '/query', {
+              where: `id_prov='${esc(idProv)}'`,
+              outFields: 'nom_dep,nom_prov',
+              returnGeometry: 'false'
+            });
+            const a = j.features?.[0]?.attributes;
+            if(!a) return '1=0';
+            const upDep  = String(a.nom_dep||'').toUpperCase();
+            const upProv = String(a.nom_prov||'').toUpperCase();
+            // LIKE con comodines para provincia y departamento
+            return `UPPER(${MAP_FIELDS.dep}) LIKE '%${esc(upDep)}%' AND UPPER(${MAP_FIELDS.prov}) LIKE '%${esc(upProv)}%'`;
+          }
+          if(depMatch){
+            const idDep = depMatch[1];
+            const j = await esriPOSTMap(COES.dep + '/query', {
+              where: `id_dpto='${esc(idDep)}'`,
+              outFields: 'nom_dep',
+              returnGeometry: 'false'
+            });
+            const a = j.features?.[0]?.attributes;
+            if(!a) return '1=0';
+            const upDep  = String(a.nom_dep||'').toUpperCase();
+            // LIKE con comodines para departamento
+            return `UPPER(${MAP_FIELDS.dep}) LIKE '%${esc(upDep)}%'`;
+          }
+        }catch(err){
+          console.warn('whereNombresFromCOES fail', err);
+        }
+        return '1=1';
+      }
+
+      /**
+       * Combina el WHERE de ubicación (de la bolita) con el WHERE local (programas u otros filtros).
+       * Limpia cualquier condición previa de departamento/provincia/distrito en la expresión local.
+       * @param {string} ubicWhereFromBolita Condición por nombres generada desde la bolita
+       * @param {string} whereFromApp Expresión WHERE local (p. ej., filtro por programas)
+       * @returns {string} WHERE combinado
+       */
+      function mergeWhere(ubicWhereFromBolita, whereFromApp){
+        const hasBolita = ubicWhereFromBolita && ubicWhereFromBolita !== "1=1";
+        const base = whereFromApp || "1=1";
+        if(!hasBolita) return base;
+        // Quitar condiciones previas de ubicación en el where local
+        let clean = base
+          .replace(/\bdepartamento\s*=\s*'[^']*'\s*(AND)?\s*/gi, '')
+          .replace(/\bprovincia\s*=\s*'[^']*'\s*(AND)?\s*/gi, '')
+          .replace(/\bdistrito\s*=\s*'[^']*'\s*(AND)?\s*/gi, '')
+          .replace(/\(\s*AND\s*\)/g, '')
+          .replace(/\s+AND\s+$/,'')
+          .trim();
+        if(!clean || clean === '' || clean.toUpperCase() === 'AND' || clean === '1=1') clean = '1=1';
+        return `(${clean}) AND (${ubicWhereFromBolita})`;
+      }
+
+      /**
+       * Refresca la tabla “Detalles con inversión PIM 2025” usando un WHERE específico.
+       * @param {string} where Expresión WHERE completa (incluyendo BASE_WHERE_MAP)
+       */
+      async function refreshDetailsTable(where){
+        const state = document.getElementById('map-state');
+        const tb    = document.getElementById('map-tbody');
+        state.textContent = 'Cargando datos…';
+        const page=2000; let offset=0; const out=[];
+        while(true){
+          const j = await esriPOSTMap(MAP_FS_URL+"/query", {
+            where,
+            outFields: [
+              'producto_proyecto','producto_proyecto_nombre','departamento','provincia','distrito','monto_pim','monto_devengado','url_ssp','url_pdf'
+            ].join(','),
+            orderByFields: 'monto_pim DESC',
+            resultRecordCount: page,
+            resultOffset: offset
+          });
+          (j.features||[]).forEach(f => {
+            const a = f.attributes || {};
+            out.push({
+              cui: a.producto_proyecto ?? '',
+              inv: a.producto_proyecto_nombre ?? '',
+              dep: a.departamento ?? '',
+              pro: a.provincia ?? '',
+              dis: a.distrito ?? '',
+              pim: Number(a.monto_pim) || 0,
+              dev: Number(a.monto_devengado) || 0,
+              ssp: (a.url_ssp || '').trim(),
+              pdf: (a.url_pdf || '').trim()
+            });
+          });
+          if(!j.exceededTransferLimit || (j.features||[]).length < page) break;
+          offset += page;
+        }
+        tb.innerHTML = out.map(r => `
+          <tr>
+            <td class="num">${r.cui || '—'}</td>
+            <td class="inv-cell" data-tip="${escHtmlMap(r.inv)}">
+              <span class="ellip-text" title="${escHtmlMap(r.inv)}">${escHtmlMap(r.inv)}</span>
+            </td>
+            <td>${escHtmlMap(r.dep) || '—'}</td>
+            <td>${escHtmlMap(r.pro) || '—'}</td>
+            <td>${escHtmlMap(r.dis) || '—'}</td>
+            <td class="num">${moneyMap(r.pim)}</td>
+            <td class="num">${moneyMap(r.dev)}</td>
+            <td>${r.ssp ? `<a class="chipLink" href="${r.ssp}" target="_blank" rel="noopener">Ver detalle</a>` : `<span class="pill">—</span>`}</td>
+            <td>${r.pdf ? `<a class="chipLink" href="${r.pdf}" target="_blank" rel="noopener">Ver PDF</a>` : `<span class="pill">—</span>`}</td>
+          </tr>
+        `).join('');
+        // Ajustar la altura de la tabla para mostrar 10 filas
+        requestAnimationFrame(() => {
+          const scrollYEl = document.getElementById('map-scrollY');
+          const theadEl   = document.querySelector('#map-tbl thead');
+          const firstRow  = document.querySelector('#map-tbl tbody tr');
+          if(scrollYEl && theadEl && firstRow){
+            const hHead = theadEl.getBoundingClientRect().height;
+            const hRow  = firstRow.getBoundingClientRect().height || 26;
+            scrollYEl.style.maxHeight = (hHead + hRow*10) + 'px';
+          }
+        });
+        state.innerHTML = `<strong>Lista (${out.length.toLocaleString('es-PE')} filas)</strong>`;
+      }
+
+      /**
+       * Actualiza los tres KPIs principales (conteo, PIM y devengado) según el filtro.
+       */
+      async function updateKPIs(where){
+        const [count, sums] = await Promise.all([
+          loadInvestmentsCountInv(where),
+          loadPIMDevInv(where)
+        ]);
+        const pim = Math.round(sums.pim || 0);
+        const dev = Math.round(sums.dev || 0);
+        const pct = (pim > 0) ? Math.round((dev/pim)*100) : 0;
+        animateNumInv(document.getElementById('inv-count'), count);
+        animateNumInv(document.getElementById('inv-pim'), pim);
+        animateNumInv(document.getElementById('inv-dev'), dev);
+        animateNumInv(document.getElementById('inv-pct'), pct);
+      }
+
+      /**
+       * Actualiza los contadores de "Se espera generar".
+       */
+      async function updateSeEspera(where){
+        const [agua, alc, pav, ver] = await Promise.all([
+          sumFieldInv('cnx_nuevas_agua', where),
+          sumFieldInv('cnx_nuevas_alcantarillado_dse', where),
+          sumFieldInv('final_pavimento_m2_monitoreo', where),
+          sumFieldInv('final_vereda_m2_monitoreo', where)
+        ]);
+        invUtil.animateNum(document.getElementById('k-agua'), Math.round(agua||0));
+        invUtil.animateNum(document.getElementById('k-alc'),  Math.round(alc||0));
+        invUtil.animateNum(document.getElementById('k-pav'),  Math.round(pav||0));
+        invUtil.animateNum(document.getElementById('k-ver'),  Math.round(ver||0));
+      }
+
+      /**
+       * Actualiza los ocho contadores de estados de obras y expedientes.
+       */
+      async function updateEstados(where){
+        const OBRA = ["OBRA (SALDO)","OBRA"];
+        const EXP  = ["EXPEDIENTE TECNICO (SALDO)","OBRA (Expediente Saldo)","EXPEDIENTE TECNICO"];
+        const IN_INV_LIST = list => list.map(v => `\'${v.replace(/'/g,"''")}\'`).join(",");
+        const W = (...conds) => ['1=1', ...conds.filter(Boolean)].join(' AND ');
+        const q = {
+          obrasConcluidas:  W(`etapa IN (${IN_INV_LIST(OBRA)})`, `estado IN ('Transferencia','Post Ejecución','Concluido')`),
+          obrasEjec:        W(`etapa IN (${IN_INV_LIST(OBRA)})`, `estado IN ('En Ejecución')`),
+          obrasIniciar:     W(`etapa IN (${IN_INV_LIST(OBRA)})`, `estado IN ('Actos Previos')`, `subestado = 'Por Iniciar'`),
+          obrasSel:         W(`etapa IN (${IN_INV_LIST(OBRA)})`, `estado IN ('Actos Previos')`, `subestado = 'Proceso de Selección'`),
+          expConcluidos:    W(`etapa IN (${IN_INV_LIST(EXP)})`,  `estado IN ('Concluido')`),
+          expElab:          W(`etapa IN (${IN_INV_LIST(EXP)})`,  `estado IN ('En elaboración')`),
+          expSel:           W(`etapa IN (${IN_INV_LIST(EXP)})`,  `estado IN ('Actos Previos')`, `subestado = 'Proceso de Selección'`),
+          obrasSel2:        W(`etapa IN (${IN_INV_LIST(OBRA)})`, `estado IN ('Actos Previos')`, `subestado = 'Proceso de Selección'`)
+        };
+        const [
+          nObC, nObE, nObI, nObPS,
+          nExC, nExE, nExPS, nObPS2
+        ] = await Promise.all([
+          countDistinctProductosInv(`${where} AND ${q.obrasConcluidas}`),
+          countDistinctProductosInv(`${where} AND ${q.obrasEjec}`),
+          countDistinctProductosInv(`${where} AND ${q.obrasIniciar}`),
+          countDistinctProductosInv(`${where} AND ${q.obrasSel}`),
+          countDistinctProductosInv(`${where} AND ${q.expConcluidos}`),
+          countDistinctProductosInv(`${where} AND ${q.expElab}`),
+          countDistinctProductosInv(`${where} AND ${q.expSel}`),
+          countDistinctProductosInv(`${where} AND ${q.obrasSel2}`)
+        ]);
+        animateNumInv(document.getElementById("est-obras-concluidas"), nObC);
+        animateNumInv(document.getElementById("est-obras-ejec"),        nObE);
+        animateNumInv(document.getElementById("est-obras-iniciar"),     nObI);
+        animateNumInv(document.getElementById("est-obras-sel"),        nObPS);
+        animateNumInv(document.getElementById("est-exp-concluidos"),    nExC);
+        animateNumInv(document.getElementById("est-exp-elab"),          nExE);
+        animateNumInv(document.getElementById("est-exp-sel"),           nExPS);
+        animateNumInv(document.getElementById("est-obras-sel2"),        nObPS2);
+      }
+
+      /**
+       * Aplica el filtro emitido por la bolita (IDs) a todas las componentes del módulo.
+       * @param {string} whereIDs Expresión WHERE con ids id_dep/id_prov/id_dist
+       */
+      async function applyBolita(whereIDs){
+        try{
+          const ubic = await whereNombresFromCOES(whereIDs);
+          const local = buildWherePrograms();
+          const combined = mergeWhere(ubic, local);
+          const finalWhere = `${BASE_WHERE_MAP} AND (${combined})`;
+          // Aplicar al mapa
+          layer.definitionExpression = finalWhere;
+          // Ajustar extent si hay datos
+          view.whenLayerView(layer).then(lv => lv.queryExtent().then(r => { if(r?.count > 0 && r.extent) view.goTo(r.extent); }));
+          // Actualizar KPIs, se espera, estados y tabla
+          await Promise.all([
+            updateKPIs(finalWhere),
+            updateSeEspera(finalWhere),
+            updateEstados(finalWhere),
+            refreshDetailsTable(finalWhere)
+          ]);
+        }catch(err){
+          console.warn('applyBolita error', err);
+        }
+      }
+
+      // Escuchar evento emitido por la bolita y aplicar filtros
+      window.addEventListener("mvcs-bolita-change", ev => {
+        const whereIDs = ev.detail?.whereIDs || "1=1";
+        applyBolita(whereIDs);
+      });
+      // Si la bolita ya tiene un filtro aplicado al cargar la página, aplicarlo inmediatamente
+      if(window.mvcsFilterWhereIDs){ applyBolita(window.mvcsFilterWhereIDs); }
+    });
+  })();
+  </script>
+
+  <!-- Script para la burbuja de filtros de ubicación en la sección de inversiones -->
+  <script>
+  (function(){
+    // Referencias al DOM
+    const filterWrap = document.getElementById('invFilter');
+    const btn = document.getElementById('invFilterBtn');
+    const panel = document.getElementById('invFilterPanel');
+    const selDep = document.getElementById('invSelDep');
+    const selProv = document.getElementById('invSelProv');
+    const selDist = document.getElementById('invSelDist');
+    const btnClear = document.getElementById('invFilterClear');
+    // Helper para consultas a servicios ESRI
+    async function esriQuery(url, params){
+      const body = new URLSearchParams({ f: 'json', ...params }).toString();
+      try{
+        const resp = await fetch(url + '/query', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8' },
+          body
+        });
+        const json = await resp.json();
+        if(json.error) throw new Error(json.error.message || 'ArcGIS error');
+        return (json.features || []).map(f => f.attributes || {});
+      }catch(err){
+        console.warn('esriQuery', err);
+        return [];
+      }
+    }
+    // Cargar departamentos
+    async function loadDeps(){
+      const feats = await esriQuery('https://pportalgis.vivienda.gob.pe/pfdserver/rest/services/COES/Limites_Pol%C3%ADticos/MapServer/0', {
+        where: '1=1',
+        outFields: 'id_dpto,nom_dep',
+        orderByFields: 'nom_dep ASC',
+        returnGeometry: 'false'
+      });
+      selDep.innerHTML = '<option value="">(Todos)</option>' + feats.map(a => `<option value="${a.id_dpto}">${a.nom_dep}</option>`).join('');
+    }
+    // Cargar provincias según departamento
+    async function loadProvs(depId){
+      selProv.innerHTML = '<option value="">(Todas)</option>';
+      selDist.innerHTML = '<option value="">(Todos)</option>';
+      selProv.disabled = true;
+      selDist.disabled = true;
+      if(!depId) return;
+      const feats = await esriQuery('https://pportalgis.vivienda.gob.pe/pfdserver/rest/services/COES/Limites_Pol%C3%ADticos/MapServer/1', {
+        where: `id_dep='${depId.replace(/'/g, "''")}'`,
+        outFields: 'id_prov,nom_prov',
+        orderByFields: 'nom_prov ASC',
+        returnGeometry: 'false'
+      });
+      selProv.innerHTML = '<option value="">(Todas)</option>' + feats.map(a => `<option value="${a.id_prov}">${a.nom_prov}</option>`).join('');
+      selProv.disabled = false;
+    }
+    // Cargar distritos según provincia
+    async function loadDists(provId){
+      selDist.innerHTML = '<option value="">(Todos)</option>';
+      selDist.disabled = true;
+      if(!provId) return;
+      const feats = await esriQuery('https://pportalgis.vivienda.gob.pe/pfdserver/rest/services/COES/Limites_Pol%C3%ADticos/MapServer/2', {
+        where: `id_prov='${provId.replace(/'/g, "''")}'`,
+        outFields: 'id_dist,nom_dist',
+        orderByFields: 'nom_dist ASC',
+        returnGeometry: 'false'
+      });
+      selDist.innerHTML = '<option value="">(Todos)</option>' + feats.map(a => `<option value="${a.id_dist}">${a.nom_dist}</option>`).join('');
+      selDist.disabled = false;
+    }
+    // Construir WHERE por IDs
+    function buildWhereIDs(){
+      const dep = selDep.value.trim();
+      const prov = selProv.value.trim();
+      const dist = selDist.value.trim();
+      let where = '1=1';
+      if(dep)  where += ` AND id_dep='${dep.replace(/'/g, "''")}'`;
+      if(prov) where += ` AND id_prov='${prov.replace(/'/g, "''")}'`;
+      if(dist) where += ` AND id_dist='${dist.replace(/'/g, "''")}'`;
+      return where;
+    }
+    // Emitir evento global
+    function emit(){
+      const where = buildWhereIDs();
+      window.mvcsFilterWhereIDs = where;
+      window.dispatchEvent(new CustomEvent('mvcs-bolita-change', { detail: { whereIDs: where } }));
+    }
+    // Manejar cambios
+    selDep.addEventListener('change', async () => {
+      await loadProvs(selDep.value.trim());
+      emit();
+    });
+    selProv.addEventListener('change', async () => {
+      await loadDists(selProv.value.trim());
+      emit();
+    });
+    selDist.addEventListener('change', () => emit());
+    btnClear.addEventListener('click', () => {
+      selDep.value = '';
+      selProv.innerHTML = '<option value="">(Todas)</option>';
+      selProv.disabled = true;
+      selDist.innerHTML = '<option value="">(Todos)</option>';
+      selDist.disabled = true;
+      emit();
+    });
+    // Mostrar/ocultar panel
+    btn.addEventListener('click', e => {
+      e.stopPropagation();
+      const isOpen = panel.style.display === 'block';
+      panel.style.display = isOpen ? 'none' : 'block';
+      btn.setAttribute('aria-expanded', String(!isOpen));
+    });
+    document.addEventListener('click', e => {
+      if(!filterWrap.contains(e.target)){
+        panel.style.display = 'none';
+        btn.setAttribute('aria-expanded', 'false');
+      }
+    });
+    // Mostrar u ocultar el filtro según la posición del scroll.
+    // Se calculará un rango a partir de la parte superior del mapa y la parte inferior
+    // de la tabla "Detalles con inversión PIM 2025". Si el viewport intersecta ese
+    // rango, se mostrará el filtro; en caso contrario, se ocultará.
+    function updateFilterVisibility(){
+      // Referencias de sección: comienza desde la sección de inversiones completa y
+      // termina al finalizar la tabla de detalles.  De este modo el filtro aparece
+      // cuando el usuario entra a la sección "Inversiones" (incluyendo los KPIs
+      // superiores) y desaparece al salir de ella.
+      const secInv = document.getElementById('sec-inversiones');
+      const tblSec = document.querySelector('.table-section');
+      if(!secInv || !tblSec) return;
+      const startY = secInv.getBoundingClientRect().top + window.scrollY;
+      const endY   = tblSec.getBoundingClientRect().bottom + window.scrollY;
+      const scrollTop = window.scrollY;
+      const viewportBottom = scrollTop + window.innerHeight;
+      // Mostrar si alguna porción del viewport intersecta el rango [startY, endY]
+      if(viewportBottom > startY && scrollTop < endY){
+        filterWrap.style.display = 'flex';
+      }else{
+        filterWrap.style.display = 'none';
+      }
+    }
+    // Actualizar visibilidad al hacer scroll y al redimensionar
+    window.addEventListener('scroll', updateFilterVisibility);
+    window.addEventListener('resize', updateFilterVisibility);
+    // Iniciar
+    loadDeps().then(() => {
+      // Emitir para aplicar filtros iniciales
+      emit();
+      // Actualizar visibilidad inicial del filtro según la posición actual del scroll
+      updateFilterVisibility();
     });
   })();
   </script>
@@ -2307,7 +2849,8 @@
 </style>
 <div id="charts-section">
   <div class="wrap">
-    <p class="p center">La evolución de la Ejecución Física por Programa muestra el avance físico…</p>
+    <!-- Descripción completa para el gráfico de avance físico por programa -->
+    <p class="p center">La evolución de la Ejecución Física por Programa muestra el avance físico de los principales programas de inversión del ministerio a lo largo del año. Permite identificar qué programas están avanzando según lo previsto y dónde se presentan posibles retrasos. Esta información es clave para evaluar el ritmo de implementación y tomar decisiones oportunas para mejorar la eficiencia operativa en cada línea de intervención.</p>
     <!-- ====== Gráfico 1 ====== -->
     <div class="card" id="g1">
       <h3>Evolución del avance de ejecución física por programa</h3>
@@ -2319,7 +2862,8 @@
       </div>
     </div>
 
-    <p class="p center">El Devengado vs. Monto de Inversión compara cuánto del presupuesto total…</p>
+    <!-- Descripción completa para el gráfico de devengado acumulado vs monto de inversión -->
+    <p class="p center">El Devengado Acumulado vs Monto de Inversión compara cuánto del presupuesto total de inversiones ha sido efectivamente ejecutado (devengado) hasta la fecha. Permite evaluar la eficiencia en el uso de recursos públicos y anticipar riesgos de baja ejecución.</p>
 
     <!-- ====== Gráfico 2 ====== -->
     <div class="card" id="g2">
