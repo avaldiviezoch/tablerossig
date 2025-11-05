@@ -511,8 +511,11 @@
       position:sticky; top:0; z-index:2;
       background:var(--turquesa); color:#ffffff;
       font-weight:800; letter-spacing:.2px;
-      padding:12px 10px; text-align:center; border-bottom:2px solid #ffffff00;
-      border-right:6px solid var(--gap-header);
+      padding:12px 10px;
+      text-align:center;
+      border-bottom:2px solid #ffffff00;
+      /* Usar un borde derecho delgado para evitar que sobresalga del marco */
+      border-right:1px solid var(--gap-header);
     }
     thead th:first-child{ border-top-left-radius:14px; }
     thead th:last-child{ border-right:none; border-top-right-radius:14px; }
@@ -792,8 +795,8 @@
        Reducir la columna PIM lo más posible y ampliar la columna Inversión
        para que el texto sea más visible. */
     #map-section col.pim{
-      /* Establecer el ancho mínimo de la columna PIM para ocupar el menor espacio posible */
-      width:80px;
+      /* Fijar un ancho razonable para la columna PIM de modo que su encabezado y contenido no desborden el marco */
+      width:110px;
     }
     #map-section col.inv{
       /* Ampliar la columna Inversión para que se lea mejor el texto de la inversión */
@@ -2388,8 +2391,9 @@
             const upDep  = String(a.nom_dep||'').toUpperCase();
             const upProv = String(a.nom_prov||'').toUpperCase();
             const upDist = String(a.nom_dist||'').toUpperCase();
-            // Utilizamos LIKE con comodines para tolerar variaciones en nombres (espacios, guiones, etc.)
-            return `UPPER(${MAP_FIELDS.dep}) LIKE '%${esc(upDep)}%' AND UPPER(${MAP_FIELDS.prov}) LIKE '%${esc(upProv)}%' AND UPPER(${MAP_FIELDS.dist}) LIKE '%${esc(upDist)}%'`;
+            // Utilizamos igualdad estricta para evitar coincidencias parciales.  
+            // Comparamos directamente contra los nombres en mayúscula devueltos por COES.  
+            return `${MAP_FIELDS.dep}='${esc(upDep)}' AND ${MAP_FIELDS.prov}='${esc(upProv)}' AND ${MAP_FIELDS.dist}='${esc(upDist)}'`;
           }
           if(provMatch){
             const idProv = provMatch[1];
@@ -2402,8 +2406,8 @@
             if(!a) return '1=0';
             const upDep  = String(a.nom_dep||'').toUpperCase();
             const upProv = String(a.nom_prov||'').toUpperCase();
-            // LIKE con comodines para provincia y departamento
-            return `UPPER(${MAP_FIELDS.dep}) LIKE '%${esc(upDep)}%' AND UPPER(${MAP_FIELDS.prov}) LIKE '%${esc(upProv)}%'`;
+            // Igualdad estricta para provincia y departamento
+            return `${MAP_FIELDS.dep}='${esc(upDep)}' AND ${MAP_FIELDS.prov}='${esc(upProv)}'`;
           }
           if(depMatch){
             const idDep = depMatch[1];
@@ -2415,8 +2419,8 @@
             const a = j.features?.[0]?.attributes;
             if(!a) return '1=0';
             const upDep  = String(a.nom_dep||'').toUpperCase();
-            // LIKE con comodines para departamento
-            return `UPPER(${MAP_FIELDS.dep}) LIKE '%${esc(upDep)}%'`;
+            // Igualdad estricta para departamento
+            return `${MAP_FIELDS.dep}='${esc(upDep)}'`;
           }
         }catch(err){
           console.warn('whereNombresFromCOES fail', err);
