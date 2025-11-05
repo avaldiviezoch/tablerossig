@@ -1926,7 +1926,12 @@
     }
     return set.size;
   }
-  (async function estadosInv(){
+  // ===== ESTADOS (8 contadores) =====
+  // Convert the original self‑invoking function into a reusable helper that
+  // accepts a WHERE condition.  The counts will update whenever the global
+  // filter changes.  If no where is provided, it defaults to "1=1" (all
+  // registros).
+  async function computeEstados(where = "1=1"){
     const OBRA = ["OBRA (SALDO)","OBRA"];
     const EXP  = ["EXPEDIENTE TECNICO (SALDO)","OBRA (Expediente Saldo)","EXPEDIENTE TECNICO"];
     const W = (...conds) => ["1=1", ...conds.filter(Boolean)].join(" AND ");
@@ -1940,28 +1945,45 @@
       expSel:           W(`etapa IN (${IN_INV(EXP)})`,  `estado IN ('Actos Previos')`, `subestado = 'Proceso de Selección'`),
       obrasSel2:        W(`etapa IN (${IN_INV(OBRA)})`, `estado IN ('Actos Previos')`, `subestado = 'Proceso de Selección'`)
     };
-    const [
-      nObC, nObE, nObI, nObPS,
-      nExC, nExE, nExPS, nObPS2
-    ] = await Promise.all([
-      countDistinctProductosInv(q.obrasConcluidas),
-      countDistinctProductosInv(q.obrasEjec),
-      countDistinctProductosInv(q.obrasIniciar),
-      countDistinctProductosInv(q.obrasSel),
-      countDistinctProductosInv(q.expConcluidos),
-      countDistinctProductosInv(q.expElab),
-      countDistinctProductosInv(q.expSel),
-      countDistinctProductosInv(q.obrasSel2)
-    ]);
-    animateNumInv(document.getElementById("est-obras-concluidas"), nObC);
-    animateNumInv(document.getElementById("est-obras-ejec"),        nObE);
-    animateNumInv(document.getElementById("est-obras-iniciar"),     nObI);
-    animateNumInv(document.getElementById("est-obras-sel"),         nObPS);
-    animateNumInv(document.getElementById("est-exp-concluidos"),    nExC);
-    animateNumInv(document.getElementById("est-exp-elab"),          nExE);
-    animateNumInv(document.getElementById("est-exp-sel"),           nExPS);
-    animateNumInv(document.getElementById("est-obras-sel2"),        nObPS2);
-  })();
+    try{
+      const [
+        nObC, nObE, nObI, nObPS,
+        nExC, nExE, nExPS, nObPS2
+      ] = await Promise.all([
+        countDistinctProductosInv(`${where} AND ${q.obrasConcluidas}`),
+        countDistinctProductosInv(`${where} AND ${q.obrasEjec}`),
+        countDistinctProductosInv(`${where} AND ${q.obrasIniciar}`),
+        countDistinctProductosInv(`${where} AND ${q.obrasSel}`),
+        countDistinctProductosInv(`${where} AND ${q.expConcluidos}`),
+        countDistinctProductosInv(`${where} AND ${q.expElab}`),
+        countDistinctProductosInv(`${where} AND ${q.expSel}`),
+        countDistinctProductosInv(`${where} AND ${q.obrasSel2}`)
+      ]);
+      animateNumInv(document.getElementById("est-obras-concluidas"), nObC);
+      animateNumInv(document.getElementById("est-obras-ejec"),        nObE);
+      animateNumInv(document.getElementById("est-obras-iniciar"),     nObI);
+      animateNumInv(document.getElementById("est-obras-sel"),         nObPS);
+      animateNumInv(document.getElementById("est-exp-concluidos"),    nExC);
+      animateNumInv(document.getElementById("est-exp-elab"),          nExE);
+      animateNumInv(document.getElementById("est-exp-sel"),           nExPS);
+      animateNumInv(document.getElementById("est-obras-sel2"),        nObPS2);
+    }catch(err){
+      console.warn('computeEstados error', err);
+    }
+  }
+
+  // Inicializar los estados con todos los registros (sin filtros)
+  // y suscribirse al cambio de filtros.  Aunque updateEstados(where)
+  // se ejecuta desde el manejador de mvcs-filter-change en el mapa,
+  // aquí mantenemos computeEstados para asegurar que los contadores
+  // de estados reflejen la selección actual.  computeEstados(where)
+  // recalcula los ocho KPIs de estado cada vez que se emite el
+  // evento `mvcs-filter-change`.
+  computeEstados("1=1");
+  window.addEventListener('mvcs-filter-change', ev => {
+    const where = ev.detail?.where || "1=1";
+    computeEstados(where);
+  });
   </script>
   <!-- ========= SECCIÓN MAPA & TABLA DE PROYECTOS ========= -->
   <section id="map-section">
@@ -1994,10 +2016,11 @@
           <div id="invFilterPanel" class="inv-filter-panel" role="dialog" aria-modal="false">
             <label for="invSelDep">Departamento</label>
             <select id="invSelDep"><option value="">(Todos)</option></select>
-            <label for="invSelProv">Provincia</label>
-            <select id="invSelProv" disabled><option value="">(Todas)</option></select>
-            <label for="invSelDist">Distrito</label>
-            <select id="invSelDist" disabled><option value="">(Todos)</option></select>
+            <!-- Ocultamos los filtros de provincia y distrito para desactivar la cascada -->
+            <label for="invSelProv" style="display:none">Provincia</label>
+            <select id="invSelProv" style="display:none" disabled><option value="">(Todas)</option></select>
+            <label for="invSelDist" style="display:none">Distrito</label>
+            <select id="invSelDist" style="display:none" disabled><option value="">(Todos)</option></select>
             <button id="invFilterClear" type="button">Limpiar</button>
           </div>
         </div>
@@ -2172,8 +2195,11 @@
         });
         progList.querySelectorAll('input[type="checkbox"]').forEach(cb => {
           cb.addEventListener('change', () => {
-            layer.definitionExpression = buildWherePrograms();
-            view.whenLayerView(layer).then(lv => lv.queryExtent().then(r => r.count > 0 && view.goTo(r.extent)));
+            // Update MVCS program filter and re-emit unified filter
+            if(window.MVCS){
+              window.MVCS.wherePrograma = buildWherePrograms();
+              window.MVCS.emit();
+            }
           });
         });
       }
@@ -2189,9 +2215,17 @@
       /* Reset */
       const resetBtn = document.getElementById('map-resetBtn');
       resetBtn.addEventListener('click', () => {
+        // Reset program filter checkboxes
         progList.querySelectorAll('input[type="checkbox"]').forEach(cb => cb.checked = false);
-        layer.definitionExpression = "1=1";
+        // Reset MVCS filters for ubigeo and program
+        if(window.MVCS){
+          window.MVCS.wherePrograma = "1=1";
+          window.MVCS.whereUbigeo   = "1=1";
+          window.MVCS.emit();
+        }
+        // Return map to initial extent
         view.goTo(peruExtent.expand(0.96));
+        // Clear search UI
         document.getElementById('map-searchInput').value = '';
         document.getElementById('map-suggestions').innerHTML = '';
         view.popup.close();
@@ -2388,12 +2422,16 @@
             const a = j.features?.[0]?.attributes;
             if(!a) return '1=0';
             // Comparar usando UPPER para evitar problemas de mayúsculas/minúsculas o acentos.
-            const upDep  = String(a.nom_dep||'').toUpperCase();
-            const upProv = String(a.nom_prov||'').toUpperCase();
-            const upDist = String(a.nom_dist||'').toUpperCase();
-            // Utilizamos igualdad estricta para evitar coincidencias parciales.  
-            // Comparamos directamente contra los nombres en mayúscula devueltos por COES.  
-            return `${MAP_FIELDS.dep}='${esc(upDep)}' AND ${MAP_FIELDS.prov}='${esc(upProv)}' AND ${MAP_FIELDS.dist}='${esc(upDist)}'`;
+            // Normalizar: eliminar tildes, pasar a mayúsculas y recortar espacios
+            const norm = s => String(s||'').normalize('NFD').replace(/\p{Diacritic}/gu,'').toUpperCase().trim();
+            const upDep  = norm(a.nom_dep);
+            const upProv = norm(a.nom_prov);
+            const upDist = norm(a.nom_dist);
+            // Para obtener coincidencias precisas utilizamos comparaciones estrictas en mayúsculas.
+            // Esto supone que la capa de inversiones usa nombres normalizados (mayúsculas sin tildes),
+            // por lo que basta con comparar UPPER(campos) con el nombre normalizado devuelto por COES.
+            // Usamos igualdad para departamento, provincia y distrito, evitando los comodines LIKE.
+            return `UPPER(${MAP_FIELDS.dep})='${esc(upDep)}' AND UPPER(${MAP_FIELDS.prov})='${esc(upProv)}' AND UPPER(${MAP_FIELDS.dist})='${esc(upDist)}'`;
           }
           if(provMatch){
             const idProv = provMatch[1];
@@ -2404,10 +2442,12 @@
             });
             const a = j.features?.[0]?.attributes;
             if(!a) return '1=0';
-            const upDep  = String(a.nom_dep||'').toUpperCase();
-            const upProv = String(a.nom_prov||'').toUpperCase();
-            // Igualdad estricta para provincia y departamento
-            return `${MAP_FIELDS.dep}='${esc(upDep)}' AND ${MAP_FIELDS.prov}='${esc(upProv)}'`;
+            const norm = s => String(s||'').normalize('NFD').replace(/\p{Diacritic}/gu,'').toUpperCase().trim();
+            const upDep  = norm(a.nom_dep);
+            const upProv = norm(a.nom_prov);
+            // Comparar departamento y provincia de manera exacta en mayúsculas.  La capa de inversiones
+            // contiene nombres normalizados, por lo que utilizamos igualdad en ambos campos.
+            return `UPPER(${MAP_FIELDS.dep})='${esc(upDep)}' AND UPPER(${MAP_FIELDS.prov})='${esc(upProv)}'`;
           }
           if(depMatch){
             const idDep = depMatch[1];
@@ -2418,15 +2458,21 @@
             });
             const a = j.features?.[0]?.attributes;
             if(!a) return '1=0';
-            const upDep  = String(a.nom_dep||'').toUpperCase();
-            // Igualdad estricta para departamento
-            return `${MAP_FIELDS.dep}='${esc(upDep)}'`;
+            const norm = s => String(s||'').normalize('NFD').replace(/\p{Diacritic}/gu,'').toUpperCase().trim();
+            const upDep  = norm(a.nom_dep);
+            // Igualdad sobre el campo en mayúsculas para que no falle si la capa guarda "Amazonas" o "AMAZONAS".
+            return `UPPER(${MAP_FIELDS.dep})='${esc(upDep)}'`;
           }
         }catch(err){
           console.warn('whereNombresFromCOES fail', err);
         }
         return '1=1';
       }
+
+      // Expose the helper to the global scope so other modules (e.g. the
+      // ubicación filter script) can call it.  Without this assignment the
+      // function is scoped to this module only.
+      window.whereNombresFromCOES = whereNombresFromCOES;
 
       /**
        * Combina el WHERE de ubicación (de la bolita) con el WHERE local (programas u otros filtros).
@@ -2441,11 +2487,22 @@
         if(!hasBolita) return base;
         // Quitar condiciones previas de ubicación en el where local
         let clean = base
+          // Eliminar condiciones previas de ubicación con igualdad exacta
           .replace(/\bdepartamento\s*=\s*'[^']*'\s*(AND)?\s*/gi, '')
           .replace(/\bprovincia\s*=\s*'[^']*'\s*(AND)?\s*/gi, '')
           .replace(/\bdistrito\s*=\s*'[^']*'\s*(AND)?\s*/gi, '')
+          // Eliminar variantes con UPPER()= por si fueron usadas
+          .replace(/\bUPPER\(\s*departamento\s*\)\s*=\s*'[^']*'\s*(AND)?\s*/gi, '')
+          .replace(/\bUPPER\(\s*provincia\s*\)\s*=\s*'[^']*'\s*(AND)?\s*/gi, '')
+          .replace(/\bUPPER\(\s*distrito\s*\)\s*=\s*'[^']*'\s*(AND)?\s*/gi, '')
+          // Eliminar condiciones que usan LIKE en provincia/distrito
+          .replace(/\bprovincia\s+LIKE\s+'%[^']*%'\s+ESCAPE\s+'\\'\s*(AND)?\s*/gi, '')
+          .replace(/\bdistrito\s+LIKE\s+'%[^']*%'\s+ESCAPE\s+'\\'\s*(AND)?\s*/gi, '')
+          // Eliminar condiciones que usan UPPER() LIKE en provincia/distrito (sin ESCAPE)
+          .replace(/\bUPPER\(\s*provincia\s*\)\s+LIKE\s+'%[^']*%'\s*(AND)?\s*/gi, '')
+          .replace(/\bUPPER\(\s*distrito\s*\)\s+LIKE\s+'%[^']*%'\s*(AND)?\s*/gi, '')
           .replace(/\(\s*AND\s*\)/g, '')
-          .replace(/\s+AND\s+$/,'')
+          .replace(/\s+AND\s+$/, '')
           .trim();
         if(!clean || clean === '' || clean.toUpperCase() === 'AND' || clean === '1=1') clean = '1=1';
         return `(${clean}) AND (${ubicWhereFromBolita})`;
@@ -2616,13 +2673,79 @@
         }
       }
 
-      // Escuchar evento emitido por la bolita y aplicar filtros
-      window.addEventListener("mvcs-bolita-change", ev => {
-        const whereIDs = ev.detail?.whereIDs || "1=1";
-        applyBolita(whereIDs);
+      // --- Single Source of Truth for filters (MVCS) ---
+      // MVCS stores filter conditions for ubigeo (by names) and programs.  The
+      // ubigeo filter should already be converted from IDs to name‑based
+      // expressions by whoever sets it (see the ubicación filter script below).
+      // The whereAll() method merges the ubigeo and program conditions using
+      // mergeWhere() to avoid duplicating location predicates.  Calling emit()
+      // constructs the final WHERE expression (including the BASE_WHERE_MAP) and
+      // broadcasts it via the mvcs‑filter‑change event so all modules update
+      // consistently.
+      window.MVCS = {
+        /**
+         * Expresión WHERE por nombres de departamento/provincia/distrito.  Se
+         * inicializa en "1=1" y es actualizada por el filtro de ubicación.
+         */
+        whereUbigeo: "1=1",
+        /**
+         * Expresión WHERE por programas.  Se actualiza cuando se seleccionan
+         * programas en el multiselect del mapa.
+         */
+        wherePrograma: "1=1",
+        /**
+         * Última expresión WHERE completa aplicada.  Inicialmente contiene
+         * solo la condición base.
+         */
+        currentWhere: `${BASE_WHERE_MAP}`,
+        /**
+         * Combina whereUbigeo y wherePrograma eliminando cualquier condición
+         * duplicada de ubicación en wherePrograma.  Si ambos son "1=1",
+         * devuelve "1=1".
+         * @returns {string} Expresión WHERE combinada para filtros locales
+         */
+        whereAll(){
+          return mergeWhere(this.whereUbigeo || "1=1", this.wherePrograma || "1=1");
+        },
+        /**
+         * Construye la expresión WHERE final (incluyendo BASE_WHERE_MAP) y
+         * emite el evento mvcs-filter-change.  Debe llamarse después de
+         * modificar whereUbigeo o wherePrograma.
+         */
+        emit(){
+          const combined   = this.whereAll();
+          const finalWhere = `${BASE_WHERE_MAP} AND (${combined})`;
+          this.currentWhere = finalWhere;
+          window.dispatchEvent(new CustomEvent('mvcs-filter-change', { detail: { where: finalWhere } }));
+        }
+      };
+
+      // Escuchar evento global de MVCS y aplicar el filtro unificado
+      window.addEventListener('mvcs-filter-change', async ev => {
+        const where = ev.detail?.where || `${BASE_WHERE_MAP}`;
+        // Aplicar al mapa
+        layer.definitionExpression = where;
+        // Ajustar extent si hay datos
+        try{
+          const lv = await view.whenLayerView(layer);
+          const r  = await lv.queryExtent();
+          if(r?.count > 0 && r.extent){
+            await view.goTo(r.extent);
+          }
+        }catch(_){/* ignore extent errors */}
+        // Actualizar KPIs, Se espera, Estados y tabla de detalles en paralelo
+        await Promise.all([
+          updateKPIs(where),
+          updateSeEspera(where),
+          updateEstados(where),
+          refreshDetailsTable(where)
+        ]);
       });
-      // Si la bolita ya tiene un filtro aplicado al cargar la página, aplicarlo inmediatamente
-      if(window.mvcsFilterWhereIDs){ applyBolita(window.mvcsFilterWhereIDs); }
+
+      // Emitir un filtro inicial con condiciones por defecto
+      if(window.MVCS && typeof window.MVCS.emit === 'function'){
+        window.MVCS.emit();
+      }
     });
   })();
   </script>
@@ -2701,16 +2824,28 @@
       const prov = selProv.value.trim();
       const dist = selDist.value.trim();
       let where = '1=1';
+      // Solo filtrar por departamento para evitar cascada a provincia/distrito.
+      // Ignorar los valores de provincia y distrito para la "bolita".
       if(dep)  where += ` AND id_dep='${dep.replace(/'/g, "''")}'`;
-      if(prov) where += ` AND id_prov='${prov.replace(/'/g, "''")}'`;
-      if(dist) where += ` AND id_dist='${dist.replace(/'/g, "''")}'`;
+      // Se omiten id_prov e id_dist para que siempre se filtre únicamente por departamento.
       return where;
     }
-    // Emitir evento global
-    function emit(){
-      const where = buildWhereIDs();
-      window.mvcsFilterWhereIDs = where;
-      window.dispatchEvent(new CustomEvent('mvcs-bolita-change', { detail: { whereIDs: where } }));
+    // Emitir evento global.  Convierte el filtro por IDs a un filtro por nombres
+    // usando la función whereNombresFromCOES expuesta en el módulo del mapa.
+    async function emit(){
+      const whereIDs = buildWhereIDs();
+      if(window.MVCS){
+        let ubic;
+        try{
+          // Utilizar la función global para transformar IDs a nombres
+          ubic = await window.whereNombresFromCOES(whereIDs);
+        }catch(_){
+          ubic = "1=1";
+        }
+        // Actualizar el filtro de ubicación en MVCS y emitir el filtro unificado
+        window.MVCS.whereUbigeo = ubic || "1=1";
+        window.MVCS.emit();
+      }
     }
     // Manejar cambios
     selDep.addEventListener('change', async () => {
