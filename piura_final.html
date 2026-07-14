@@ -9387,7 +9387,8 @@ require([
         enEjecucion:valores[2],
         maqPnc:valores[3],
         maqSaneamiento:valores[4],
-        puntosCriticos:Number(valores[5]||0)+Number(valores[6]||0)
+        // Para el indicador y las fichas se contabilizan únicamente los puntos críticos ANA–PLIA e Histórico.
+        puntosCriticos:Number(valores[6]||0)
       };
     }));
     return resultados;
