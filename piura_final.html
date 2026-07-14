@@ -9366,8 +9366,37 @@ require([
     }
   }
 
+  async function contarSeveroPorSectorInfografia(sector,nivelPadre){
+    try{
+      await intervencionesSeveroLayer.load();
+      const fields=intervencionesSeveroLayer.fields||[];
+      const candidatos=nivelPadre?.nivel==="Departamento"
+        ? CAMPOS_PROVINCIA
+        : CAMPOS_DISTRITO;
+      const campo=detectarCampo(fields,candidatos);
+
+      if(campo){
+        const q=intervencionesSeveroLayer.createQuery();
+        const condiciones=[
+          construirWhereDepartamentoConCampos(fields),
+          construirWhereConCampos(fields,true),
+          condicionTerritorial(campo,String(sector?.nombre||"").trim())
+        ].filter(v=>v && v!=="1=1").map(v=>`(${v})`);
+        q.where=condiciones.length?condiciones.join(" AND "):"1=1";
+        q.returnGeometry=false;
+        return Number(await intervencionesSeveroLayer.queryFeatureCount(q)||0);
+      }
+    }catch(error){
+      console.warn("[Infografía] Falló el conteo territorial por atributos del escenario severo:",error);
+    }
+
+    // Respaldo espacial únicamente cuando el servicio no expone el campo territorial.
+    return contarCapaEnSectorInfografia(intervencionesSeveroLayer,sector?.geometry);
+  }
+
   async function prepararResumenSectoresInfografia(sectores){
     const lista=Array.isArray(sectores)?sectores:[];
+    const nivelPadre=nivelTerritorialInfografia();
     const resultados=await Promise.all(lista.map(async sector=>{
       const geometry=sector.geometry;
       const valores=await Promise.all([
@@ -9376,7 +9405,7 @@ require([
         contarCapaEnSectorInfografia(intervencionesEjecucionLayer,geometry),
         contarCapaEnSectorInfografia(maquinariaOperativa,geometry),
         contarCapaEnSectorInfografia(maquinariaSaneamientoDrenajeLayer,geometry),
-        contarCapaEnSectorInfografia(intervencionesSeveroLayer,geometry)
+        contarSeveroPorSectorInfografia(sector,nivelPadre)
       ]);
       return {
         nombre:String(sector.nombre||"Sector").trim(),
@@ -9386,7 +9415,7 @@ require([
         enEjecucion:valores[2],
         maqPnc:valores[3],
         maqSaneamiento:valores[4],
-        // Puntos críticos usa exactamente el conteo de intervenciones programadas del escenario severo (ANA - PLIA e Histórico).
+        // Conteo por el campo territorial del escenario severo; evita perder puntos cercanos a límites provinciales.
         puntosCriticos:Number(valores[5]||0)
       };
     }));
@@ -9515,7 +9544,7 @@ require([
     const connectors=tarjetas.map(({sector,lado,top},idx)=>{
       const ax=mapBox.left+sector.anchor.x*mapBox.width;
       const ay=mapBox.top+sector.anchor.y*mapBox.height;
-      const sx=lado==="left"?29.3:70.7;
+      const sx=lado==="left"?30.4:69.6;
       const sy=top;
       const elbow=lado==="left"?Math.min(ax-2,34):Math.max(ax+2,66);
       return `<polyline points="${sx},${sy} ${elbow},${sy} ${ax.toFixed(2)},${ay.toFixed(2)}"/><circle cx="${ax.toFixed(2)}" cy="${ay.toFixed(2)}" r=".26"/>`;
@@ -9554,14 +9583,14 @@ require([
   .connectorLayer{position:absolute;z-index:2;inset:0;width:100%;height:100%;pointer-events:none}
   .connectorLayer polyline{fill:none;stroke:#bb2337;stroke-width:.28;stroke-dasharray:.55 .3;vector-effect:non-scaling-stroke}
   .connectorLayer circle{fill:#d51d31;stroke:#fff;stroke-width:.18;vector-effect:non-scaling-stroke}
-  .provinceCallout{position:absolute;z-index:4;width:27%;transform:translateY(-50%);border:calc(.35mm * var(--s)) solid #3986ae;border-radius:calc(2.1mm * var(--s));background:rgba(255,255,255,.97);box-shadow:0 calc(.8mm * var(--s)) calc(2mm * var(--s)) rgba(15,23,42,.1)}
-  .provinceCallout.left{left:2.7%}.provinceCallout.right{right:2.7%}
-  .provinceCallout h3{position:absolute;left:-1.2%;top:0;transform:translateY(-72%) skew(-8deg);min-width:43%;margin:0;padding:calc(.9mm * var(--s)) calc(3mm * var(--s));color:#fff;background:#d31522;font-size:calc(3.15mm * var(--s));line-height:1;font-weight:950;box-shadow:calc(-1.5mm * var(--s)) 0 0 #d31522;text-transform:capitalize}
+  .provinceCallout{position:absolute;z-index:4;width:28.2%;transform:translateY(-50%);border:calc(.35mm * var(--s)) solid #3986ae;border-radius:calc(2.1mm * var(--s));background:rgba(255,255,255,.97);box-shadow:0 calc(.8mm * var(--s)) calc(2mm * var(--s)) rgba(15,23,42,.1)}
+  .provinceCallout.left{left:2.1%}.provinceCallout.right{right:2.1%}
+  .provinceCallout h3{position:absolute;left:-1.2%;top:0;transform:translateY(-72%) skew(-8deg);min-width:43%;margin:0;padding:calc(.9mm * var(--s)) calc(3mm * var(--s));color:#fff;background:#d31522;font-size:calc(3.35mm * var(--s));line-height:1;font-weight:950;box-shadow:calc(-1.5mm * var(--s)) 0 0 #d31522;text-transform:capitalize}
   .provinceCallout h3::before{content:"///";margin-right:calc(1mm * var(--s));font-weight:950}
-  .calloutBody{min-height:calc(14mm * var(--s));padding:calc(3.4mm * var(--s)) calc(2.1mm * var(--s)) calc(1.5mm * var(--s));display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:calc(.8mm * var(--s)) calc(1.8mm * var(--s));align-items:start}
-  .calloutGroup h4{margin:0 0 calc(.6mm * var(--s));color:#176b9f;font-size:calc(1.8mm * var(--s));line-height:1.1;font-weight:950}
-  .calloutLine{display:grid;grid-template-columns:auto auto 1fr;align-items:center;gap:calc(.5mm * var(--s));margin:calc(.35mm * var(--s)) 0;color:#273b4a;font-size:calc(1.55mm * var(--s));line-height:1.12}
-  .calloutLine span{font-size:calc(1.8mm * var(--s))}.calloutLine b{font-weight:650}.calloutLine strong{color:#0872b5;font-size:calc(1.8mm * var(--s));font-weight:950}
+  .calloutBody{min-height:calc(15mm * var(--s));padding:calc(3.4mm * var(--s)) calc(2.1mm * var(--s)) calc(1.5mm * var(--s));display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:calc(.8mm * var(--s)) calc(1.8mm * var(--s));align-items:start}
+  .calloutGroup h4{margin:0 0 calc(.6mm * var(--s));color:#176b9f;font-size:calc(1.95mm * var(--s));line-height:1.1;font-weight:950}
+  .calloutLine{display:grid;grid-template-columns:auto auto 1fr;align-items:center;gap:calc(.5mm * var(--s));margin:calc(.35mm * var(--s)) 0;color:#273b4a;font-size:calc(1.68mm * var(--s));line-height:1.14}
+  .calloutLine span{font-size:calc(1.95mm * var(--s))}.calloutLine b{font-weight:650}.calloutLine strong{color:#0872b5;font-size:calc(1.95mm * var(--s));font-weight:950}
   .calloutEmpty{grid-column:1/-1;color:#667085;text-align:center;font-size:calc(1.6mm * var(--s));font-weight:800}
   .sectorWarning{position:absolute;z-index:7;left:31%;right:31%;top:24.5%;padding:calc(1.4mm * var(--s));border:calc(.3mm * var(--s)) solid #f0a0a8;border-radius:calc(1.5mm * var(--s));background:#fff2f3;color:#a51d2d;text-align:center;font-size:calc(1.8mm * var(--s));font-weight:900}
   .bottomSummary{position:absolute;z-index:4;left:15%;right:15%;bottom:7.1%;height:9.2%;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));align-items:stretch;border:calc(.35mm * var(--s)) solid #1780b7;border-top:calc(1.5mm * var(--s)) solid #1780b7;border-radius:calc(2mm * var(--s));background:rgba(255,255,255,.97);overflow:hidden;box-shadow:0 calc(1mm * var(--s)) calc(2.6mm * var(--s)) rgba(15,23,42,.13)}
