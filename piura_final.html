@@ -9273,7 +9273,7 @@ require([
       const [x,y]=centroGeometriaSvg(sector.geometry,tr);
       const lineas=lineasEtiquetaSvg(sector.nombre,nivel.nivel==="Departamento"?13:15);
       const tspans=lineas.map((linea,i)=>`<tspan x="${x.toFixed(2)}" dy="${i===0?0:17}">${escaparXmlImpresion(linea)}</tspan>`).join("");
-      return `<g><path d="${path}" fill="${indice%2===0?"#1979b8":"#2185c3"}" stroke="#ffffff" stroke-width="3.2" fill-rule="evenodd"/><text x="${x.toFixed(2)}" y="${(y-(lineas.length-1)*8).toFixed(2)}" text-anchor="middle" fill="#ffffff" font-family="Segoe UI,Arial" font-size="18" font-weight="900" paint-order="stroke" stroke="#11689f" stroke-width="2.1" stroke-linejoin="round">${tspans}</text></g>`;
+      return `<g><path d="${path}" fill="${indice%2===0?"#67bdd8":"#79c9df"}" stroke="#ffffff" stroke-width="3.2" fill-rule="evenodd"/><text x="${x.toFixed(2)}" y="${(y-(lineas.length-1)*8).toFixed(2)}" text-anchor="middle" fill="#ffffff" font-family="Segoe UI,Arial" font-size="18" font-weight="900" paint-order="stroke" stroke="#2789aa" stroke-width="2.1" stroke-linejoin="round">${tspans}</text></g>`;
     }).join("");
 
     const capasHtml=(capas||[]).map(capa=>(capa.features||[]).map(feature=>geometriaTematicaSvg(feature,capa,capa.transformador||tr)).join("")).join("");
@@ -9288,7 +9288,7 @@ require([
         <clipPath id="recorteTerritorio"><path d="${pathAmbito}" fill-rule="evenodd"/></clipPath>
       </defs>
       <g filter="url(#sombraTerritorio)">
-        <path d="${pathAmbito}" fill="#1979b8" stroke="#ffffff" stroke-width="9" fill-rule="evenodd"/>
+        <path d="${pathAmbito}" fill="#67bdd8" stroke="#ffffff" stroke-width="9" fill-rule="evenodd"/>
         ${sectoresHtml}
       </g>
       <g clip-path="url(#recorteTerritorio)">${capasHtml}</g>
@@ -9376,8 +9376,7 @@ require([
         contarCapaEnSectorInfografia(intervencionesEjecucionLayer,geometry),
         contarCapaEnSectorInfografia(maquinariaOperativa,geometry),
         contarCapaEnSectorInfografia(maquinariaSaneamientoDrenajeLayer,geometry),
-        contarCapaEnSectorInfografia(puntosCriticosPriorizadosLayer,geometry),
-        contarCapaEnSectorInfografia(puntosCriticosLayer,geometry)
+        contarCapaEnSectorInfografia(intervencionesSeveroLayer,geometry)
       ]);
       return {
         nombre:String(sector.nombre||"Sector").trim(),
@@ -9387,8 +9386,8 @@ require([
         enEjecucion:valores[2],
         maqPnc:valores[3],
         maqSaneamiento:valores[4],
-        // Para el indicador y las fichas se contabilizan únicamente los puntos críticos ANA–PLIA e Histórico.
-        puntosCriticos:Number(valores[6]||0)
+        // Puntos críticos usa exactamente el conteo de intervenciones programadas del escenario severo (ANA - PLIA e Histórico).
+        puntosCriticos:Number(valores[5]||0)
       };
     }));
     return resultados;
@@ -9523,7 +9522,7 @@ require([
     }).join("");
 
     const totalIntervenciones=Number((i.tarjetas||[]).find(x=>String(x.nombre).includes("ejecutadas"))?.valor||0)+Number((i.tarjetas||[]).find(x=>String(x.nombre).includes("en ejecución"))?.valor||0);
-    const totalPuntos=sectores.reduce((s,x)=>s+Number(x.puntosCriticos||0),0);
+    const totalPuntos=Number((i.tarjetas||[]).find(x=>String(x.nombre).includes("Escenario severo"))?.valor||0);
     const resumenInferior=[
       {icon:"💧",valor:(i.tarjetas||[]).find(x=>x.nombre==="SARES")?.valor||0,nombre:"SARES"},
       {icon:"⚙",valor:totalIntervenciones,nombre:"Intervenciones",sub:"Ejecutadas y en ejecución"},
